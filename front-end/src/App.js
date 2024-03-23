@@ -1,10 +1,13 @@
-import logo from './logo.svg';
 import './App.css';
+import BasicButton from './components/BasicButton';
+
 
 function App() {
   return (
-    <div className="App">
-      <h1 className='text-6xl'>Hello World!</h1>
+    <div className='h-screen bg-[#172445]'>
+      
+      <BasicButton/>
+      
     </div>
   );
 }
