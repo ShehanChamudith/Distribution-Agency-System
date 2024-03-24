@@ -1,12 +1,12 @@
 import './App.css';
-import BasicButton from './components/BasicButton';
+import Login from './pages/Login';
 
 
 function App() {
   return (
     <div className='h-screen bg-[#172445]'>
       
-      <BasicButton/>
+      <Login/>
       
     </div>
   );
