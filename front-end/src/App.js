@@ -7,12 +7,12 @@ import {BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
-    <div className='h-screen bg-[#172445]'>
+    <div className='h-screen'>
       
       <Router>
-          <div>
+          {/* <div>
             <SideBar/>
-          </div>
+          </div> */}
         <Routes>
           <Route path='/' element={<Login/>}/>
           <Route path='/bill' element={<Bill/>}/>

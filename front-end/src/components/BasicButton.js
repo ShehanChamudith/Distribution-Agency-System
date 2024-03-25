@@ -8,12 +8,14 @@ export default function BasicButton(props) {
     <div className=' w-fit h-fit'>
         
         <button 
-          className='bg-sky-500 hover:bg-sky-700 rounded-xl w-auto h-[50px] px-4 font-PoppinsM text-white' 
-          onClick={() => {
+          className={`bg-sky-500 hover:bg-sky-700 rounded-xl ${props.ButtonWidth} h-[50px] px-4 font-PoppinsM text-white`} 
+            onClick={() => {
             navigate(props.sName)
-          }}
+            }}
         >
-          {props.buttonName}</button>
+        {props.buttonName}
+        </button>
+
 
     </div>
   )
