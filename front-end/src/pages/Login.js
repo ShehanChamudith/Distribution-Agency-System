@@ -1,7 +1,20 @@
 import React from 'react'
 import BasicButton from '../components/BasicButton';
+import {useState} from 'react'
 
 export default function Login() {
+
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const handleButtonClick = (e) => {
+        e.preventDefault();
+        setIsPopupOpen(true);
+      };
+      
+  
+    const handleClosePopup = () => {
+      setIsPopupOpen(false);
+    };
     
 
     return (
@@ -19,7 +32,7 @@ export default function Login() {
                     </div>
                         
                     <div>
-                        <input className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px]' 
+                        <input className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]' 
                             placeholder='Enter Your Username' 
                             required 
                             type='text'
@@ -32,11 +45,17 @@ export default function Login() {
                     </div>
                         
                     <div>
-                        <input className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px]' 
+                        <input className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]' 
                             placeholder='Enter Your Password' 
                             required 
                             type='password'
                         />
+                    </div>
+                    <div className='ml-[385px] mt-[15px]'>
+                        <a href='' onClick={handleButtonClick}>
+                            <h4 className=' font-PoppinsR text-[13px] text-[#172445]'>Forgot Password?</h4>
+                        </a>
+                        
                     </div>
                     
                 </form>
@@ -44,9 +63,17 @@ export default function Login() {
                 <div className=' ml-[100px] mt-[50px]'>
                     <BasicButton buttonName="Login" sName="/bill" ButtonWidth="w-[400px]"/> 
                 </div>
-                
-                
 
+                <div>
+                        {isPopupOpen && (
+                            <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full bg-black bg-opacity-50">
+                            <div className="p-8 transition-all duration-300 transform bg-white rounded-lg">
+                                <h2>Popup Content</h2>
+                                <button onClick={handleClosePopup}>Close Popup</button>
+                            </div>
+                            </div>
+                        )}
+                </div>
             </div>
 
 
@@ -54,8 +81,12 @@ export default function Login() {
 
             </div>
         </div>
+
+        
         
     )
+
+    
 }
 
 
