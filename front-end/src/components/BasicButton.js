@@ -4,14 +4,20 @@ import {useNavigate} from "react-router-dom";
 export default function BasicButton(props) {
   let navigate = useNavigate();
 
+  const handleButtonClick = () => {
+    if (props.onClick) {
+      props.onClick();
+    } else {
+      navigate(props.sName);
+    }
+  };
+
   return (
     <div className=' w-fit h-fit'>
         
         <button 
-          className={`bg-sky-500 hover:bg-sky-700 rounded-xl ${props.ButtonWidth} h-[50px] px-4 font-PoppinsM text-white`} 
-            onClick={() => {
-            navigate(props.sName)
-            }}
+          className={ `${props.ButtonColor} ${props.ButtonHover} rounded-xl ${props.ButtonWidth} ${props.ButtonHeight} px-4 font-PoppinsM text-white`} 
+          onClick={handleButtonClick}
         >
         {props.buttonName}
         </button>

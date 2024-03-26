@@ -1,31 +1,24 @@
-import { X } from "react-feather"
+import React from 'react';
 
-export default function Modal({ open, onClose, children }) {
+function Popup({ popupProp }) {
+
+   
+
   return (
-    // backdrop
-    <div
-      onClick={onClose}
-      className={`
-        fixed inset-0 flex justify-center items-center transition-colors
-        ${open ? "visible bg-black/20" : "invisible"}
-      `}
-    >
-      {/* modal */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`
-          bg-white rounded-xl shadow p-6 transition-all
-          ${open ? "scale-100 opacity-100" : "scale-125 opacity-0"}
-        `}
-      >
-        <button
-          onClick={onClose}
-          className="absolute p-1 text-gray-400 bg-white rounded-lg top-2 right-2 hover:bg-gray-50 hover:text-gray-600"
-        >
-          <X />
-        </button>
-        {children}
-      </div>
+    <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg backdrop-blur-sm'>
+        <div className='w-[400px] h-[400px] bg-white rounded-[20px] flex flex-col transition-all duration-5000 ease-in transform'>
+        <button className='w-[30px] h-[30px] bg-red-500 hover:bg-red-700 rounded-[8px] mt-4 place-self-end mr-4'
+        onClick={() => {
+            popupProp(false)
+        }}
+        >X</button>
+        
+            <div className=''>
+                <h1 className='text-center font-PoppinsB text-[20px]'>Forgot Password?</h1>
+            </div>
+        </div>
     </div>
   )
 }
+
+export default Popup

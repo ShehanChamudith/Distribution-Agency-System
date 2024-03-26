@@ -1,21 +1,12 @@
 import React from 'react'
 import BasicButton from '../components/BasicButton';
-import {useState} from 'react'
+import Popup from '../components/Popup';
+import {useState} from 'react';
+
 
 export default function Login() {
 
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-    const handleButtonClick = (e) => {
-        e.preventDefault();
-        setIsPopupOpen(true);
-      };
-      
-  
-    const handleClosePopup = () => {
-      setIsPopupOpen(false);
-    };
-    
+    const [openPopup, setOpenPopup]= useState(false);
 
     return (
         
@@ -50,33 +41,30 @@ export default function Login() {
                             required 
                             type='password'
                         />
-                    </div>
-                    <div className='ml-[385px] mt-[15px]'>
-                        <a href='' onClick={handleButtonClick}>
-                            <h4 className=' font-PoppinsR text-[13px] text-[#172445]'>Forgot Password?</h4>
-                        </a>
-                        
-                    </div>
-                    
+                    </div>   
                 </form>
 
+                <div className='ml-[385px] mt-[15px]'>
+                        <button className='border-0  font-PoppinsR text-[13px] text-[#172445]' 
+                        
+                        onClick={() => {
+                            setOpenPopup(true);
+                        }}
+                        >
+                        Forgot Password?</button>
+                </div>
+
                 <div className=' ml-[100px] mt-[50px]'>
-                    <BasicButton buttonName="Login" sName="/bill" ButtonWidth="w-[400px]"/> 
+                    <BasicButton buttonName="Login" sName="/bill" ButtonWidth="w-[400px]" ButtonColor="bg-sky-500" ButtonHeight="h-[50px]" ButtonHover="hover:bg-sky-700"
+                    popupProp={setOpenPopup}
+                    /> 
                 </div>
 
                 <div>
-                        {isPopupOpen && (
-                            <div className="fixed top-0 left-0 flex items-center justify-center w-full h-full bg-black bg-opacity-50">
-                            <div className="p-8 transition-all duration-300 transform bg-white rounded-lg">
-                                <h2>Popup Content</h2>
-                                <button onClick={handleClosePopup}>Close Popup</button>
-                            </div>
-                            </div>
-                        )}
+                    {openPopup && <Popup popupProp={setOpenPopup}/>}
                 </div>
             </div>
-
-
+            
             <div class="basis-1/2" className='w-1/2 h-screen bg-[#172445]'>
 
             </div>
