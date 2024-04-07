@@ -1,37 +1,22 @@
 const express = require('express');
-const mysql = require('mysql');
-                                                                                                                                                                                                                                                                                                                                                                         
+const DBpool = require('./config/DBconnect');
+
 const app = express();
 
-// MySQL database connection configuration
-const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'development_project'
-});
-                                                                                                                                                                                                                                                                            
-// Connect to MySQL database
-connection.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL database:', err);
-        return;
-    }
-    console.log('Connected to MySQL database');
-});
 
-// Define a route to fetch data from MySQL database
+
+
 app.get('/data', (req, res) => {
-    // Query data from MySQL database                                                   
-    connection.query('SELECT * FROM user', (err, rows) => {
-        if (err) {
-            console.error('Error querying MySQL database:', err);
+    // Example query using the pool
+    DBpool.query('SELECT * FROM user', (error, results) => {
+        if (error) {
+            console.error('Error querying MySQL database:', error);
             res.status(500).send('Internal Server Error');
             return;
         }
-        res.json(rows); // Send fetched data as JSON response
+        res.json(results);
     });
-});
+  });
 
 // Start the Express server
 app.listen(3001, () => {
