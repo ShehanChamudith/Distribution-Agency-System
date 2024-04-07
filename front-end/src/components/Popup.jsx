@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Popup({ popupProp }) {
+function Popup({popupProp} ) {
 
    
 

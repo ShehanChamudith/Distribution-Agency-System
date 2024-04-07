@@ -77,7 +77,3 @@ export default function Login() {
     
 }
 
-
-
-
-// className='bg-[#172445] h-screen w-screen'
