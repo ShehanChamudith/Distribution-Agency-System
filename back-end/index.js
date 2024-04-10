@@ -1,9 +1,9 @@
 const express = require('express');
 const DBpool = require('./config/DBconnect');
+const cors = require('cors');
 
 const app = express();
-
-
+app.use(cors());
 
 
 app.get('/data', (req, res) => {

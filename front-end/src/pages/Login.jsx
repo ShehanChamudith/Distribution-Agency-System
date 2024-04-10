@@ -1,12 +1,19 @@
-import React from 'react'
+import {React, useState, useEffect} from 'react';
 import BasicButton from '../components/BasicButton';
 import Popup from '../components/Popup';
-import {useState} from 'react';
+import axios from 'axios';
+
 
 
 export default function Login() {
 
     const [openPopup, setOpenPopup]= useState(false);
+
+    useEffect(() => {
+        axios.get('http://localhost:3001/data').then((response) => {
+            console.log(response.data);
+        });
+    }, []);
 
     return (
         
