@@ -17,8 +17,8 @@ export default function Login() {
 
     return (
         
-        <div class="flex flex-row">
-            <div class="basis-1/2" className='w-1/2 h-screen bg-white'>
+        <div className="flex flex-row">
+            <div className='w-1/2 h-screen bg-white basis-1/2'>
                 <h1 className=' text-[#172445] text-2xl font-PoppinsB ml-[100px] pt-[100px]'>Maleesha Agency</h1>
                 <h1 className=' text-[#172445] text-5xl font-PoppinsB ml-[100px] pt-[100px]'>Login to your account!</h1>
 
@@ -72,7 +72,7 @@ export default function Login() {
                 </div>
             </div>
             
-            <div class="basis-1/2" className='w-1/2 h-screen bg-[#172445]'>
+            <div className=' basis-1/2 w-1/2 h-screen bg-[#172445]'>
 
             </div>
         </div>

@@ -9,10 +9,10 @@ const dbConfig = {
 };
                                                                                                                                                                                                                                                                             
 // Create a MySQL pool
-const DBpool = mysql.createPool(dbConfig);
+const DBconnect = mysql.createPool(dbConfig);
 
 // Listen for errors during pool creation
-DBpool.on('error', (err) => {
+DBconnect.on('error', (err) => {
 
         if (err) {
             console.error('Error connecting to MySQL database:', err);
@@ -22,7 +22,7 @@ DBpool.on('error', (err) => {
   });
 
 
-module.exports = DBpool;
+module.exports = DBconnect;
 
 
 
