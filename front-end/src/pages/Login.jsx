@@ -7,13 +7,24 @@ import axios from 'axios';
 
 export default function Login() {
 
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
     const [openPopup, setOpenPopup]= useState(false);
 
-    useEffect(() => {
-        axios.get('http://localhost:3001/data').then((response) => {
+    const login = () => {
+        const data = {username: username, password: password};
+        axios.post("http://localhost:3001/login", data).then((response) => {
             console.log(response.data);
-        });
-    }, []);
+        })
+    };
+    
+
+    // useEffect(() => {
+    //     axios.get('http://localhost:3001/data').then((response) => {
+    //         console.log(response.data);
+    //     });
+    // }, []);
 
     return (
         
@@ -30,12 +41,17 @@ export default function Login() {
                     </div>
                         
                     <div>
-                        <input className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]' 
+                        <input 
+                            className='h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]' 
                             placeholder='Enter Your Username' 
                             required 
                             type='text'
+                            onChange={(event) => {
+                                setUsername(event.target.value);
+                            }} 
                         />
                     </div>
+
                     
 
                     <div className=' mt-[30px]'>
@@ -47,6 +63,9 @@ export default function Login() {
                             placeholder='Enter Your Password' 
                             required 
                             type='password'
+                            onChange={(event) => {
+                                setPassword(event.target.value);
+                            }}
                         />
                     </div>   
                 </form>
@@ -62,7 +81,13 @@ export default function Login() {
                 </div>
 
                 <div className=' ml-[100px] mt-[50px]'>
-                    <BasicButton buttonName="Login" sName="/bill" ButtonWidth="w-[400px]" ButtonColor="bg-sky-500" ButtonHeight="h-[50px]" ButtonHover="hover:bg-sky-700"
+                    <BasicButton 
+                        buttonName="Login"
+                        ButtonWidth="w-[400px]" 
+                        ButtonColor="bg-sky-500" 
+                        ButtonHeight="h-[50px]" 
+                        ButtonHover="hover:bg-sky-700"
+                        onClick={login}
                     popupProp={setOpenPopup}
                     /> 
                 </div>

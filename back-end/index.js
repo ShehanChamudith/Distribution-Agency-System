@@ -3,11 +3,11 @@ const DBconnect = require('./config/DBconnect');
 const cors = require('cors');
 
 const app = express();
+
 app.use(cors());
 
 const userRoute = require('./routes/Users');
-
-app.use('/user', userRoute);
+app.use('/login', userRoute);
 
 
 // Start the Express server
