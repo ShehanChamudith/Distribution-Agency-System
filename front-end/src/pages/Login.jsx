@@ -2,30 +2,46 @@ import {React, useState, useEffect} from 'react';
 import BasicButton from '../components/BasicButton';
 import Popup from '../components/Popup';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
 
 
 export default function Login() {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-
+    const navigate = useNavigate();
     const [openPopup, setOpenPopup]= useState(false);
 
+    // const login = () => {
+    //     const data = {username: username, password: password};
+    //     axios.post("http://localhost:3001/login", data).then((response) => {
+    //         console.log(response.data);
+    //     })
+    // };
+
+
     const login = () => {
-        const data = {username: username, password: password};
-        axios.post("http://localhost:3001/login", data).then((response) => {
-            console.log(response.data);
-        })
+        const data = { username: username, password: password };
+        axios.post("http://localhost:3001/login", data)
+            .then((response) => {
+                console.log(response.data);
+                if (response.data.usertype === 'admin') {
+                    // Navigate to admin page if usertype is admin
+                    navigate('/admin');
+                } else if (response.data.usertype === 'office') {
+                    // Navigate to user page if usertype is user
+                    navigate('/bill');
+                } else {
+                    // Handle other user types or cases where usertype is not defined
+                    console.log('Invalid user type');
+                }
+            })
+            .catch((error) => {
+                console.error('Error logging in:', error);
+                // Handle error response
+            });
     };
     
-
-    // useEffect(() => {
-    //     axios.get('http://localhost:3001/data').then((response) => {
-    //         console.log(response.data);
-    //     });
-    // }, []);
-
     return (
         
         <div className="flex flex-row">
