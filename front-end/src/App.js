@@ -15,6 +15,7 @@ function App() {
             <SideBar/>
           </div> */}
         <Routes>
+        <Route path='/' element={<SideBar/>}/>
           <Route path='/login' element={<Login/>}/>
           <Route path='/bill' element={<Bill/>}/>
           <Route path='/login' element={<Login/>}/>
