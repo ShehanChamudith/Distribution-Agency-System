@@ -3,6 +3,7 @@ import BasicButton from '../components/BasicButton';
 import Popup from '../components/Popup';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 
 export default function Login() {
@@ -11,6 +12,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
     const [openPopup, setOpenPopup]= useState(false);
+    const [error, setError] = useState('');
 
     // const login = () => {
     //     const data = {username: username, password: password};
@@ -19,6 +21,25 @@ export default function Login() {
     //     })
     // };
 
+    const popup = () => {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+          }).then((result) => {
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: "Deleted!",
+                text: "Your file has been deleted.",
+                icon: "success"
+              });
+            }
+          });
+    }
 
     const login = () => {
         const data = { username: username, password: password };
@@ -34,10 +55,12 @@ export default function Login() {
                 } else {
                     // Handle other user types or cases where usertype is not defined
                     console.log('Invalid user type');
+                    setError('Invalid username or password!');
                 }
             })
             .catch((error) => {
                 console.error('Error logging in:', error);
+                setError('Invalid username or password!');
                 // Handle error response
             });
     };
@@ -90,11 +113,14 @@ export default function Login() {
                         <button className='border-0  font-PoppinsR text-[13px] text-[#172445]' 
                         
                         onClick={() => {
-                            setOpenPopup(true);
+                            //setOpenPopup(true);
+                            popup();
                         }}
                         >
                         Forgot Password?</button>
                 </div>
+
+                <div className="text-red-500 ml-[100px] mb-[20px]">{error}</div> {/* Error message */}
 
                 <div className=' ml-[100px] mt-[50px]'>
                     <BasicButton 
