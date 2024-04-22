@@ -5,7 +5,7 @@ import Time from './Time';
 
 export const SideBar = () => {
   return (
-    <div className='w-[16%] h-full bg-[#172445] flex flex-col'>
+    <div className='w-[20%] h-full bg-[#172445] flex flex-col'>
 
       <div className='w-full bg-[#0e172d] h-[100px] text-white  flex items-center justify-center '>
         <div>
