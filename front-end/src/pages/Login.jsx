@@ -43,12 +43,12 @@ export default function Login() {
 
     const login = () => {
         const data = { username: username, password: password };
-        axios.post("http://localhost:3001/login", data)
+        axios.post("http://localhost:3001/", data)
             .then((response) => {
                 console.log(response.data);
                 if (response.data.usertype === 'admin') {
                     // Navigate to admin page if usertype is admin
-                    navigate('/admin');
+                    navigate('/bill');
                 } else if (response.data.usertype === 'office') {
                     // Navigate to user page if usertype is user
                     navigate('/bill');

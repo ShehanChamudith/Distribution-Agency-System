@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 
 const userRoute = require('./routes/Users');
-app.use('/login', userRoute);
+app.use('/', userRoute);
 
 
 // Start the Express server
