@@ -1,12 +1,12 @@
 const express = require('express');
-const DBconnect = require('./config/DBconnect');
 const cors = require('cors');
 
 const app = express();
 
 app.use(cors());
+app.use(express.json())
 
-const userRoute = require('./routes/Users');
+const userRoute = require('./routes/authRoute');
 app.use('/', userRoute);
 
 

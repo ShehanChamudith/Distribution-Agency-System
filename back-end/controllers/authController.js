@@ -1,15 +1,9 @@
-const express = require('express');
-const router = express.Router();
 const DBconnect = require('../config/DBconnect');
-const bcrypt = require('bcrypt');
-
-router.use(express.json());
 
 
+const login = (req,res) => { 
 
-router.post('/', async (req, res) => {
     const { username, password } = req.body;
-    
     
     DBconnect.query('SELECT * FROM user WHERE username = ? AND password = ?', [username, password], (err, rows) => {
         if (err) {
@@ -25,34 +19,9 @@ router.post('/', async (req, res) => {
             res.status(401).json({ error: 'Invalid username or password' }); // Send error if login fails
         }
     });
-      
-});
 
+}
 
-
-    
-
-// router.get('/', (req, res) => {
-//     // Example query using the pool
-//     DBconnect.query('SELECT * FROM user', (error, results) => {
-//         if (error) {
-//             console.error('Error querying MySQL database:', error);
-//             res.status(500).send('Internal Server Error');
-//             return;
-//         }
-//         res.json(results);
-//     });
-//   });
-
-
-  module.exports = router;
-
-
-
-
-
-
-
-
-
-
+module.exports = {
+    login
+};
