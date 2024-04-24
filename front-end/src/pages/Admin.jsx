@@ -1,9 +1,22 @@
-import React from 'react'
+import React from 'react';
+import { LineGraph } from '../components/LineGraph';
 
 export const Admin = () => {
   return (
     <div>
-        <h1 className='text-3xl text-center text-black'>This is Admin Page</h1>
+      <div className='text-3xl font-PoppinsB h-[100px] flex items-center p-5 shadow-md'>
+        Admin Dashboard
+      </div>
+
+      <div className='flex justify-center w-full'>
+        <div className='w-[1000px] h-auto p-5'>
+          <div className=''>
+            <LineGraph />
+          </div>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Admin;

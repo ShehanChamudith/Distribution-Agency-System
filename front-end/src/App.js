@@ -1,6 +1,7 @@
 import './App.css';
 import { SideBar } from './components/SideBar';
 import AddUser from './pages/AddUser';
+import Admin from './pages/Admin';
 import { Bill } from './pages/Bill';
 // import FirebaseTest from './pages/FirebaseTest';
 import Login from './pages/Login';
@@ -19,6 +20,7 @@ function App() {
               <Route path='/bill' element={<Bill/>}/>
               <Route path='/login' element={<Login/>}/>
               <Route path='/home' element={<AddUser/>}/>
+              <Route path='/my-dashboard' element={<Admin/>}/>
           </Routes>
         </div>
       </div>
