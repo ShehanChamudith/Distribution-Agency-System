@@ -2,5 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+*{
+    /* border: solid 1px; */
 
+}
   

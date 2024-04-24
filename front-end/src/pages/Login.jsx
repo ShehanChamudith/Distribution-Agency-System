@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 
+
 export default function Login() {
 
     const [username, setUsername] = useState('');
@@ -14,13 +15,7 @@ export default function Login() {
     const [openPopup, setOpenPopup]= useState(false);
     const [error, setError] = useState('');
 
-    // const login = () => {
-    //     const data = {username: username, password: password};
-    //     axios.post("http://localhost:3001/login", data).then((response) => {
-    //         console.log(response.data);
-    //     })
-    // };
-
+   
     const popup = () => {
         Swal.fire({
             title: "Are you sure?",
@@ -39,6 +34,7 @@ export default function Login() {
               });
             }
           });
+        
     }
 
     const login = () => {

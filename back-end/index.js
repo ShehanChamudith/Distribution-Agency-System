@@ -6,8 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json())
 
-const userRoute = require('./routes/authRoute');
-app.use('/', userRoute);
+const authRoute = require('./routes/authRoute');
+app.use('/', authRoute);
+
+const userRoute = require('./routes/userRoute');
+app.use('/home', userRoute); 
 
 
 // Start the Express server

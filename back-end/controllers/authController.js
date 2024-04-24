@@ -1,6 +1,6 @@
 const DBconnect = require('../config/DBconnect');
 
-
+//Login Function
 const login = (req,res) => { 
 
     const { username, password } = req.body;
@@ -22,6 +22,12 @@ const login = (req,res) => {
 
 }
 
+//Logout Function
+const logout = (req,res) => {
+
+}
+
 module.exports = {
-    login
+    login,
+    logout
 };
