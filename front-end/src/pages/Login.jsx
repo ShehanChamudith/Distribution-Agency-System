@@ -44,7 +44,7 @@ export default function Login() {
                 console.log(response.data);
                 if (response.data.usertype === 'admin') {
                     // Navigate to admin page if usertype is admin
-                    navigate('/bill');
+                    navigate('/my-dashboard');
                 } else if (response.data.usertype === 'office') {
                     // Navigate to user page if usertype is user
                     navigate('/bill');
@@ -72,7 +72,7 @@ export default function Login() {
 
                 <form className=' mt-[50px]'>
                     <div>
-                    <h1 className='text-gray-500 font-PoppinsR ml-[100px]'>Username:</h1>
+                    <h1 className='text-gray-500 font-PoppinsR ml-[100px] text-[1.1rem]'></h1>
                     </div>
                         
                     <div>
@@ -90,7 +90,7 @@ export default function Login() {
                     
 
                     <div className=' mt-[30px]'>
-                    <h1 className='text-gray-500 font-PoppinsR ml-[100px]'>Password:</h1>
+                    <h1 className='text-gray-500 font-PoppinsR ml-[100px] text-[1.1rem]'></h1>
                     </div>
                         
                     <div>

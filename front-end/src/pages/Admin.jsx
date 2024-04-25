@@ -8,11 +8,11 @@ export const Admin = () => {
         Admin Dashboard
       </div>
 
-      <div className='flex justify-center w-full'>
-        <div className='w-[1000px] h-auto p-5'>
-          <div className=''>
+      <div className='flex justify-center w-full '>
+        <div className=' w-[50rem] flex justify-start'> 
+          
             <LineGraph />
-          </div>
+          
         </div>
       </div>
     </div>
