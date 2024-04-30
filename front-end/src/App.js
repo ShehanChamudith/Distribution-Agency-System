@@ -1,7 +1,5 @@
 import './App.css';
-import { SideBar } from './components/SideBar';
 import SideBar2 from './components/SideBar2';
-import AddUser from './pages/AddUser';
 import Admin from './pages/Admin';
 import { Bill } from './pages/Bill';
 // import FirebaseTest from './pages/FirebaseTest';
@@ -14,9 +12,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 function App() {
   return (
     <Router>
-      <div className=''>
+      <div className='flex flex-col w-full '>
           <ConditionalSideBar />
-        <div className='flex-1 overflow-y-auto'>
           <Routes>
               {/* <Route path='/' element={<FirebaseTest/>}/> */}
               <Route path='/' element={<Login/>}/>
@@ -26,7 +23,6 @@ function App() {
               <Route path='/my-dashboard' element={<Admin/>}/>
           </Routes>
         </div>
-      </div>
     </Router>
   );
 }

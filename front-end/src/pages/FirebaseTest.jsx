@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import { useState, useEffect } from "react";
 import {
   ref,
@@ -11,7 +11,7 @@ import { storage } from "../config/Firebase";
 import { v4 } from "uuid";
 
 function FirebaseTest() {
-    const [imageUpload, setImageUpload] = useState(null);
+  const [imageUpload, setImageUpload] = useState(null);
   const [imageUrls, setImageUrls] = useState([]);
 
   const imagesListRef = ref(storage, "images/");
@@ -44,7 +44,7 @@ function FirebaseTest() {
         }}
       />
       <button onClick={uploadFile}> Upload Image</button>
-      
+
       {imageUrls.map((url) => {
         return <img src={url} />;
       })}
@@ -52,4 +52,4 @@ function FirebaseTest() {
   );
 }
 
-export default FirebaseTest
+export default FirebaseTest;

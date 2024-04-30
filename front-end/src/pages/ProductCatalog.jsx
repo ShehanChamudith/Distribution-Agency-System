@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 function ProductCatalog() {
-  return (
-    <div></div>
-  )
+  return <div></div>;
 }
 
-export default ProductCatalog
+export default ProductCatalog;

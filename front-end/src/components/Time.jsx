@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const Time = () => {
-  const [currentTime, setCurrentTime] = useState('');
+  const [currentTime, setCurrentTime] = useState("");
 
   useEffect(() => {
     const interval = setInterval(() => {
       const date = new Date();
-      const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+      const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
       const timeString = date.toLocaleTimeString([], timeOptions);
       setCurrentTime(timeString);
     }, 1000);
@@ -16,7 +16,7 @@ const Time = () => {
 
   return (
     <div>
-      <p className='text-white '>{currentTime}</p>
+      <p className="text-white ">{currentTime}</p>
     </div>
   );
 };
