@@ -72,7 +72,7 @@ export default function Login() {
           <div>
             <input
               className="h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]"
-              placeholder="Enter Your Username"
+              placeholder="Username"
               required
               type="text"
               onChange={(event) => {
@@ -83,10 +83,10 @@ export default function Login() {
 
           
 
-          <div>
+          <div className="pt-3">
             <input
               className="h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]"
-              placeholder="Enter Your Password"
+              placeholder="Password"
               required
               type="password"
               onChange={(event) => {

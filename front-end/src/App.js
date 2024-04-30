@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import {BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import ProductCatalog from './pages/ProductCatalog';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Inventory from './pages/Inventory';
+import TemporaryDrawer from './components/TemporaryDrawer';
 
 
 function App() {
@@ -21,6 +23,7 @@ function App() {
               <Route path='/login' element={<Login/>}/>
               <Route path='/home' element={<ProductCatalog/>}/>
               <Route path='/my-dashboard' element={<Admin/>}/>
+              <Route path='/inventory' element={<Inventory/>}/>
           </Routes>
         </div>
     </Router>
@@ -33,7 +36,7 @@ function ConditionalSideBar() {
   const location = useLocation();
   // Render Sidebar only if the current location is not the root path ("/") 
   if (location.pathname !== '/') {
-    return <SideBar2 />;
+    return <TemporaryDrawer />;
   }
   return null;
 }

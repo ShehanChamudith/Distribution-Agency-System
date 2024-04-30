@@ -3,7 +3,6 @@ import Offcanvas from "react-bootstrap/Offcanvas";
 import MenuIcon from "@mui/icons-material/Menu";
 import { SideBarData } from "./SideBarData";
 import { Link } from "react-router-dom";
-import ProfileMenu from "./StyledMenu";
 import Profile from "./Profile";
 
 //border-2 border-gray-50

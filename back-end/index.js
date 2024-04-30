@@ -12,6 +12,9 @@ app.use('/', authRoute);
 const userRoute = require('./routes/userRoute');
 app.use('/home', userRoute); 
 
+const getRoute = require('./routes/getRoute');
+app.use('/', getRoute);
+
 
 // Start the Express server
 app.listen(3001, () => {
