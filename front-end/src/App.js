@@ -1,5 +1,4 @@
 import './App.css';
-import SideBar2 from './components/SideBar2';
 import Admin from './pages/Admin';
 import { Bill } from './pages/Bill';
 // import FirebaseTest from './pages/FirebaseTest';

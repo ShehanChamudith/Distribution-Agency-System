@@ -1,6 +1,5 @@
 import { React, useState } from "react";
 import BasicButton from "../components/BasicButton";
-import Popup from "../components/Popup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -9,7 +8,6 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const [openPopup, setOpenPopup] = useState(false);
   const [error, setError] = useState("");
 
   const popup = () => {
@@ -116,10 +114,9 @@ export default function Login() {
             ButtonHeight="h-[50px]"
             ButtonHover="hover:bg-sky-700"
             onClick={login}
-            popupProp={setOpenPopup}
           />
         </div>
-        <div>{openPopup && <Popup popupProp={setOpenPopup} />}</div>
+        
       </div>
 
       <div className=" basis-1/2 w-1/2 h-screen bg-[#172445]"></div>
