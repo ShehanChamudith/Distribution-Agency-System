@@ -4,11 +4,12 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-export default function Login() {
+function Login({ setIsAuthenticated }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [error, setError] = useState("");
+
 
   const popup = () => {
     Swal.fire({
@@ -32,20 +33,21 @@ export default function Login() {
 
   const login = () => {
     const data = { username: username, password: password };
+
     axios
       .post("http://localhost:3001/", data)
+
       .then((response) => {
-        console.log(response.data);
-        if (response.data.usertype === "admin") {
-          // Navigate to admin page if usertype is admin
-          navigate("/my-dashboard");
-        } else if (response.data.usertype === "office") {
-          // Navigate to user page if usertype is user
-          navigate("/my-dashboard");
+        if (response.data.error) {
+          alert(response.data.error);
+          // Exit the function if there's an error
         } else {
-          // Handle other user types or cases where usertype is not defined
-          console.log("Invalid user type");
-          setError("Invalid username or password!");
+          
+          const accessToken = response.data.accessToken;
+          sessionStorage.setItem("accessToken", accessToken);
+          setIsAuthenticated(true);
+          navigate("/my-dashboard");
+
         }
       })
       .catch((error) => {
@@ -65,8 +67,6 @@ export default function Login() {
           Login to your account!
         </h1>
         <form className=" mt-[50px]">
-          
-
           <div>
             <input
               className="h-15 w-[400px] py-2 border-gray-300 border-b-[1px] font-PoppinsL focus:outline-none mt-1 ml-[100px] text-[14px]"
@@ -78,8 +78,6 @@ export default function Login() {
               }}
             />
           </div>
-
-          
 
           <div className="pt-3">
             <input
@@ -116,10 +114,17 @@ export default function Login() {
             onClick={login}
           />
         </div>
-        
       </div>
 
       <div className=" basis-1/2 w-1/2 h-screen bg-[#172445]"></div>
     </div>
   );
 }
+
+export default Login;
+
+// {
+//   headers: {
+//     accessToken: sessionStorage.getItem("accessToken"),
+//   }
+// }

@@ -1,15 +1,17 @@
 const DBconnect = require('../config/DBconnect');
 
 const deleteInventory = (req, res) => {
-    const productID = req.body.rowIdToDelete;
-    DBconnect.query('DELETE * FROM product where productID = ?', productID, (err, results) => {
-        if (error) {
-            console.error("Error deleting item:", error);
-            res.status(500).json({ error: "Error deleting item" });
-          } else {
-            console.log("Item deleted successfully");
-            res.status(200).json({ message: "Item deleted successfully" });
-          }
+    const productId = req.params.productId;
+    const sql = 'DELETE FROM product WHERE productID = ?';
+  
+    DBconnect.query(sql, [productId], (err, result) => {
+      if (err) {
+        console.error('Error deleting row:', err);
+        res.status(500).json({ error: 'An error occurred while deleting the row' });
+        return;
+      }
+      console.log('Row deleted successfully');
+      res.status(200).json({ message: 'Row deleted successfully' });
     });
 }
 

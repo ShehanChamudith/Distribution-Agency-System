@@ -1,14 +1,14 @@
-import React from 'react'
-import Table from '../components/Table'
+import React from "react";
+import Table from "../components/Table";
 
 function Inventory() {
   return (
-    <div>
-        <div>
-            <Table/>
-        </div>
-    </div>
-  )
+    
+      <div className="flex w-screen max-w-[100vw] overflow-y-hidden justify-center border-2 border-black">
+        <Table/>
+      </div>
+    
+  );
 }
 
-export default Inventory
+export default Inventory;

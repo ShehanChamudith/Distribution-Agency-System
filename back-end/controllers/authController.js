@@ -1,4 +1,5 @@
 const DBconnect = require('../config/DBconnect');
+const jwt = require('jsonwebtoken');
 
 //Login Function
 const login = (req,res) => { 
@@ -13,10 +14,13 @@ const login = (req,res) => {
         }
 
         if (rows.length === 1) {
+
+            const accessToken = jwt.sign({username: rows[0].username, userID: rows[0].userID }, "jwtSecretToken")
+
             const { usertype } = rows[0];
-            res.json({ usertype }); // Send user role if login is successful
+            res.json({ accessToken, usertype }); // Send user role if login is successful
         } else {
-            res.status(401).json({ error: 'Invalid username or password' }); // Send error if login fails
+            res.json({ error: 'Invalid username or password' }); // Send error if login fails
         }
     });
 

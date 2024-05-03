@@ -50,7 +50,8 @@ export default function TemporaryDrawer() {
   );
 
   return (
-    <div className="flex h-20 bg-[#172445]  w-full">
+    
+    <div className=" flex h-20 bg-[#172445]  w-full">
       <div className="flex w-[30%]  h-full items-center pl-10">
         <div className="flex items-center justify-between gap-3">
           <button onClick={toggleDrawer(true)}>
@@ -61,7 +62,7 @@ export default function TemporaryDrawer() {
             {DrawerList}
           </MuiDrawer>
 
-          <h3 className="mt-2 text-lg text-white font-PoppinsR">
+          <h3 className="text-lg text-white font-PoppinsR">
               {interfaceTitle}
           </h3>
         </div>
