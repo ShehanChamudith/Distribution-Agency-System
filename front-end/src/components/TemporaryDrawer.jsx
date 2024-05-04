@@ -7,7 +7,7 @@ import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import Profile from "./Profile";
 
-export default function TemporaryDrawer() {
+export default function TemporaryDrawer({ setIsAuthenticated }) {
   const [open, setOpen] = React.useState(false);
   const [interfaceTitle, setInterfaceTitle] = useState("My Dashboard");
 
@@ -80,7 +80,7 @@ export default function TemporaryDrawer() {
             </div>
 
             <div className=" h-full">
-              <Profile />
+              <Profile setIsAuthenticated={setIsAuthenticated} />
             </div>
           </div>
         </div>

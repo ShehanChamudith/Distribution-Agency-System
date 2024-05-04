@@ -39,8 +39,6 @@ const popup = (productId) => {
   });
 };
 
-
-
 function Table() {
   const [data, setData] = useState([]);
 
@@ -102,7 +100,7 @@ function Table() {
                     <DeleteIcon sx={{ fontSize: 32, color: "blue" }} />
                   </button>
 
-                  <button onClick={editPopup}>
+                  <button onClick={popup}>
                     <EditIcon sx={{ fontSize: 32, color: "blue" }} />
                   </button>
                 </div>
@@ -116,14 +114,6 @@ function Table() {
 }
 
 export default Table;
-
-
-
-
-
-
-
-
 
 // const editPopup = async () => {
 //   // Make an HTTP request to your backend API to fetch the data

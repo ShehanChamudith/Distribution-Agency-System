@@ -11,11 +11,20 @@ import {
 import ProductCatalog from "./pages/ProductCatalog";
 import Inventory from "./pages/Inventory";
 import TemporaryDrawer from "./components/TemporaryDrawer";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  function ConditionalSideBar() {
+    const location = useLocation();
+    // Render Sidebar only if the current location is not the root path ("/")
+    if (location.pathname !== "/") {
+      return <TemporaryDrawer setIsAuthenticated={setIsAuthenticated} />;
+    }
+    return null;
+  }
 
   return (
     
@@ -28,8 +37,7 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
               <Route path="/bill" element={<Bill />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/home" element={<ProductCatalog />} />
+              <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/my-dashboard" element={<Admin />} />
               <Route path="/inventory" element={<Inventory />} />
             </Route>
@@ -42,11 +50,4 @@ function App() {
 
 export default App;
 
-function ConditionalSideBar() {
-  const location = useLocation();
-  // Render Sidebar only if the current location is not the root path ("/")
-  if (location.pathname !== "/") {
-    return <TemporaryDrawer />;
-  }
-  return null;
-}
+
