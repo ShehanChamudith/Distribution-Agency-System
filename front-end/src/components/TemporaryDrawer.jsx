@@ -70,16 +70,16 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
 
       <div className=" w-[40%] h-fit"></div>
 
-      <div className="flex w-[30%]  h-full  justify-end pr-4">
+      <div className="flex w-[30%]  h-full  justify-end ">
         <div className="flex grid-cols-3 h-20 w-fit items-center ">
-          <div className=" h-10 flex ">
+          <div className=" h-10 flex pr-10">
             <div className=" flex h-full w-fit justify-center items-center pt-2">
               <h1 className=" font-PoppinsM text-sm text-white justify-end">
                 Shehan Chamudith
               </h1>
             </div>
 
-            <div className=" h-full">
+            <div className=" h-full ">
               <Profile setIsAuthenticated={setIsAuthenticated} />
             </div>
           </div>

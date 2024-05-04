@@ -15,7 +15,7 @@ import React, { useState } from "react";
 import ProtectedRoute from "./utils/ProtectedRoute";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   function ConditionalSideBar() {
     const location = useLocation();
