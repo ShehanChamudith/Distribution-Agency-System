@@ -47,38 +47,39 @@ function ItemCard({ item }) {
   );
 }
 
-export default function DynamicItemCard({ category }) {
+export default function DynamicItemCard({ category, searchQuery }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     // Make a GET request to fetch data from the API endpoint
-    if (category === "All" || !category) {
-      axios
-        .get("http://localhost:3001/inventory")
-        .then((response) => {
-          setData(response.data); // Set all items to the state
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
-    } else {
-      // Filter items based on the category
-      axios
-        .get("http://localhost:3001/inventory")
-        .then((response) => {
-          const filteredData = response.data.filter(
+    axios
+      .get("http://localhost:3001/inventory")
+      .then((response) => {
+        let filteredData = response.data;
+
+        // Filter items based on category
+        if (category && category !== "All") {
+          filteredData = filteredData.filter(
             (item) => item.category === category
           );
-          setData(filteredData); // Set the filtered data to the state
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
-    }
-  }, [category]);
+        }
+
+        // Filter items based on search query
+        if (searchQuery) {
+          filteredData = filteredData.filter((item) =>
+            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+
+        setData(filteredData); // Set the filtered data to the state
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [category, searchQuery]);
 
   return (
-    <div className="flex flex-wrap gap-4 justify-between">
+    <div className="flex flex-wrap gap-4 justify-arround">
       {data.map((item) => (
         <ItemCard key={item.id} item={item} />
       ))}
