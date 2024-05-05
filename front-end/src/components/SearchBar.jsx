@@ -43,6 +43,7 @@ export default function SearchBar() {
             InputProps={{
               ...params.InputProps,
               type: 'search',
+              sx: { height: 48 },
               
             }}
           />

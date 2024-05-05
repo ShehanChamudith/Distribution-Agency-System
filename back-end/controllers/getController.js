@@ -1,7 +1,7 @@
 const DBconnect = require('../config/DBconnect');
 
 const inventoryGet = (req, res) => {
-    DBconnect.query('SELECT * FROM product', (err, results) => {
+    DBconnect.query('SELECT p.*, c.category FROM product p JOIN category c ON p.categoryID = c.categoryID', (err, results) => {
         if (err) {
             console.error('Error querying MySQL database:', err);
             res.status(500).send('Internal Server Error');

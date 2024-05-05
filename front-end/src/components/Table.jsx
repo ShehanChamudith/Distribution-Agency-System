@@ -88,7 +88,7 @@ function Table() {
           {data.map((item) => (
             <tr key={item.productID} className="hover:bg-gray-100">
               <td className="px-6 py-4">{item.product_name}</td>
-              <td className="px-6 py-4">{item.stock_quantity}kg</td>
+              <td className="px-6 py-4">{item.stock_total}kg</td>
               <td className="px-6 py-4">{item.category}</td>
               <td className="px-6 py-4">Rs.{item.wholesale_price}</td>
               <td className="px-6 py-4">Rs.{item.selling_price}</td>
