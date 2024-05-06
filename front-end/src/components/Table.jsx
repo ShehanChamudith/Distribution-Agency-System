@@ -30,7 +30,7 @@ const popup = (productId) => {
       deleteRow(productId); // Call the callback function after confirmation
       Swal.fire({
         title: "Deleted!",
-        text: "Your file has been deleted.",
+        text: "Row has been deleted.",
         icon: "success",
       }).then(() => {
         window.location.reload(); // Reload the page after successful deletion
@@ -115,60 +115,4 @@ function Table() {
 
 export default Table;
 
-// const editPopup = async () => {
-//   // Make an HTTP request to your backend API to fetch the data
-//   try {
-//     const response = await axios.get('http://localhost:3001/inventory');
-//     const dataFromDatabase = response.data;
 
-//     const { value: formValues } = await Swal.fire({
-//       title: "Edit Inventory Data",
-//       html: `
-//         <div style="display: flex; flex-direction: column;">
-//           <div style="margin-bottom: 10px;">
-//             <label for="swal-input1" style="margin-right: 10px;">Field 1:</label>
-//             <input id="swal-input1" class="swal2-input" value="${dataFromDatabase.field1}">
-//           </div>
-
-//           <div style="margin-bottom: 10px;">
-//             <label for="swal-input2" style="margin-right: 10px;">Field 2:</label>
-//             <input id="swal-input2" class="swal2-input" value="${dataFromDatabase.field2}">
-//           </div>
-
-//           <div style="margin-bottom: 10px;">
-//             <label for="swal-input3" style="margin-right: 10px;">Field 3:</label>
-//             <input id="swal-input3" class="swal2-input" value="${dataFromDatabase.field3}">
-//           </div>
-
-//           <div style="margin-bottom: 10px;">
-//             <label for="swal-input4" style="margin-right: 10px;">Field 4:</label>
-//             <input id="swal-input4" class="swal2-input" value="${dataFromDatabase.field4}">
-//           </div>
-
-//           <div>
-//             <label for="swal-input5" style="margin-right: 10px;">Field 5:</label>
-//             <input id="swal-input5" class="swal2-input" value="${dataFromDatabase.field5}">
-//           </div>
-//         </div>
-//       `,
-//       focusConfirm: false,
-//       preConfirm: () => {
-//         return [
-//           document.getElementById("swal-input1").value,
-//           document.getElementById("swal-input2").value,
-//           document.getElementById("swal-input3").value,
-//           document.getElementById("swal-input4").value,
-//           document.getElementById("swal-input5").value,
-//         ];
-//       }
-//     });
-
-//     if (formValues) {
-//       Swal.fire(JSON.stringify(formValues));
-//     }
-//   } catch (error) {
-//     console.error('Error fetching data:', error);
-//     // Handle error (e.g., show error message)
-//     Swal.fire('Error', 'Failed to fetch data from the server', 'error');
-//   }
-// }

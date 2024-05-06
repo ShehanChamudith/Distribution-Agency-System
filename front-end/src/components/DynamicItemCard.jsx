@@ -9,6 +9,42 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import myImg from "../assets/images/img.jpg";
 import axios from "axios";
+import Swal from "sweetalert2";
+
+const deleteRow = (productId) => {
+  axios
+    .delete(`http://localhost:3001/inventory/${productId}`)
+    .then((response) => {
+      console.log("Row deleted successfully");
+      // Optionally, you can perform additional actions after deletion
+    })
+    .catch((error) => {
+      console.error("Error deleting row:", error);
+    });
+};
+
+const popup = (productId) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      deleteRow(productId); // Call the callback function after confirmation
+      Swal.fire({
+        title: "Deleted!",
+        text: "Row has been deleted.",
+        icon: "success",
+      }).then(() => {
+        window.location.reload(); // Reload the page after successful deletion
+      });
+    }
+  });
+};
 
 function ItemCard({ item }) {
   return (
@@ -37,10 +73,10 @@ function ItemCard({ item }) {
       </CardContent>
       <CardActions className="flex justify-between">
         <Button size="small" variant="outlined">
-          <DeleteIcon />
+          <DeleteIcon onClick={() => popup(item.productID)} />
         </Button>
         <Button size="small" variant="outlined">
-          <EditIcon />{" "}
+          <EditIcon />
         </Button>
       </CardActions>
     </Card>
