@@ -6,7 +6,7 @@ import EditIcon from "@mui/icons-material/Edit";
 
 const deleteRow = (productId) => {
   axios
-    .delete(`http://localhost:3001/inventory/${productId}`)
+    .delete(`http://localhost:3001/deleteItem/${productId}`)
     .then((response) => {
       console.log("Row deleted successfully");
       // Optionally, you can perform additional actions after deletion
@@ -114,5 +114,3 @@ function Table() {
 }
 
 export default Table;
-
-

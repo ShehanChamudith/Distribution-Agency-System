@@ -40,6 +40,7 @@ function ProductCatalog() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  
   useEffect(() => {
     // Make a GET request to fetch data from the API endpoint
     axios

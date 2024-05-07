@@ -12,15 +12,27 @@ const addItem = (req, res) => {
             res.status(500).send('Internal Server Error');
             return;
         } 
-
-        res.json({ message: 'Item added successfully' }); // Send response indicating successful user addition
-        
+        res.json({ message: 'Item added successfully' }); // Send response indicating successful user addition 
     });
+}
 
+const deleteItem = (req, res) => {
+    const productId = req.params.productId;
+    const sql = 'DELETE FROM product WHERE productID = ?';
+  
+    DBconnect.query(sql, [productId], (err, result) => {
+      if (err) {
+        console.error('Error deleting row:', err);
+        res.status(500).json({ error: 'An error occurred while deleting the row' });
+        return;
+      }
+      console.log('Row deleted successfully');
+      res.status(200).json({ message: 'Row deleted successfully', id: productId });
+    });
 }
 
 
 module.exports = {
-    addItem
-    
+    addItem,
+    deleteItem
 };
