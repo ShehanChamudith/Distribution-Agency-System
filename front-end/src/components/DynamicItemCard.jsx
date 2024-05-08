@@ -66,12 +66,12 @@ function ItemCard({ item }) {
   const [categoryS, setCategoryS] = React.useState("");
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState({
+    productID: "",
     product_name: "",
-    category: "",
+    //category: "",
     wholesale_price: "",
     selling_price: "",
     date_added: "",
-    stock_total: 0,
   });
 
   const handleFileChange = (event) => {
@@ -105,6 +105,7 @@ function ItemCard({ item }) {
         .toISOString()
         .split("T")[0];
       setEditData({
+        productID: data.productID,
         product_name: data.product_name,
         //category: data.category,
         wholesale_price: data.wholesale_price,
@@ -128,12 +129,28 @@ function ItemCard({ item }) {
     }
   };
 
-  const handleEditSubmit = (e) => {
+ 
+  const handleEditSubmit = async (productId, e) => {
     e.preventDefault();
-
+  
     console.log("Form submitted for editing:", editData);
+    console.log(productId);
+    // Assuming editData contains the updated item data including productID
+    axios.put(`http://localhost:3001/edititem/${productId}`, editData)
+    
+      .then(response => {
+        console.log('Edit request successful:', response.data);
+        // Handle successful response if needed
+      })
+      .catch(error => {
+        console.error('Error editing item:', error);
+        // Handle error if needed
+      });
+     
     handleClose();
+    window.location.reload(); 
   };
+  
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
@@ -197,7 +214,7 @@ function ItemCard({ item }) {
           onClose={handleClose}
           PaperProps={{
             component: "form",
-            onSubmit: handleEditSubmit,
+            onSubmit: (e) => handleEditSubmit(item.productID, e),
           }}
         >
           <DialogTitle>Edit Item</DialogTitle>

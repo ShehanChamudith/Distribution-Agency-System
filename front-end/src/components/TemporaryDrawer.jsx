@@ -11,6 +11,8 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
   const [open, setOpen] = React.useState(false);
   const [interfaceTitle, setInterfaceTitle] = useState("My Dashboard");
 
+  //const filteredSidebarData = SideBarData.filter(item => item.roles.includes(currentUser.role));
+
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
   };

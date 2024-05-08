@@ -31,8 +31,28 @@ const deleteItem = (req, res) => {
     });
 }
 
+const updateItem = (req, res) => {
+    const productId = req.params.productId;
+    const { product_name, categoryID, wholesale_price, selling_price, date_added } = req.body;
+
+    console.log('Received data from frontend:', req.body);
+    
+    // SQL UPDATE query
+    const updateQuery = 'UPDATE product SET product_name = ?, categoryID = ?, wholesale_price = ?, selling_price = ?, date_added = ? WHERE productID = ?';
+
+    DBconnect.query(updateQuery, [product_name, categoryID, wholesale_price, selling_price, date_added, productId], (err, result) => {
+        if (err) {
+            console.error('Error updating item in the database:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        } 
+        res.json({ message: 'Item updated successfully' }); // Send response indicating successful update
+    });
+}
+
 
 module.exports = {
     addItem,
-    deleteItem
+    deleteItem,
+    updateItem
 };

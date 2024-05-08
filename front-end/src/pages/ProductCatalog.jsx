@@ -40,9 +40,8 @@ function ProductCatalog() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  
+
   useEffect(() => {
-    // Make a GET request to fetch data from the API endpoint
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
@@ -53,7 +52,7 @@ function ProductCatalog() {
           }
           return acc;
         }, []);
-        setData(uniqueProducts); // Set the filtered data to the state
+        setData(uniqueProducts);
       })
       .catch((error) => {
         console.error("Error fetching data from product table:", error);
@@ -63,7 +62,6 @@ function ProductCatalog() {
       .get("http://localhost:3001/category")
       .then((response) => {
         setCategories(response.data); // Update state with fetched categories
-        //console.log("Data from another endpoint:", response.data);
       })
       .catch((error) => {
         console.error("Error fetching data from category table", error);
@@ -90,7 +88,7 @@ function ProductCatalog() {
         console.log("Item added successfully:", response.data);
         console.log("Form Data:", formData);
         //console.log("Selected File:", selectedFile);
-        // Optionally, you can reset the form fields and selected category here
+
         setFormData({
           productname: "",
           wholesaleprice: "",
@@ -100,12 +98,12 @@ function ProductCatalog() {
         });
         setCategoryS("");
         setSelectedFile(null);
-        handleClose(); // Close the dialog after successful submission
+
+        handleClose();
         window.location.reload();
       })
       .catch((error) => {
         console.error("Error adding item:", error);
-        // Handle errors here
       });
   };
 
@@ -346,12 +344,3 @@ function ProductCatalog() {
 }
 
 export default ProductCatalog;
-
-// const uniqueCategories = response.data.reduce((acc, current) => {
-//   // Check if the category already exists in the accumulator
-//   if (!acc.some((item) => item.category === current.category)) {
-//     acc.push(current);
-//   }
-//   return acc;
-// }, []);
-// setData(uniqueCategories);
