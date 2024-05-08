@@ -19,7 +19,7 @@ ChartJS.register(
   Legend
 );
 
-function DoughnutGraph() {
+function DoughnutGraph({showLegend}) {
   let doughnutLabels = [
     "Category 1",
     "Category 2",
@@ -36,7 +36,7 @@ function DoughnutGraph() {
         display: false,
       },
       legend: {
-        display: true,
+        display: showLegend,
         position: 'top',
       },
     },

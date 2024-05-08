@@ -1,13 +1,338 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Table from "../components/Table";
+import Button from "@mui/material/Button";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Stack from "@mui/material/Stack";
+import Autocomplete from "@mui/material/Autocomplete";
+import axios from "axios";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+import { styled } from "@mui/material/styles";
 
 function Inventory() {
+  const [data, setData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [open, setOpen] = React.useState(false);
+  const [productS, setProductS] = React.useState("");
+  const [supplierS, setsupplierS] = React.useState("");
+  const [product, setProduct] = useState([]);
+  const [supplier, setSupplier] = useState([]);
+  const [formData, setFormData] = useState({
+    // productname: "",
+    // wholesaleprice: "",
+    // sellingprice: "",
+    // date: "",
+    stock_total: 0,
+  });
+
+  const handleChangeForm = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleChangeSelectP = (event) => {
+    const selectedProduct = event.target.value;
+    const selectedProductData = product.find(
+      (item) => item.product_name === selectedProduct
+    );
+    if (selectedProductData) {
+      setProductS(selectedProduct);
+      setFormData({ ...formData, productID: selectedProductData.productID });
+    }
+  };
+
+  const handleChangeSelectS = (event) => {
+    const selectedSupplier = event.target.value;
+    const selectedSupplierData = supplier.find(
+      (item) => item.supplier_company === selectedSupplier
+    );
+    if (selectedSupplierData) {
+      setsupplierS(selectedSupplier);
+      setFormData({ ...formData, supplierID: selectedSupplierData.supplierID });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    axios
+      .post("http://localhost:3001/additem", formData)
+      .then((response) => {
+        console.log("Item added successfully:", response.data);
+        console.log("Form Data:", formData);
+        //console.log("Selected File:", selectedFile);
+
+        setFormData({
+          productname: "",
+          wholesaleprice: "",
+          sellingprice: "",
+          date: "",
+          stock_total: 0,
+        });
+        setProductS("");
+       
+
+        handleClose();
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Error adding item:", error);
+      });
+  };
+
+
+  const handleSearchInputChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+ 
+
+  const VisuallyHiddenInput = styled("input")({
+    clip: "rect(0 0 0 0)",
+    clipPath: "inset(50%)",
+    height: 1,
+    overflow: "hidden",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    whiteSpace: "nowrap",
+    width: 1,
+  });
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/inventory")
+      .then((response) => {
+        // Filter out duplicate product titles
+        const uniqueProducts = response.data.reduce((acc, current) => {
+          if (!acc.some((item) => item.product_name === current.product_name)) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+        setProduct(uniqueProducts);
+      })
+      .catch((error) => {
+        console.error("Error fetching data from product table:", error);
+      });
+
+      axios
+      .get("http://localhost:3001/getsupplier")
+      .then((response) => {
+        setSupplier(response.data); // Update state with fetched categories
+      })
+      .catch((error) => {
+        console.error("Error fetching data from category table", error);
+      });
+  }, []);
+
   return (
-    
-      <div className="flex w-screen max-w-[100vw] overflow-y-hidden justify-center border-2 border-black">
-        <Table/>
+    <div className=" w-screen border border-green-500 ">
+      <div className="flex w-screen py-10 border border-red-500">
+        <div className="w-1/2 border border-red-500 pl-10"></div>
+
+        <div className="flex w-1/2 pr-10 justify-end gap-9 border border-red-500">
+          <div className="flex ">
+            <Stack spacing={2} sx={{ width: 300 }}>
+              <Autocomplete
+                freeSolo
+                id="free-solo-2-demo"
+                disableClearable
+                options={data.map((item) => item.product_name)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search Stock"
+                    InputProps={{
+                      ...params.InputProps,
+                      type: "search",
+                      sx: { height: 48 },
+                      onChange: handleSearchInputChange,
+                    }}
+                  />
+                )}
+              />
+            </Stack>
+          </div>
+
+          <div className="">
+            <React.Fragment>
+              <Button
+                className=" h-12 gap-2"
+                variant="contained"
+                onClick={handleClickOpen}
+              >
+                Add Stock <AddCircleOutlineIcon />
+              </Button>
+              <Dialog
+                open={open}
+                onClose={handleClose}
+                PaperProps={{
+                  component: "form",
+                  onSubmit: handleSubmit,
+                }}
+              >
+                <DialogTitle>Add Stock</DialogTitle>
+                <DialogContent>
+                  <DialogContentText>
+                    To add a stock arrival, please enter the details here.
+                  </DialogContentText>
+
+                  <div className="flex mt-3 mb-1 gap-4">
+                    <div>
+                      <FormControl sx={{ minWidth: 200 }}>
+                        <InputLabel id="demo-simple-select-label">
+                          Select the Product
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          value={productS}
+                          autoWidth
+                          label="Select the Product"
+                          onChange={handleChangeSelectP}
+                        >
+                          {product.map((item) => (
+                            <MenuItem
+                              key={item.productID}
+                              value={item.product_name}
+                            >
+                              {item.product_name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+
+                    <div>
+                      <FormControl sx={{ minWidth: 200 }}>
+                        <InputLabel id="demo-simple-select-label">
+                          Select the Supplier
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          value={supplierS}
+                          autoWidth
+                          label="Select the Supplier"
+                          onChange={handleChangeSelectS}
+                        >
+                          {supplier.map((item) => (
+                            <MenuItem
+                              key={item.supplierID}
+                              value={item.supplier_company}
+                            >
+                              {item.supplier_company}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </div>
+                  </div>
+                  <div className="mt-5">
+                    <TextField
+                      autoFocus
+                      required
+                      margin="dense"
+                      id="sarrival"
+                      name="stock_arrival"
+                      label="Stock Arrival"
+                      type="number"
+                      fullWidth
+                      variant="filled"
+                      size="small"
+                      value={formData.productname}
+                      onChange={handleChangeForm}
+                    />
+                  </div>
+
+                  <div className="mt-3">
+                    <InputLabel id="demo-simple-select-label">
+                      Received Date
+                    </InputLabel>
+                    <TextField
+                      autoFocus
+                      required
+                      margin="dense"
+                      id="date"
+                      name="date_added"
+                      label=""
+                      type="date"
+                      fullWidth
+                      variant="filled"
+                      size="small"
+                      value={formData.date}
+                      onChange={handleChangeForm}
+                    />
+                  </div>
+                  <div className="mt-3">
+                    <InputLabel id="demo-simple-select-label">
+                      Expire Date
+                    </InputLabel>
+                    <TextField
+                      autoFocus
+                      required
+                      margin="dense"
+                      id="date"
+                      name="date_added"
+                      label=""
+                      type="date"
+                      fullWidth
+                      variant="filled"
+                      size="small"
+                      value={formData.date}
+                      onChange={handleChangeForm}
+                    />
+                  </div>
+                  <div className="mt-4">
+                    <TextField
+                      autoFocus
+                      required
+                      margin="dense"
+                      id="batchno"
+                      name="batch_no"
+                      label="Batch Number"
+                      type="text"
+                      fullWidth
+                      variant="filled"
+                      size="small"
+                      value={formData.date}
+                      onChange={handleChangeForm}
+                    />
+                  </div>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClose}>Cancel</Button>
+                  <Button type="submit">Add Item</Button>
+                </DialogActions>
+              </Dialog>
+            </React.Fragment>
+          </div>
+        </div>
       </div>
-    
+
+      <div className="flex justify-center">
+        <div>
+          <Table />
+        </div>
+      </div>
+    </div>
   );
 }
 

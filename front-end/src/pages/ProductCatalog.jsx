@@ -19,6 +19,7 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
+import DoughnutGraph from "../components/DoughnutGraph";
 
 function ProductCatalog() {
   const [alignment, setAlignment] = React.useState("All");
@@ -141,202 +142,249 @@ function ProductCatalog() {
 
   return (
     <div className="flex-col items-center w-screen">
-      <div className="flex w-screen py-10  ">
-        <div className="flex w-1/2 h-full pl-10 gap-10  ">
-          <div>
-            <Button
-              variant="contained"
-              className="h-12"
-              disabled
-              style={{
-                pointerEvents: "none",
-                backgroundColor: "#1976d2",
-                color: "white",
-              }}
-            >
-              Select Category
-            </Button>
-          </div>
-
-          <div>
-            <ToggleButtonGroup
-              color="primary"
-              value={alignment}
-              exclusive
-              onChange={handleChange}
-              aria-label="Platform"
-            >
-              <ToggleButton value="All">All</ToggleButton>
-              <ToggleButton value="Chicken">Chicken</ToggleButton>
-              <ToggleButton value="Chicken Parts">Chicken Parts</ToggleButton>
-              <ToggleButton value="Pork">Pork</ToggleButton>
-              <ToggleButton value="Sausages">Sausages</ToggleButton>
-            </ToggleButtonGroup>
-          </div>
-        </div>
-
-        <div className="flex w-1/2 pr-10   justify-between pl-64  ">
-          <div className="flex justify-end ">
-            <Stack spacing={2} sx={{ width: 300 }}>
-              <Autocomplete
-                freeSolo
-                id="free-solo-2-demo"
-                disableClearable
-                options={data.map((item) => item.product_name)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Search Items"
-                    InputProps={{
-                      ...params.InputProps,
-                      type: "search",
-                      sx: { height: 48 },
-                      onChange: handleSearchInputChange,
-                    }}
-                  />
-                )}
-              />
-            </Stack>
-          </div>
-
-          <div className="">
-            <React.Fragment>
-              <Button
-                className=" h-12 gap-2"
-                variant="contained"
-                onClick={handleClickOpen}
-              >
-                Add Item <AddCircleOutlineIcon />
-              </Button>
-              <Dialog
-                open={open}
-                onClose={handleClose}
-                PaperProps={{
-                  component: "form",
-                  onSubmit: handleSubmit,
-                }}
-              >
-                <DialogTitle>Add Item</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    To add a item, please enter the details here.
-                  </DialogContentText>
-                  <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="pname"
-                    name="product_name"
-                    label="Product Name"
-                    type="text"
-                    fullWidth
-                    variant="filled"
-                    size="small"
-                    value={formData.productname}
-                    onChange={handleChangeForm}
-                  />
-                  <div className="mt-3 mb-1">
-                    <FormControl sx={{ minWidth: 120 }}>
-                      <InputLabel id="demo-simple-select-label">
-                        Category
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
-                        value={categoryS}
-                        autoWidth
-                        label="Category"
-                        onChange={handleChangeSelect}
-                      >
-                        {categories.map((category) => (
-                          <MenuItem
-                            key={category.categoryID}
-                            value={category.category}
-                          >
-                            {category.category}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </div>
-
-                  <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="wprice"
-                    name="wholesale_price"
-                    label="Wholesale Price"
-                    type="number"
-                    fullWidth
-                    variant="filled"
-                    size="small"
-                    value={formData.wholesaleprice}
-                    onChange={handleChangeForm}
-                  />
-                  <TextField
-                    autoFocus
-                    required
-                    margin="dense"
-                    id="sprice"
-                    name="selling_price"
-                    label="Selling Price"
-                    type="number"
-                    fullWidth
-                    variant="filled"
-                    size="small"
-                    value={formData.sellingprice}
-                    onChange={handleChangeForm}
-                  />
-                  <TextField
-                    autoFocus
-                    required
-                    margin="normal"
-                    id="date"
-                    name="date_added"
-                    label=""
-                    type="date"
-                    fullWidth
-                    variant="filled"
-                    size="small"
-                    value={formData.date}
-                    onChange={handleChangeForm}
-                  />
-                  <div className="mt-3">
-                    <Button
-                      component="label"
-                      variant="contained"
-                      startIcon={<CloudUploadIcon />}
-                    >
-                      Upload file
-                      <VisuallyHiddenInput
-                        type="file"
-                        onChange={handleFileChange}
-                        accept=".jpg,.jpeg,.png"
-                      />
-                    </Button>
-                    {selectedFile && <p>{selectedFile.name}</p>}
-                  </div>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleClose}>Cancel</Button>
-                  <Button type="submit">Add Item</Button>
-                </DialogActions>
-              </Dialog>
-            </React.Fragment>
-          </div>
-        </div>
-      </div>
+      {topdiv(
+        alignment,
+        handleChange,
+        data,
+        handleSearchInputChange,
+        handleClickOpen,
+        open,
+        handleClose,
+        handleSubmit,
+        formData,
+        handleChangeForm,
+        categoryS,
+        handleChangeSelect,
+        categories,
+        VisuallyHiddenInput,
+        handleFileChange,
+        selectedFile
+      )}
 
       <div className="flex w-screen px-10 py-5 gap-5 ">
         <div
           className=" w-4/6 py-5 px-11 bg-slate-100 rounded-lg  "
-          style={{ overflowY: "auto", maxHeight: "65vh" }}
+          style={{ overflowY: "auto", height: "65vh" }}
         >
           <DynamicItemCard category={alignment} searchQuery={searchQuery} />
         </div>
         <div className="w-2/6  bg-slate-100 rounded-lg">
-          {/* <DoughnutGraph/> */}
+          <div className="flex h-1/2 w-full">
+            <div className="border border-red-500 w-1/2"></div>
+            <div className="border border-red-500 w-1/2">
+              <DoughnutGraph showLegend={false} />
+            </div>
+          </div>
+
+          <div className="flex border border-red-500 h-1/2 w-full"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function topdiv(
+  alignment,
+  handleChange,
+  data,
+  handleSearchInputChange,
+  handleClickOpen,
+  open,
+  handleClose,
+  handleSubmit,
+  formData,
+  handleChangeForm,
+  categoryS,
+  handleChangeSelect,
+  categories,
+  VisuallyHiddenInput,
+  handleFileChange,
+  selectedFile
+) {
+  return (
+    <div className="flex w-screen py-10 border border-red-500 ">
+      <div className="flex w-1/2 h-full pl-10 gap-10  ">
+        <div>
+          <Button
+            variant="contained"
+            className="h-12"
+            disabled
+            style={{
+              pointerEvents: "none",
+              backgroundColor: "#1976d2",
+              color: "white",
+            }}
+          >
+            Select Category
+          </Button>
+        </div>
+
+        <div>
+          <ToggleButtonGroup
+            color="primary"
+            value={alignment}
+            exclusive
+            onChange={handleChange}
+            aria-label="Platform"
+          >
+            <ToggleButton value="All">All</ToggleButton>
+            <ToggleButton value="Chicken">Chicken</ToggleButton>
+            <ToggleButton value="Chicken Parts">Chicken Parts</ToggleButton>
+            <ToggleButton value="Pork">Pork</ToggleButton>
+            <ToggleButton value="Sausages">Sausages</ToggleButton>
+          </ToggleButtonGroup>
+        </div>
+      </div>
+
+      <div className="flex w-1/2 pr-10   justify-end gap-9  ">
+        <div className="flex justify-end ">
+          <Stack spacing={2} sx={{ width: 300 }}>
+            <Autocomplete
+              freeSolo
+              id="free-solo-2-demo"
+              disableClearable
+              options={data.map((item) => item.product_name)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Search Items"
+                  InputProps={{
+                    ...params.InputProps,
+                    type: "search",
+                    sx: { height: 48 },
+                    onChange: handleSearchInputChange,
+                  }}
+                />
+              )}
+            />
+          </Stack>
+        </div>
+
+        <div className="">
+          <React.Fragment>
+            <Button
+              className=" h-12 gap-2"
+              variant="contained"
+              onClick={handleClickOpen}
+            >
+              Add Item <AddCircleOutlineIcon />
+            </Button>
+            <Dialog
+              open={open}
+              onClose={handleClose}
+              PaperProps={{
+                component: "form",
+                onSubmit: handleSubmit,
+              }}
+            >
+              <DialogTitle>Add Item</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  To add a item, please enter the details here.
+                </DialogContentText>
+                <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  id="pname"
+                  name="product_name"
+                  label="Product Name"
+                  type="text"
+                  fullWidth
+                  variant="filled"
+                  size="small"
+                  value={formData.productname}
+                  onChange={handleChangeForm}
+                />
+                <div className="mt-3 mb-1">
+                  <FormControl sx={{ minWidth: 120 }}>
+                    <InputLabel id="demo-simple-select-label">
+                      Category
+                    </InputLabel>
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      value={categoryS}
+                      autoWidth
+                      label="Category"
+                      onChange={handleChangeSelect}
+                    >
+                      {categories.map((category) => (
+                        <MenuItem
+                          key={category.categoryID}
+                          value={category.category}
+                        >
+                          {category.category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </div>
+
+                <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  id="wprice"
+                  name="wholesale_price"
+                  label="Wholesale Price"
+                  type="number"
+                  fullWidth
+                  variant="filled"
+                  size="small"
+                  value={formData.wholesaleprice}
+                  onChange={handleChangeForm}
+                />
+                <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  id="sprice"
+                  name="selling_price"
+                  label="Selling Price"
+                  type="number"
+                  fullWidth
+                  variant="filled"
+                  size="small"
+                  value={formData.sellingprice}
+                  onChange={handleChangeForm}
+                />
+                <TextField
+                  autoFocus
+                  required
+                  margin="normal"
+                  id="date"
+                  name="date_added"
+                  label=""
+                  type="date"
+                  fullWidth
+                  variant="filled"
+                  size="small"
+                  value={formData.date}
+                  onChange={handleChangeForm}
+                />
+                <div className="mt-3">
+                  <Button
+                    component="label"
+                    variant="contained"
+                    startIcon={<CloudUploadIcon />}
+                  >
+                    Upload file
+                    <VisuallyHiddenInput
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".jpg,.jpeg,.png"
+                    />
+                  </Button>
+                  {selectedFile && <p>{selectedFile.name}</p>}
+                </div>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button type="submit">Add Item</Button>
+              </DialogActions>
+            </Dialog>
+          </React.Fragment>
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@ function Table() {
   useEffect(() => {
     // Make a GET request to fetch data from the API endpoint
     axios
-      .get("http://localhost:3001/inventory")
+      .get("http://localhost:3001/getstock")
       .then((response) => {
         setData(response.data); // Set the retrieved data to the state
       })
@@ -63,19 +63,16 @@ function Table() {
               Product Name
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Stock Quantity
+              Stock Arrival
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Category
+              Supplier
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Wholesale Price
+              Received Date
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Selling Price
-            </th>
-            <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Date Added
+              Expire Date
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
               Batch Number
@@ -88,11 +85,10 @@ function Table() {
           {data.map((item) => (
             <tr key={item.productID} className="hover:bg-gray-100">
               <td className="px-6 py-4">{item.product_name}</td>
-              <td className="px-6 py-4">{item.stock_total}kg</td>
-              <td className="px-6 py-4">{item.category}</td>
-              <td className="px-6 py-4">Rs.{item.wholesale_price}</td>
-              <td className="px-6 py-4">Rs.{item.selling_price}</td>
-              <td className="px-6 py-4">{item.date_added.split("T")[0]}</td>
+              <td className="px-6 py-4">{item.stock_arrival}kg</td>
+              <td className="px-6 py-4">{item.supplier_company}</td>
+              <td className="px-6 py-4">{item.purchase_date.split("T")[0]}</td>
+              <td className="px-6 py-4">{item.expire_date.split("T")[0]}</td>
               <td className="px-6 py-4">{item.batch_no}</td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-4">
