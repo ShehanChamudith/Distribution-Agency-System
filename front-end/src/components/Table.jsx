@@ -4,11 +4,12 @@ import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
-const deleteRow = (productId) => {
+const deleteRow = (inventoryID) => {
   axios
-    .delete(`http://localhost:3001/deleteItem/${productId}`)
+    .delete(`http://localhost:3001/deletestock/${inventoryID}`)
     .then((response) => {
-      console.log("Row deleted successfully");
+
+      console.log(inventoryID,"Row deleted successfully");
       // Optionally, you can perform additional actions after deletion
     })
     .catch((error) => {
@@ -16,7 +17,7 @@ const deleteRow = (productId) => {
     });
 };
 
-const popup = (productId) => {
+const popup = (inventoryID) => {
   Swal.fire({
     title: "Are you sure?",
     text: "You won't be able to revert this!",
@@ -27,7 +28,7 @@ const popup = (productId) => {
     confirmButtonText: "Yes, delete it!",
   }).then((result) => {
     if (result.isConfirmed) {
-      deleteRow(productId); // Call the callback function after confirmation
+      deleteRow(inventoryID); // Call the callback function after confirmation
       Swal.fire({
         title: "Deleted!",
         text: "Row has been deleted.",
@@ -83,7 +84,7 @@ function Table() {
 
         <tbody className="divide-y divide-gray-100 border-t border-gray-100">
           {data.map((item) => (
-            <tr key={item.productID} className="hover:bg-gray-100">
+            <tr key={item.inventoryID} className="hover:bg-gray-100">
               <td className="px-6 py-4">{item.product_name}</td>
               <td className="px-6 py-4">{item.stock_arrival}kg</td>
               <td className="px-6 py-4">{item.supplier_company}</td>
@@ -92,7 +93,7 @@ function Table() {
               <td className="px-6 py-4">{item.batch_no}</td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-4">
-                  <button onClick={() => popup(item.productID)}>
+                  <button onClick={() => popup(item.inventoryID)}>
                     <DeleteIcon sx={{ fontSize: 32, color: "blue" }} />
                   </button>
 

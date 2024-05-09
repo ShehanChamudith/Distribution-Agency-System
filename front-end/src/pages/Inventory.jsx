@@ -30,13 +30,13 @@ function Inventory() {
     // wholesaleprice: "",
     // sellingprice: "",
     // date: "",
-    stock_total: 0,
+    wstaffID: 2,
   });
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };
+  };  
 
   const handleChangeSelectP = (event) => {
     const selectedProduct = event.target.value;
@@ -64,27 +64,26 @@ function Inventory() {
     e.preventDefault();
 
     axios
-      .post("http://localhost:3001/additem", formData)
+      .post("http://localhost:3001/addstock", formData)
       .then((response) => {
-        console.log("Item added successfully:", response.data);
         console.log("Form Data:", formData);
+        console.log("Stock added successfully:", response.data);
         //console.log("Selected File:", selectedFile);
 
         setFormData({
-          productname: "",
-          wholesaleprice: "",
-          sellingprice: "",
-          date: "",
-          stock_total: 0,
+          stock_arrival:"", 
+          supplierID:"", 
+          purchase_date:"", 
+          expire_date:"", 
+          productID:"",  
+          batch_no:"",
         });
         setProductS("");
-       
-
         handleClose();
-        window.location.reload();
+       window.location.reload();
       })
       .catch((error) => {
-        console.error("Error adding item:", error);
+        console.error("Error adding stock:", error);
       });
   };
 
@@ -270,8 +269,8 @@ function Inventory() {
                       autoFocus
                       required
                       margin="dense"
-                      id="date"
-                      name="date_added"
+                      id="pdate"
+                      name="purchase_date"
                       label=""
                       type="date"
                       fullWidth
@@ -289,8 +288,8 @@ function Inventory() {
                       autoFocus
                       required
                       margin="dense"
-                      id="date"
-                      name="date_added"
+                      id="edate"
+                      name="expire_date"
                       label=""
                       type="date"
                       fullWidth

@@ -18,6 +18,9 @@ app.use('/', getRoute);
 const itemRoute = require('./routes/itemRoute');
 app.use('/', itemRoute);
 
+const inventoryRoute = require('./routes/inventoryRoute');
+app.use('/', inventoryRoute);
+
 
 // Start the Express server
 app.listen(3001, () => {
