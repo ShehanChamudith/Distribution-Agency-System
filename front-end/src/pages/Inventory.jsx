@@ -142,11 +142,11 @@ function Inventory() {
   }, []);
 
   return (
-    <div className=" w-screen border border-green-500 ">
-      <div className="flex w-screen py-10 border border-red-500">
-        <div className="w-1/2 border border-red-500 pl-10"></div>
+    <div className=" w-screen  ">
+      <div className="flex w-screen py-10 ">
+        <div className="w-1/2  pl-10"></div>
 
-        <div className="flex w-1/2 pr-10 justify-end gap-9 border border-red-500">
+        <div className="flex w-1/2 pr-10 justify-end gap-9 ">
           <div className="flex ">
             <Stack spacing={2} sx={{ width: 300 }}>
               <Autocomplete
@@ -326,9 +326,12 @@ function Inventory() {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <div>
+      <div className="w-screen flex ">
+        <div className="w-4/6 border border-red-500 pl-10">
           <Table />
+        </div>
+        <div className="w-2/6 border border-purple-500">
+          
         </div>
       </div>
     </div>

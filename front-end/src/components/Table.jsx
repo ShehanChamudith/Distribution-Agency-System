@@ -56,7 +56,7 @@ function Table() {
   }, []);
 
   return (
-    <div className="w-[80vw] max-w-[100vw] overflow-y-hidden rounded-lg border border-gray-200 shadow-md m-5">
+    <div className="w-[60vw] max-w-[100vw] overflow-y-hidden rounded-lg border border-gray-200 shadow-md ">
       <table class="w-full border-collapse bg-white text-left text-sm text-gray-500">
         <thead class="bg-gray-50 ">
           <tr>

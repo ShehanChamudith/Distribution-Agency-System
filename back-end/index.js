@@ -22,6 +22,7 @@ const inventoryRoute = require('./routes/inventoryRoute');
 app.use('/', inventoryRoute);
 
 
+
 // Start the Express server
 app.listen(3001, () => {
     console.log("Server running on port 3001");

@@ -29,17 +29,17 @@ function ProductCatalog() {
   const [categoryS, setCategoryS] = React.useState("");
   const [categories, setCategories] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [formData, setFormData] = useState({
-    // productname: "",
-    // wholesaleprice: "",
-    // sellingprice: "",
-    // date: "",
+  const [itemData, setFormData] = useState({
+    product_name: "",
+    wholesale_price: "",
+    selling_price: "",
+    date_added: "",
     stock_total: 0,
   });
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...itemData, [name]: value });
   };
 
   useEffect(() => {
@@ -76,30 +76,39 @@ function ProductCatalog() {
     );
     if (selectedCategoryData) {
       setCategoryS(selectedCategory);
-      setFormData({ ...formData, categoryID: selectedCategoryData.categoryID });
+      setFormData({ ...itemData, categoryID: selectedCategoryData.categoryID });
     }
+  };
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Create FormData object to send form data along with the file
+    const formData = new FormData();
+    formData.append("image", selectedFile); // Append the selected file to the form data
+    formData.append("product_name", itemData.product_name);
+    formData.append("stock_total", itemData.stock_total);
+    formData.append("categoryID", itemData.categoryID);
+    formData.append("wholesale_price", itemData.wholesale_price);
+    formData.append("selling_price", itemData.selling_price);
+    formData.append("date_added", itemData.date_added);
 
+    console.log(formData);
+  
     axios
-      .post("http://localhost:3001/additem", formData)
+      .post("http://localhost:3001/additem", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Set content type to multipart/form-data for file upload
+        },
+      })
       .then((response) => {
         console.log("Item added successfully:", response.data);
         console.log("Form Data:", formData);
-        //console.log("Selected File:", selectedFile);
-
-        setFormData({
-          productname: "",
-          wholesaleprice: "",
-          sellingprice: "",
-          date: "",
-          stock_total: 0,
-        });
-        setCategoryS("");
-        setSelectedFile(null);
-
+  
         handleClose();
         window.location.reload();
       })
@@ -122,11 +131,18 @@ function ProductCatalog() {
 
   const handleClose = () => {
     setOpen(false);
+    setFormData({
+          product_name: "",
+          wholesale_price: "",
+          selling_price: "",
+          date_added: "",
+          stock_total: 0,
+        });
+        setCategoryS("");
+        setSelectedFile(null);
   };
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+  
 
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -151,7 +167,7 @@ function ProductCatalog() {
         open,
         handleClose,
         handleSubmit,
-        formData,
+        itemData,
         handleChangeForm,
         categoryS,
         handleChangeSelect,
@@ -293,7 +309,7 @@ export function topdiv(
                   fullWidth
                   variant="filled"
                   size="small"
-                  value={formData.productname}
+                  value={formData.product_name}
                   onChange={handleChangeForm}
                 />
                 <div className="mt-3 mb-1">
@@ -332,7 +348,7 @@ export function topdiv(
                   fullWidth
                   variant="filled"
                   size="small"
-                  value={formData.wholesaleprice}
+                  value={formData.wholesale_price}
                   onChange={handleChangeForm}
                 />
                 <TextField
@@ -346,7 +362,7 @@ export function topdiv(
                   fullWidth
                   variant="filled"
                   size="small"
-                  value={formData.sellingprice}
+                  value={formData.selling_price}
                   onChange={handleChangeForm}
                 />
                 <TextField
@@ -360,7 +376,7 @@ export function topdiv(
                   fullWidth
                   variant="filled"
                   size="small"
-                  value={formData.date}
+                  value={formData.date_added}
                   onChange={handleChangeForm}
                 />
                 <div className="mt-3">

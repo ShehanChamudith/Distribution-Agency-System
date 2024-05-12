@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const {deleteItem} = require('../controllers/itemController');
-const {addItem} = require('../controllers/itemController');
-const {updateItem} = require('../controllers/itemController');
+const {deleteItem , addItem, updateItem} = require('../controllers/itemController');
+const {upload} = require('../middleware/fileUploadMulter');
 
+
+router.post("/additem", upload.single('image'), addItem);
 router.delete('/deleteItem/:productId', deleteItem);
-router.post("/additem", addItem);
 router.put("/edititem/:productId", updateItem);
 
 
