@@ -11,7 +11,7 @@ import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 import myPhoto from '../assets/images/hehe.jpg';
 
-export default function Profile() {
+export default function Profile({ setIsAuthenticated }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -20,6 +20,12 @@ export default function Profile() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem("accessToken");
+  };
+
   return (
     <React.Fragment>
       <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
@@ -84,7 +90,7 @@ export default function Profile() {
           </ListItemIcon>
           Settings
         </MenuItem>
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={logout}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>

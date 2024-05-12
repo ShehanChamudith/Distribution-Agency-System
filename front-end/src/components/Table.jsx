@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import axios, { Axios } from "axios";
+import axios from "axios";
 import Swal from "sweetalert2";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
-
-const deleteRow = (productId) => {
+const deleteRow = (inventoryID) => {
   axios
-    .delete(`http://localhost:3001/inventory/${productId}`)
+    .delete(`http://localhost:3001/deletestock/${inventoryID}`)
     .then((response) => {
-      console.log("Row deleted successfully");
+
+      console.log(inventoryID,"Row deleted successfully");
       // Optionally, you can perform additional actions after deletion
     })
     .catch((error) => {
@@ -17,8 +17,7 @@ const deleteRow = (productId) => {
     });
 };
 
-
-const popup = (productId) => {
+const popup = (inventoryID) => {
   Swal.fire({
     title: "Are you sure?",
     text: "You won't be able to revert this!",
@@ -29,18 +28,17 @@ const popup = (productId) => {
     confirmButtonText: "Yes, delete it!",
   }).then((result) => {
     if (result.isConfirmed) {
-      deleteRow(productId); // Call the callback function after confirmation
+      deleteRow(inventoryID); // Call the callback function after confirmation
       Swal.fire({
         title: "Deleted!",
-        text: "Your file has been deleted.",
+        text: "Row has been deleted.",
         icon: "success",
+      }).then(() => {
+        window.location.reload(); // Reload the page after successful deletion
       });
     }
   });
 };
-
-
-
 
 function Table() {
   const [data, setData] = useState([]);
@@ -48,7 +46,7 @@ function Table() {
   useEffect(() => {
     // Make a GET request to fetch data from the API endpoint
     axios
-      .get("http://localhost:3001/inventory")
+      .get("http://localhost:3001/getstock")
       .then((response) => {
         setData(response.data); // Set the retrieved data to the state
       })
@@ -57,30 +55,25 @@ function Table() {
       });
   }, []);
 
-
-
   return (
-    <div class="overflow-hidden rounded-lg border border-gray-200 shadow-md m-5">
+    <div className="w-[60vw] max-w-[100vw] overflow-y-hidden rounded-lg border border-gray-200 shadow-md ">
       <table class="w-full border-collapse bg-white text-left text-sm text-gray-500">
-        <thead class="bg-gray-50">
+        <thead class="bg-gray-50 ">
           <tr>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
               Product Name
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Stock Quantity
+              Stock Arrival
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Category
+              Supplier
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Wholesale Price
+              Received Date
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Selling Price
-            </th>
-            <th scope="col" class="px-6 py-4 font-medium text-gray-900">
-              Date Added
+              Expire Date
             </th>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
               Batch Number
@@ -91,19 +84,16 @@ function Table() {
 
         <tbody className="divide-y divide-gray-100 border-t border-gray-100">
           {data.map((item) => (
-            <tr key={item.productID} className="hover:bg-gray-50">
-              <th className="flex gap-3 px-6 py-4 font-normal text-gray-900">
-                {item.product_name}
-              </th>
-              <td className="px-6 py-4">{item.stock_quantity}kg</td>
-              <td className="px-6 py-4">{item.category}</td>
-              <td className="px-6 py-4">Rs.{item.wholesale_price}</td>
-              <td className="px-6 py-4">Rs.{item.selling_price}</td>
-              <td className="px-6 py-4">{item.date_added.split("T")[0]}</td>
+            <tr key={item.inventoryID} className="hover:bg-gray-100">
+              <td className="px-6 py-4">{item.product_name}</td>
+              <td className="px-6 py-4">{item.stock_arrival}kg</td>
+              <td className="px-6 py-4">{item.supplier_company}</td>
+              <td className="px-6 py-4">{item.purchase_date.split("T")[0]}</td>
+              <td className="px-6 py-4">{item.expire_date.split("T")[0]}</td>
               <td className="px-6 py-4">{item.batch_no}</td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-4">
-                  <button onClick={() => popup(item.productID)}>
+                  <button onClick={() => popup(item.inventoryID)}>
                     <DeleteIcon sx={{ fontSize: 32, color: "blue" }} />
                   </button>
 

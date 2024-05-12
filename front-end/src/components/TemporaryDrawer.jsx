@@ -7,9 +7,11 @@ import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import Profile from "./Profile";
 
-export default function TemporaryDrawer() {
+export default function TemporaryDrawer({ setIsAuthenticated }) {
   const [open, setOpen] = React.useState(false);
   const [interfaceTitle, setInterfaceTitle] = useState("My Dashboard");
+
+  //const filteredSidebarData = SideBarData.filter(item => item.roles.includes(currentUser.role));
 
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
@@ -50,7 +52,8 @@ export default function TemporaryDrawer() {
   );
 
   return (
-    <div className="flex h-20 bg-[#172445]  w-full">
+    
+    <div className=" flex h-20 bg-[#172445]  w-full">
       <div className="flex w-[30%]  h-full items-center pl-10">
         <div className="flex items-center justify-between gap-3">
           <button onClick={toggleDrawer(true)}>
@@ -61,7 +64,7 @@ export default function TemporaryDrawer() {
             {DrawerList}
           </MuiDrawer>
 
-          <h3 className="mt-2 text-lg text-white font-PoppinsR">
+          <h3 className="text-lg text-white font-PoppinsR">
               {interfaceTitle}
           </h3>
         </div>
@@ -69,17 +72,17 @@ export default function TemporaryDrawer() {
 
       <div className=" w-[40%] h-fit"></div>
 
-      <div className="flex w-[30%]  h-full  justify-end pr-4">
+      <div className="flex w-[30%]  h-full  justify-end ">
         <div className="flex grid-cols-3 h-20 w-fit items-center ">
-          <div className=" h-10 flex ">
+          <div className=" h-10 flex pr-10">
             <div className=" flex h-full w-fit justify-center items-center pt-2">
               <h1 className=" font-PoppinsM text-sm text-white justify-end">
                 Shehan Chamudith
               </h1>
             </div>
 
-            <div className=" h-full">
-              <Profile />
+            <div className=" h-full ">
+              <Profile setIsAuthenticated={setIsAuthenticated} />
             </div>
           </div>
         </div>
