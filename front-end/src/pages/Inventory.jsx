@@ -16,6 +16,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { styled } from "@mui/material/styles";
+import Swal from 'sweetalert2';
 
 function Inventory() {
   const [data, setData] = useState([]);
@@ -79,8 +80,19 @@ function Inventory() {
           batch_no:"",
         });
         setProductS("");
-        handleClose();
-       window.location.reload();
+        Swal.fire({
+          icon: 'success',
+          title: 'Stock Added Successfully!',
+          customClass: {
+            popup: 'z-50', 
+          },
+          didOpen: () => {
+            document.querySelector('.swal2-container').style.zIndex = '9999'; 
+          }
+        }).then(() => {
+          handleClose();
+          window.location.reload();
+        });
       })
       .catch((error) => {
         console.error("Error adding stock:", error);

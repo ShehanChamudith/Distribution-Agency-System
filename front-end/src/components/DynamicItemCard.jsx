@@ -8,21 +8,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 import Swal from "sweetalert2";
-
-
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
+import {Button,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,FormControl,InputLabel,MenuItem,Select,TextField,} from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 
@@ -69,7 +55,6 @@ function ItemCard({ item }) {
   const [editData, setEditData] = useState({
     productID: "",
     product_name: "",
-    //category: "",
     wholesale_price: "",
     selling_price: "",
     date_added: "",
@@ -118,7 +103,7 @@ function ItemCard({ item }) {
         `http://localhost:3001/editItemCategoryGet/${productId}`
       );
       setSelectedCategoryGet(categoryResponse.data);
-      //console.log(selectedCategoryGet);
+      
 
       const categoriesResponse = await axios.get(
         "http://localhost:3001/category"
@@ -136,7 +121,7 @@ function ItemCard({ item }) {
 
     console.log("Form submitted for editing:", editData);
     console.log(productId);
-    // Assuming editData contains the updated item data including productID
+    
     axios.put(`http://localhost:3001/edititem/${productId}`, editData)
     
       .then(response => {
@@ -155,7 +140,6 @@ function ItemCard({ item }) {
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
-    // Update the editData state with the new value
     setEditData({ ...editData, [name]: value });
   };
 
@@ -336,7 +320,7 @@ export default function DynamicItemCard({ category, searchQuery }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    // Make a GET request to fetch data from the API endpoint
+
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {

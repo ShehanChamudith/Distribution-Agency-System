@@ -20,6 +20,7 @@ import Select from "@mui/material/Select";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import DoughnutGraph from "../components/DoughnutGraph";
+import Swal from 'sweetalert2';
 
 function ProductCatalog() {
   const [alignment, setAlignment] = React.useState("All");
@@ -27,7 +28,9 @@ function ProductCatalog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = React.useState(false);
   const [categoryS, setCategoryS] = React.useState("");
+  const [supplierS, setSupplierS] = React.useState("");
   const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [itemData, setFormData] = useState({
     product_name: "",
@@ -37,10 +40,7 @@ function ProductCatalog() {
     stock_total: 0,
   });
 
-  const handleChangeForm = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...itemData, [name]: value });
-  };
+
 
   useEffect(() => {
     axios
@@ -62,21 +62,38 @@ function ProductCatalog() {
     axios
       .get("http://localhost:3001/category")
       .then((response) => {
-        setCategories(response.data); // Update state with fetched categories
+        setCategories(response.data); 
+      })
+      .catch((error) => {
+        console.error("Error fetching data from category table", error);
+      });
+
+    axios
+      .get("http://localhost:3001/getsupplier")
+      .then((response) => {
+        setSuppliers(response.data);
       })
       .catch((error) => {
         console.error("Error fetching data from category table", error);
       });
   }, []);
 
-  const handleChangeSelect = (event) => {
-    const selectedCategory = event.target.value;
-    const selectedCategoryData = categories.find(
-      (item) => item.category === selectedCategory
-    );
-    if (selectedCategoryData) {
-      setCategoryS(selectedCategory);
-      setFormData({ ...itemData, categoryID: selectedCategoryData.categoryID });
+
+  const handleChangeSelect = (event, type) => {
+    const selectedValue = event.target.value;
+    const selectedItem =
+      type === "category"
+        ? categories.find((item) => item.category === selectedValue)
+        : suppliers.find((item) => item.supplier_company === selectedValue);
+
+    if (selectedItem) {
+      if (type === "category") {
+        setCategoryS(selectedValue);
+        setFormData({ ...itemData, categoryID: selectedItem.categoryID });
+      } else if (type === "supplier") {
+        setSupplierS(selectedValue);
+        setFormData({ ...itemData, supplierID: selectedItem.supplierID });
+      }
     }
   };
 
@@ -86,35 +103,82 @@ function ProductCatalog() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Create FormData object to send form data along with the file
-    const formData = new FormData();
-    formData.append("image", selectedFile); // Append the selected file to the form data
-    formData.append("product_name", itemData.product_name);
-    formData.append("stock_total", itemData.stock_total);
-    formData.append("categoryID", itemData.categoryID);
-    formData.append("wholesale_price", itemData.wholesale_price);
-    formData.append("selling_price", itemData.selling_price);
-    formData.append("date_added", itemData.date_added);
 
-    console.log(formData);
-  
+    // Check if the product already exists
     axios
-      .post("http://localhost:3001/additem", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data", // Set content type to multipart/form-data for file upload
-        },
+      .post("http://localhost:3001/checkitem", {
+        product_name: itemData.product_name,
+        supplierID: itemData.supplierID,
       })
       .then((response) => {
-        console.log("Item added successfully:", response.data);
-        console.log("Form Data:", formData);
-  
-        handleClose();
-        window.location.reload();
+
+        const responseData = response.data;
+        if (responseData.message === 'Product already exists') {
+          console.log("Product already exists.");
+          Swal.fire({
+            icon: 'error',
+            title: 'Product already exists.',
+            text: "An item cannot be added with the same Product Name and the same Supplier",
+            customClass: {
+              popup: 'z-50', 
+            },
+            didOpen: () => {
+              document.querySelector('.swal2-container').style.zIndex = '9999'; 
+            }
+          });
+          
+        } else {
+          console.log("Product does not exist. Proceeding with insertion.");
+
+          // Proceed with inserting the product
+          const formData = new FormData();
+
+          formData.append("image", selectedFile);
+          formData.append("product_name", itemData.product_name);
+          formData.append("stock_total", itemData.stock_total);
+          formData.append("categoryID", itemData.categoryID);
+          formData.append("wholesale_price", itemData.wholesale_price);
+          formData.append("selling_price", itemData.selling_price);
+          formData.append("date_added", itemData.date_added);
+          formData.append("supplierID", itemData.supplierID);
+
+          axios
+            .post("http://localhost:3001/additem", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((response) => {
+              console.log("Item added successfully:", response.data);
+              console.log("Form Data:", formData);
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Product Added Successfully!',
+                customClass: {
+                  popup: 'z-50', 
+                },
+                didOpen: () => {
+                  document.querySelector('.swal2-container').style.zIndex = '9999'; 
+                }
+              }).then(() => {
+                handleClose();
+                window.location.reload();
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding item:", error);
+            });
+        }
       })
       .catch((error) => {
-        console.error("Error adding item:", error);
+        console.error("Error checking product existence:", error);
       });
+  };
+  
+  const handleChangeForm = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...itemData, [name]: value });
   };
 
   const handleChange = (event, newAlignment) => {
@@ -132,17 +196,15 @@ function ProductCatalog() {
   const handleClose = () => {
     setOpen(false);
     setFormData({
-          product_name: "",
-          wholesale_price: "",
-          selling_price: "",
-          date_added: "",
-          stock_total: 0,
-        });
-        setCategoryS("");
-        setSelectedFile(null);
+      product_name: "",
+      wholesale_price: "",
+      selling_price: "",
+      date_added: "",
+      stock_total: 0,
+    });
+    setCategoryS("");
+    setSelectedFile(null);
   };
-
-  
 
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -170,8 +232,10 @@ function ProductCatalog() {
         itemData,
         handleChangeForm,
         categoryS,
+        supplierS,
         handleChangeSelect,
         categories,
+        suppliers,
         VisuallyHiddenInput,
         handleFileChange,
         selectedFile
@@ -179,12 +243,12 @@ function ProductCatalog() {
 
       <div className="flex w-screen px-10 py-5 gap-5 ">
         <div
-          className=" w-4/6 py-5 px-11 bg-slate-100 rounded-lg  "
+          className=" w-4/6 py-5 px-11 bg-slate-200 rounded-lg  "
           style={{ overflowY: "auto", height: "65vh" }}
         >
           <DynamicItemCard category={alignment} searchQuery={searchQuery} />
         </div>
-        <div className="w-2/6  bg-slate-100 rounded-lg">
+        <div className="w-2/6  bg-slate-200 rounded-lg">
           <div className="flex h-1/2 w-full">
             <div className="border border-red-500 w-1/2"></div>
             <div className="border border-red-500 w-1/2">
@@ -211,14 +275,16 @@ export function topdiv(
   formData,
   handleChangeForm,
   categoryS,
+  supplierS,
   handleChangeSelect,
   categories,
+  suppliers,
   VisuallyHiddenInput,
   handleFileChange,
   selectedFile
 ) {
   return (
-    <div className="flex w-screen py-10 border border-red-500 ">
+    <div className="flex w-screen py-10 ">
       <div className="flex w-1/2 h-full pl-10 gap-10  ">
         <div>
           <Button
@@ -312,29 +378,60 @@ export function topdiv(
                   value={formData.product_name}
                   onChange={handleChangeForm}
                 />
-                <div className="mt-3 mb-1">
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <InputLabel id="demo-simple-select-label">
-                      Category
-                    </InputLabel>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      value={categoryS}
-                      autoWidth
-                      label="Category"
-                      onChange={handleChangeSelect}
-                    >
-                      {categories.map((category) => (
-                        <MenuItem
-                          key={category.categoryID}
-                          value={category.category}
-                        >
-                          {category.category}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                <div className="mt-3 mb-1 gap-8 flex">
+                  <div>
+                    <FormControl sx={{ minWidth: 120 }}>
+                      <InputLabel id="demo-simple-select-label">
+                        Category
+                      </InputLabel>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={categoryS}
+                        autoWidth
+                        label="Category"
+                        onChange={(event) =>
+                          handleChangeSelect(event, "category")
+                        }
+                      >
+                        {categories.map((category) => (
+                          <MenuItem
+                            key={category.categoryID}
+                            value={category.category}
+                          >
+                            {category.category}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </div>
+
+                  <div>
+                    <FormControl sx={{ minWidth: 120 }}>
+                      <InputLabel id="demo-simple-select-label">
+                        Supplier
+                      </InputLabel>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={supplierS}
+                        autoWidth
+                        label="Supplier"
+                        onChange={(event) =>
+                          handleChangeSelect(event, "supplier")
+                        }
+                      >
+                        {suppliers.map((supplier) => (
+                          <MenuItem
+                            key={supplier.categoryID}
+                            value={supplier.supplier_company}
+                          >
+                            {supplier.supplier_company}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </div>
                 </div>
 
                 <TextField

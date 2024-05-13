@@ -29,7 +29,7 @@ const categoryGet = (req,res) => {
         }
 
         if (results.length === 0) {
-            console.warn('No data found in product table');
+            console.warn('No data found in category table');
             res.status(404).send('No data found');
             return;
         }
@@ -38,6 +38,7 @@ const categoryGet = (req,res) => {
     });
 
 }
+
 
 // load the existing item data into edit form
 const getItem = (req, res) => {
