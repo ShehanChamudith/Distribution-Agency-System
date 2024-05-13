@@ -6,9 +6,10 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import myImg from "../assets/images/img.jpg";
 import axios from "axios";
 import Swal from "sweetalert2";
+
+
 import {
   Button,
   Dialog,
@@ -132,7 +133,7 @@ function ItemCard({ item }) {
  
   const handleEditSubmit = async (productId, e) => {
     e.preventDefault();
-  
+
     console.log("Form submitted for editing:", editData);
     console.log(productId);
     // Assuming editData contains the updated item data including productID
@@ -170,7 +171,9 @@ function ItemCard({ item }) {
     width: 1,
   });
 
+
   return (
+    
     <Card
       sx={{
         width: 200,
@@ -183,7 +186,7 @@ function ItemCard({ item }) {
       <CardMedia
         component="img"
         alt={item.name}
-        image={myImg}
+        image={`http://localhost:3001/${item.image_path}` }
         sx={{ height: 150 }}
       />
       <CardContent>
@@ -354,6 +357,7 @@ export default function DynamicItemCard({ category, searchQuery }) {
         }
 
         setData(filteredData); // Set the filtered data to the state
+        
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
