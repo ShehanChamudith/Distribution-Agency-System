@@ -56,9 +56,10 @@ function Table() {
   }, []);
 
   return (
-    <div className="w-[60vw] max-w-[100vw] overflow-y-hidden rounded-lg border border-gray-200 shadow-md ">
+    <div className="w-full overflow-y-hidden rounded-lg border border-gray-200 shadow-md ">
       <table class="w-full border-collapse bg-white text-left text-sm text-gray-500">
-        <thead class="bg-gray-50 ">
+        
+        <thead class="bg-gray-100 ">
           <tr>
             <th scope="col" class="px-6 py-4 font-medium text-gray-900">
               Product Name
@@ -90,7 +91,7 @@ function Table() {
               <td className="px-6 py-4">{item.supplier_company}</td>
               <td className="px-6 py-4">{item.purchase_date.split("T")[0]}</td>
               <td className="px-6 py-4">{item.expire_date.split("T")[0]}</td>
-              <td className="px-6 py-4">{item.batch_no}</td>
+              <td className="px-16 py-4 justify-center">{item.batch_no}</td>
               <td className="px-6 py-4">
                 <div className="flex justify-end gap-4">
                   <button onClick={() => popup(item.inventoryID)}>

@@ -48,7 +48,7 @@ const popup = (productId) => {
 
 function ItemCard({ item }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedCategoryGet, setSelectedCategoryGet] = useState("");
+  //const [selectedCategoryGet, setSelectedCategoryGet] = useState("");
   const [categories, setCategories] = useState([]);
   const [categoryS, setCategoryS] = React.useState("");
   const [open, setOpen] = useState(false);
@@ -99,10 +99,10 @@ function ItemCard({ item }) {
         date_added: formattedDate,
       });
 
-      const categoryResponse = await axios.get(
-        `http://localhost:3001/editItemCategoryGet/${productId}`
-      );
-      setSelectedCategoryGet(categoryResponse.data);
+      // const categoryResponse = await axios.get(
+      //   `http://localhost:3001/editItemCategoryGet/${productId}`
+      // );
+      // setSelectedCategoryGet(categoryResponse.data);
       
 
       const categoriesResponse = await axios.get(

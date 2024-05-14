@@ -15,12 +15,15 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import { styled } from "@mui/material/styles";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
+//import moment from "moment";
+import { DatePicker, Space } from "antd";
+const { RangePicker } = DatePicker;
+
 
 function Inventory() {
-  const [data, setData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  //const [data, setData] = useState([]);
+  //const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = React.useState(false);
   const [productS, setProductS] = React.useState("");
   const [supplierS, setsupplierS] = React.useState("");
@@ -37,7 +40,7 @@ function Inventory() {
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };  
+  };
 
   const handleChangeSelectP = (event) => {
     const selectedProduct = event.target.value;
@@ -72,23 +75,23 @@ function Inventory() {
         //console.log("Selected File:", selectedFile);
 
         setFormData({
-          stock_arrival:"", 
-          supplierID:"", 
-          purchase_date:"", 
-          expire_date:"", 
-          productID:"",  
-          batch_no:"",
+          stock_arrival: "",
+          supplierID: "",
+          purchase_date: "",
+          expire_date: "",
+          productID: "",
+          batch_no: "",
         });
         setProductS("");
         Swal.fire({
-          icon: 'success',
-          title: 'Stock Added Successfully!',
+          icon: "success",
+          title: "Stock Added Successfully!",
           customClass: {
-            popup: 'z-50', 
+            popup: "z-50",
           },
           didOpen: () => {
-            document.querySelector('.swal2-container').style.zIndex = '9999'; 
-          }
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
         }).then(() => {
           handleClose();
           window.location.reload();
@@ -99,11 +102,6 @@ function Inventory() {
       });
   };
 
-
-  const handleSearchInputChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
-
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -111,20 +109,6 @@ function Inventory() {
   const handleClose = () => {
     setOpen(false);
   };
-
- 
-
-  const VisuallyHiddenInput = styled("input")({
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  });
 
   useEffect(() => {
     axios
@@ -143,7 +127,7 @@ function Inventory() {
         console.error("Error fetching data from product table:", error);
       });
 
-      axios
+    axios
       .get("http://localhost:3001/getsupplier")
       .then((response) => {
         setSupplier(response.data); // Update state with fetched categories
@@ -153,10 +137,43 @@ function Inventory() {
       });
   }, []);
 
+  const handleDateChange = (dates, dateStrings) => {
+    // dates is an array containing the start and end moment objects
+    // dateStrings is an array containing the start and end date strings formatted according to the picker format
+    //console.log("Selected Dates:", dates);
+    console.log("Selected Date Strings:", dateStrings);
+  };
+
   return (
-    <div className=" w-screen  ">
+    <div className=" w-screen">
       <div className="flex w-screen py-10 ">
-        <div className="w-1/2  pl-10"></div>
+        <div className="flex w-1/2 pl-10 gap-10 ">
+        <Button
+            variant="contained"
+            className="h-12"
+            disabled
+            style={{
+              pointerEvents: "none",
+              backgroundColor: "#1976d2",
+              color: "white",
+            }}
+          >
+            Select Date
+          </Button>
+          <div className="">
+            <Space direction="vertical" size={12}>
+              <RangePicker
+                className="h-12"
+                picker="date"
+                id={{
+                  start: "startInput",
+                  end: "endInput",
+                }}
+                onChange={handleDateChange}
+              />
+            </Space>
+          </div>
+        </div>
 
         <div className="flex w-1/2 pr-10 justify-end gap-9 ">
           <div className="flex ">
@@ -165,7 +182,7 @@ function Inventory() {
                 freeSolo
                 id="free-solo-2-demo"
                 disableClearable
-                options={data.map((item) => item.product_name)}
+                //options={data.map((item) => item.product_name)}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -174,7 +191,7 @@ function Inventory() {
                       ...params.InputProps,
                       type: "search",
                       sx: { height: 48 },
-                      onChange: handleSearchInputChange,
+                      // onChange: handleSearchInputChange,
                     }}
                   />
                 )}
@@ -339,11 +356,8 @@ function Inventory() {
       </div>
 
       <div className="w-screen flex ">
-        <div className="w-4/6 border border-red-500 pl-10">
+        <div className="w-screen px-10 overflow-y-auto h-[70vh]">
           <Table />
-        </div>
-        <div className="w-2/6 border border-purple-500">
-          
         </div>
       </div>
     </div>

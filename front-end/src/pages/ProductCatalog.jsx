@@ -249,14 +249,14 @@ function ProductCatalog() {
           <DynamicItemCard category={alignment} searchQuery={searchQuery} />
         </div>
         <div className="w-2/6  bg-slate-200 rounded-lg">
-          <div className="flex h-1/2 w-full">
+          <div className="flex h-full w-full">
             <div className="border border-red-500 w-1/2"></div>
-            <div className="border border-red-500 w-1/2">
-              <DoughnutGraph showLegend={false} />
+            <div className="border border-red-500 w-1/2 h-full">
+              <DoughnutGraph showLegend={true} />
             </div>
           </div>
 
-          <div className="flex border border-red-500 h-1/2 w-full"></div>
+          
         </div>
       </div>
     </div>
