@@ -18,8 +18,9 @@ import Select from "@mui/material/Select";
 import Swal from "sweetalert2";
 //import moment from "moment";
 import { DatePicker, Space } from "antd";
+import BasicExampleDataGrid from "../components/FilterTableTest";
+import DataGridDemo from "../components/Test";
 const { RangePicker } = DatePicker;
-
 
 function Inventory() {
   //const [data, setData] = useState([]);
@@ -29,13 +30,8 @@ function Inventory() {
   const [supplierS, setsupplierS] = React.useState("");
   const [product, setProduct] = useState([]);
   const [supplier, setSupplier] = useState([]);
-  const [formData, setFormData] = useState({
-    // productname: "",
-    // wholesaleprice: "",
-    // sellingprice: "",
-    // date: "",
-    wstaffID: 2,
-  });
+  const [formData, setFormData] = useState({ wstaffID: 2 });
+  const [dateRange, setDateRange] = useState([]);
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
@@ -138,17 +134,23 @@ function Inventory() {
   }, []);
 
   const handleDateChange = (dates, dateStrings) => {
-    // dates is an array containing the start and end moment objects
-    // dateStrings is an array containing the start and end date strings formatted according to the picker format
-    //console.log("Selected Dates:", dates);
-    console.log("Selected Date Strings:", dateStrings);
+    // Check if dates is null
+    if (dates === null) {
+      // If dates is null, set an empty array or another default value
+      setDateRange([]);
+    } else {
+      // dates is not null, so update date range
+      console.log("Selected Dates:", dates);
+      console.log("Selected Date Strings:", dateStrings);
+      setDateRange(dates);
+    }
   };
 
   return (
     <div className=" w-screen">
       <div className="flex w-screen py-10 ">
         <div className="flex w-1/2 pl-10 gap-10 ">
-        <Button
+          <Button
             variant="contained"
             className="h-12"
             disabled
@@ -158,7 +160,7 @@ function Inventory() {
               color: "white",
             }}
           >
-            Select Date
+            Filter by Date
           </Button>
           <div className="">
             <Space direction="vertical" size={12}>
@@ -357,7 +359,8 @@ function Inventory() {
 
       <div className="w-screen flex ">
         <div className="w-screen px-10 overflow-y-auto h-[70vh]">
-          <Table />
+          <BasicExampleDataGrid />
+          {/* <Table dateRange={dateRange} /> */}
         </div>
       </div>
     </div>

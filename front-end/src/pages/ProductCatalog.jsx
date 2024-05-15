@@ -297,7 +297,7 @@ export function topdiv(
               color: "white",
             }}
           >
-            Select Category
+            Filter by Category
           </Button>
         </div>
 

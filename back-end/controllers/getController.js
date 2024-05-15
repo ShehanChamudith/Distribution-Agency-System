@@ -88,7 +88,11 @@ const getItem = (req, res) => {
 
 //get the stock to the inventory table
   const getStock = (req,res) => {
-    DBconnect.query('SELECT  i.*, p.product_name, s.supplier_company FROM inventory AS i JOIN product AS p ON i.productID = p.productID JOIN  supplier AS s ON i.supplierID = s.supplierID ORDER BY inventoryID DESC', (err, results) => {
+    DBconnect.query(`SELECT i.*, p.product_name, s.supplier_company, DATE_FORMAT(i.purchase_date, '%Y-%m-%d') AS formatted_purchase_date, DATE_FORMAT(i.expire_date, '%Y-%m-%d') AS formatted_expire_date
+    FROM inventory AS i 
+    JOIN product AS p ON i.productID = p.productID 
+    JOIN supplier AS s ON i.supplierID = s.supplierID 
+    ORDER BY i.inventoryID DESC`, (err, results) => {
       if (err) {
           console.error('Error querying MySQL database:', err);
           res.status(500).send('Internal Server Error');
