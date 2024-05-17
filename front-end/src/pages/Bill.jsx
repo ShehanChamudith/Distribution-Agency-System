@@ -22,7 +22,7 @@ export const Bill = () => {
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
-    setCategory(newAlignment); 
+    setCategory(newAlignment);
   };
 
   const styles = `
@@ -31,8 +31,6 @@ export const Bill = () => {
     border: none !important;
   }
 `;
-
-  
 
   useEffect(() => {
     axios
@@ -135,10 +133,10 @@ export const Bill = () => {
         </div>
       ),
     },
-    { field: "Product_Name", headerName: "Product Name", width: 130 },
-    { field: "Available_Stock", headerName: "Stock Qty (kg)", width: 130 },
-    { field: "Supplier", headerName: "Supplier", width: 130 },
-    { field: "Selling_Price", headerName: "Selling Price (LKR)", width: 130 },
+    { field: "Product_Name", headerName: "Product Name", width: 150 },
+    { field: "Available_Stock", headerName: "Stock Qty (kg)", width: 150 },
+    { field: "Supplier", headerName: "Supplier", width: 150 },
+    { field: "Selling_Price", headerName: "Selling Price (LKR)", width: 150 },
     {
       field: "actions",
       headerName: "",
@@ -215,9 +213,9 @@ export const Bill = () => {
   };
 
   return (
-    <div className="flex flex-col w-screen ">
-      <div className="w-screen flex py-10">
-        <div className="flex w-1/2 h-full pl-10 gap-10  ">
+    <div className="flex w-screen ">
+      <div className="w-3/5 flex flex-col  ">
+        <div className="flex h-full pl-10 py-10 gap-10  ">
           <div>
             <Button
               variant="contained"
@@ -250,11 +248,7 @@ export const Bill = () => {
           </div>
         </div>
 
-        <div className="flex w-1/2 pr-10 justify-end gap-9 "></div>
-      </div>
-
-      <div className="w-screen  px-10">
-        <div className="w-3/5">
+        <div className=" flex w-full pl-10 ">
           <Box sx={{ height: 480, width: "100%" }}>
             <style>{styles}</style>
             <DataGrid
@@ -274,8 +268,13 @@ export const Bill = () => {
             />
           </Box>
         </div>
+      </div>
 
-        <div></div>
+      <div className="w-2/5 h-[84vh]  px-10 pt-10">
+
+        <div className=" rounded-md bg-slate-200 w-full h-full">
+
+        </div>
       </div>
     </div>
   );
