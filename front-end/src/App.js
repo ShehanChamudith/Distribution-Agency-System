@@ -10,7 +10,7 @@ import {
 } from "react-router-dom";
 import ProductCatalog from "./pages/ProductCatalog";
 import Inventory from "./pages/Inventory";
-import TemporaryDrawer from "./components/TemporaryDrawer";
+import TemporaryDrawer from "./components/Drawer";
 import React, { useState } from "react";
 import ProtectedRoute from "./utils/ProtectedRoute";
 

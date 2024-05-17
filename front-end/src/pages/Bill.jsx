@@ -17,9 +17,12 @@ export const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [quantity, setQuantity] = React.useState("");
+  const [category, setCategory] = useState("All");
+  const [rows, setRows] = useState([]);
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
+    setCategory(newAlignment); 
   };
 
   const styles = `
@@ -29,14 +32,22 @@ export const Bill = () => {
   }
 `;
 
-  const [rows, setRows] = useState([]);
+  
 
   useEffect(() => {
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
-        //console.log("Response Data:", response.data);
-        const mappedRows = response.data.map((item) => ({
+        let filteredData = response.data;
+
+        // Filter items based on category
+        if (category && category !== "All") {
+          filteredData = filteredData.filter(
+            (item) => item.category === category
+          );
+        }
+
+        const mappedRows = filteredData.map((item) => ({
           id: item.productID,
           Product_Name: item.product_name,
           Available_Stock: item.stock_total,
@@ -49,7 +60,7 @@ export const Bill = () => {
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, []);
+  }, [category]);
 
   const deleteRow = (inventoryID) => {
     axios
@@ -251,7 +262,7 @@ export const Bill = () => {
               columns={columns}
               pageSize={5}
               disableSelectionOnClick
-              
+              hideFooter
               slots={{
                 toolbar: CustomToolbar,
               }}
