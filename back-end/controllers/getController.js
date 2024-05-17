@@ -2,7 +2,7 @@ const DBconnect = require('../config/DBconnect');
 
 //get product items from product table( to show items ) and relavant category from category table ( category for what - for filter based on category )
 const inventoryGet = (req, res) => {
-    DBconnect.query('SELECT p.*, c.category FROM product p JOIN category c ON p.categoryID = c.categoryID', (err, results) => {
+    DBconnect.query('SELECT p.*, c.category, s.supplier_company FROM product p JOIN category c ON p.categoryID = c.categoryID JOIN supplier s ON p.supplierID = s.supplierID', (err, results) => {
         if (err) {
             console.error('Error querying MySQL database:', err);
             res.status(500).send('Internal Server Error');

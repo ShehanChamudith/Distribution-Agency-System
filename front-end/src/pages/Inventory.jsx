@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Table from "../components/Table";
 import Button from "@mui/material/Button";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import TextField from "@mui/material/TextField";
@@ -8,8 +7,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Stack from "@mui/material/Stack";
-import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -18,20 +15,17 @@ import Select from "@mui/material/Select";
 import Swal from "sweetalert2";
 //import moment from "moment";
 import { DatePicker, Space } from "antd";
-import BasicExampleDataGrid from "../components/FilterTableTest";
-import DataGridDemo from "../components/Test";
+import BasicExampleDataGrid from "../components/FilterTable";
 const { RangePicker } = DatePicker;
 
 function Inventory() {
-  //const [data, setData] = useState([]);
-  //const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = React.useState(false);
   const [productS, setProductS] = React.useState("");
   const [supplierS, setsupplierS] = React.useState("");
   const [product, setProduct] = useState([]);
   const [supplier, setSupplier] = useState([]);
   const [formData, setFormData] = useState({ wstaffID: 2 });
-  const [dateRange, setDateRange] = useState([]);
+  //const [dateRange, setDateRange] = useState([]);
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
@@ -133,18 +127,18 @@ function Inventory() {
       });
   }, []);
 
-  const handleDateChange = (dates, dateStrings) => {
-    // Check if dates is null
-    if (dates === null) {
-      // If dates is null, set an empty array or another default value
-      setDateRange([]);
-    } else {
-      // dates is not null, so update date range
-      console.log("Selected Dates:", dates);
-      console.log("Selected Date Strings:", dateStrings);
-      setDateRange(dates);
-    }
-  };
+  // const handleDateChange = (dates, dateStrings) => {
+  //   // Check if dates is null
+  //   if (dates === null) {
+  //     // If dates is null, set an empty array or another default value
+  //     setDateRange([]);
+  //   } else {
+  //     // dates is not null, so update date range
+  //     console.log("Selected Dates:", dates);
+  //     console.log("Selected Date Strings:", dateStrings);
+  //     setDateRange(dates);
+  //   }
+  // };
 
   return (
     <div className=" w-screen">
@@ -171,36 +165,14 @@ function Inventory() {
                   start: "startInput",
                   end: "endInput",
                 }}
-                onChange={handleDateChange}
+                // onChange={handleDateChange}
               />
             </Space>
           </div>
         </div>
 
-        <div className="flex w-1/2 pr-10 justify-end gap-9 ">
-          <div className="flex ">
-            <Stack spacing={2} sx={{ width: 300 }}>
-              <Autocomplete
-                freeSolo
-                id="free-solo-2-demo"
-                disableClearable
-                //options={data.map((item) => item.product_name)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Search Stock"
-                    InputProps={{
-                      ...params.InputProps,
-                      type: "search",
-                      sx: { height: 48 },
-                      // onChange: handleSearchInputChange,
-                    }}
-                  />
-                )}
-              />
-            </Stack>
-          </div>
-
+        <div className="flex w-1/2 pr-10 justify-end ">
+          
           <div className="">
             <React.Fragment>
               <Button

@@ -21,6 +21,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import DoughnutGraph from "../components/DoughnutGraph";
 import Swal from 'sweetalert2';
+import defImg from '../assets/images/defimg.png';
 
 function ProductCatalog() {
   const [alignment, setAlignment] = React.useState("All");
@@ -133,7 +134,15 @@ function ProductCatalog() {
           // Proceed with inserting the product
           const formData = new FormData();
 
-          formData.append("image", selectedFile);
+          if (selectedFile) {
+            formData.append("image", selectedFile);
+          } else {
+            // If no file is selected, append the default image
+            const defaultImage = new File([defImg], "defimg.png", { type: "image/png" });
+            formData.append("image", defaultImage);
+          }
+          
+
           formData.append("product_name", itemData.product_name);
           formData.append("stock_total", itemData.stock_total);
           formData.append("categoryID", itemData.categoryID);
@@ -385,6 +394,7 @@ export function topdiv(
                         Category
                       </InputLabel>
                       <Select
+                        required
                         labelId="demo-simple-select-label"
                         id="demo-simple-select"
                         value={categoryS}
@@ -412,6 +422,7 @@ export function topdiv(
                         Supplier
                       </InputLabel>
                       <Select
+                        required
                         labelId="demo-simple-select-label"
                         id="demo-simple-select"
                         value={supplierS}
@@ -482,8 +493,9 @@ export function topdiv(
                     variant="contained"
                     startIcon={<CloudUploadIcon />}
                   >
-                    Upload file
+                    Upload a Image of the Product
                     <VisuallyHiddenInput
+                    
                       type="file"
                       onChange={handleFileChange}
                       accept=".jpg,.jpeg,.png"
