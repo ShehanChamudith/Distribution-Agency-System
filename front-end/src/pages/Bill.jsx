@@ -12,6 +12,11 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 export const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
@@ -19,6 +24,22 @@ export const Bill = () => {
   const [quantity, setQuantity] = React.useState("");
   const [category, setCategory] = useState("All");
   const [rows, setRows] = useState([]);
+  const [openDialog, setOpenDialog] = useState(true);
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
+  const handleExistingCustomer = () => {
+    console.log("Existing customer selected");
+    setOpenDialog(false);
+  };
+
+  const handleNewCustomer = () => {
+    console.log("New customer selected");
+    setOpenDialog(false);
+  };
+
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -214,6 +235,27 @@ export const Bill = () => {
 
   return (
     <div className="flex w-screen ">
+      {/* Dialog for customer selection */}
+      <Dialog
+        open={openDialog}
+        onClose={handleDialogClose}
+      >
+        <DialogTitle>Customer Selection</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select whether you are an existing customer or a new customer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExistingCustomer} color="primary">
+            Existing Customer
+          </Button>
+          <Button onClick={handleNewCustomer} color="primary">
+            New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <div className="w-3/5 flex flex-col  ">
         <div className="flex h-full pl-10 py-10 gap-10  ">
           <div>
