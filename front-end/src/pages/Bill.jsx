@@ -25,6 +25,31 @@ export const Bill = () => {
   const [category, setCategory] = useState("All");
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(true);
+  const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
+  const [customerData, setcustomerData] = useState({
+    username: "",
+    password: "",
+    firstname: "",
+    lastname: "",
+    email: "",
+    phone: "",
+    address: "",
+    area: "",
+    usertypeID: 6,
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleChangeForm = (event) => {
+    const { name, value } = event.target;
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+    } else {
+      setcustomerData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
+  };
 
   const handleDialogClose = () => {
     setOpenDialog(false);
@@ -38,8 +63,44 @@ export const Bill = () => {
   const handleNewCustomer = () => {
     console.log("New customer selected");
     setOpenDialog(false);
+    setOpenNewCustomerDialog(true);
   };
 
+  const handleNewCustomerDialogClose = () => {
+    setOpenNewCustomerDialog(false);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (customerData.password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    // Handle form submission, e.g., send data to the server
+    axios
+      .post("http://localhost:3001/addcustomer", customerData)
+      .then((response) => {
+        console.log("Customer added successfully:", response.data);
+        setOpenNewCustomerDialog(false);
+        // Clear form fields
+        setcustomerData({
+          username: "",
+          password: "",
+          firstname: "",
+          lastname: "",
+          email: "",
+          phone: "",
+          address: "",
+          area: "",
+          usertypeID: 6,
+        });
+        setConfirmPassword("");
+      })
+      .catch((error) => {
+        console.error("Error adding customer:", error);
+      });
+  };
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -236,22 +297,142 @@ export const Bill = () => {
   return (
     <div className="flex w-screen ">
       {/* Dialog for customer selection */}
-      <Dialog
-        open={openDialog}
-        onClose={handleDialogClose}
-      >
+      <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Customer Selection</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please select whether you are an existing customer or a new customer.
+            Please select whether the customer is an existing customer or a new
+            customer.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleExistingCustomer} color="primary">
+        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            onClick={handleExistingCustomer}
+            sx={{ margin: 1 }}
+          >
             Existing Customer
           </Button>
-          <Button onClick={handleNewCustomer} color="primary">
+          <Button
+            variant="contained"
+            onClick={handleNewCustomer}
+            sx={{ margin: 1 }}
+          >
             New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openNewCustomerDialog}
+        onClose={handleNewCustomerDialogClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleSubmit,
+        }}
+      >
+        <DialogTitle>Add Stock</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To add a stock arrival, please enter the details here.
+          </DialogContentText>
+
+          <TextField
+            label="Username"
+            name="username"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.username}
+            onChange={handleChangeForm}
+          />
+          <div className="flex gap-5">
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.password}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={confirmPassword}
+              onChange={handleChangeForm}
+            />
+          </div>
+          <div className="flex gap-5">
+            <TextField
+              label="First Name"
+              name="firstname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.firstname}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              label="Last Name"
+              name="lastname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.lastname}
+              onChange={handleChangeForm}
+            />
+          </div>
+
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.email}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Phone"
+            name="phone"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.phone}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Address"
+            name="address"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.address}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Area (Delivery Route)"
+            name="area"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.area}
+            onChange={handleChangeForm}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNewCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            Add Customer
           </Button>
         </DialogActions>
       </Dialog>
@@ -313,10 +494,7 @@ export const Bill = () => {
       </div>
 
       <div className="w-2/5 h-[84vh]  px-10 pt-10">
-
-        <div className=" rounded-md bg-slate-200 w-full h-full">
-
-        </div>
+        <div className=" rounded-md bg-slate-200 w-full h-full"></div>
       </div>
     </div>
   );
