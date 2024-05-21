@@ -1,27 +1,29 @@
 import React, { useState, useEffect } from "react";
-import Button from "@mui/material/Button";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import {
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Autocomplete,
+  InputLabel,
+  MenuItem,
+  FormControl,
+  Select,
+} from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import DynamicItemCard from "../components/DynamicItemCard";
-import Stack from "@mui/material/Stack";
-import Autocomplete from "@mui/material/Autocomplete";
-import axios from "axios";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
+import axios from "axios";
+import Swal from "sweetalert2";
+import defImg from "../assets/images/defimg.png";
+import DynamicItemCard from "../components/DynamicItemCard";
 import DoughnutGraph from "../components/DoughnutGraph";
-import Swal from 'sweetalert2';
-import defImg from '../assets/images/defimg.png';
 
 function ProductCatalog() {
   const [alignment, setAlignment] = React.useState("All");
@@ -40,8 +42,6 @@ function ProductCatalog() {
     date_added: "",
     stock_total: 0,
   });
-
-
 
   useEffect(() => {
     axios
@@ -63,7 +63,7 @@ function ProductCatalog() {
     axios
       .get("http://localhost:3001/category")
       .then((response) => {
-        setCategories(response.data); 
+        setCategories(response.data);
       })
       .catch((error) => {
         console.error("Error fetching data from category table", error);
@@ -78,7 +78,6 @@ function ProductCatalog() {
         console.error("Error fetching data from category table", error);
       });
   }, []);
-
 
   const handleChangeSelect = (event, type) => {
     const selectedValue = event.target.value;
@@ -112,22 +111,20 @@ function ProductCatalog() {
         supplierID: itemData.supplierID,
       })
       .then((response) => {
-
         const responseData = response.data;
-        if (responseData.message === 'Product already exists') {
+        if (responseData.message === "Product already exists") {
           console.log("Product already exists.");
           Swal.fire({
-            icon: 'error',
-            title: 'Product already exists.',
+            icon: "error",
+            title: "Product already exists.",
             text: "An item cannot be added with the same Product Name and the same Supplier",
             customClass: {
-              popup: 'z-50', 
+              popup: "z-50",
             },
             didOpen: () => {
-              document.querySelector('.swal2-container').style.zIndex = '9999'; 
-            }
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
           });
-          
         } else {
           console.log("Product does not exist. Proceeding with insertion.");
 
@@ -138,10 +135,11 @@ function ProductCatalog() {
             formData.append("image", selectedFile);
           } else {
             // If no file is selected, append the default image
-            const defaultImage = new File([defImg], "defimg.png", { type: "image/png" });
+            const defaultImage = new File([defImg], "defimg.png", {
+              type: "image/png",
+            });
             formData.append("image", defaultImage);
           }
-          
 
           formData.append("product_name", itemData.product_name);
           formData.append("stock_total", itemData.stock_total);
@@ -162,14 +160,15 @@ function ProductCatalog() {
               console.log("Form Data:", formData);
 
               Swal.fire({
-                icon: 'success',
-                title: 'Product Added Successfully!',
+                icon: "success",
+                title: "Product Added Successfully!",
                 customClass: {
-                  popup: 'z-50', 
+                  popup: "z-50",
                 },
                 didOpen: () => {
-                  document.querySelector('.swal2-container').style.zIndex = '9999'; 
-                }
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
               }).then(() => {
                 handleClose();
                 window.location.reload();
@@ -184,7 +183,7 @@ function ProductCatalog() {
         console.error("Error checking product existence:", error);
       });
   };
-  
+
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setFormData({ ...itemData, [name]: value });
@@ -264,8 +263,6 @@ function ProductCatalog() {
               <DoughnutGraph showLegend={true} />
             </div>
           </div>
-
-          
         </div>
       </div>
     </div>
@@ -495,7 +492,6 @@ export function topdiv(
                   >
                     Upload a Image of the Product
                     <VisuallyHiddenInput
-                    
                       type="file"
                       onChange={handleFileChange}
                       accept=".jpg,.jpeg,.png"

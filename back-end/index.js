@@ -10,7 +10,7 @@ const authRoute = require('./routes/authRoute');
 app.use('/', authRoute);
 
 const userRoute = require('./routes/userRoute');
-app.use('/home', userRoute); 
+app.use('/', userRoute); 
 
 const getRoute = require('./routes/getRoute');
 app.use('/', getRoute);

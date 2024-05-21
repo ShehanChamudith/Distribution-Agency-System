@@ -17,6 +17,10 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 
 export const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
@@ -26,6 +30,9 @@ export const Bill = () => {
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(true);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
+  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [existingCustomers, setExistingCustomers] = useState([]);
   const [customerData, setcustomerData] = useState({
     username: "",
     password: "",
@@ -51,6 +58,10 @@ export const Bill = () => {
     }
   };
 
+  const handleExistingCustomerChange = (event) => {
+    setSelectedCustomer(event.target.value);
+  };
+
   const handleDialogClose = () => {
     setOpenDialog(false);
   };
@@ -58,6 +69,7 @@ export const Bill = () => {
   const handleExistingCustomer = () => {
     console.log("Existing customer selected");
     setOpenDialog(false);
+    setOpenExistingCustomerDialog(true);
   };
 
   const handleNewCustomer = () => {
@@ -70,16 +82,20 @@ export const Bill = () => {
     setOpenNewCustomerDialog(false);
   };
 
+  const handleExistingCustomerDialogClose = () => {
+    setOpenExistingCustomerDialog(false);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
+    
     // Handle form submission, e.g., send data to the server
     axios
-      .post("http://localhost:3001/addcustomer", customerData)
+      .post("http://localhost:3001/adduser", customerData)
       .then((response) => {
         console.log("Customer added successfully:", response.data);
         setOpenNewCustomerDialog(false);
@@ -101,6 +117,13 @@ export const Bill = () => {
         console.error("Error adding customer:", error);
       });
   };
+
+  const handleExistingCustomerSubmit = () => {
+    console.log("Selected customer:", selectedCustomer);
+    setOpenExistingCustomerDialog(false);
+  };
+
+  
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -141,6 +164,19 @@ export const Bill = () => {
         console.error("Error fetching data:", error);
       });
   }, [category]);
+
+  useEffect(() => {
+    if (openExistingCustomerDialog) {
+      axios
+        .get("http://localhost:3001/getcustomer") // Adjust the endpoint as needed
+        .then((response) => {
+          setExistingCustomers(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching existing customers:", error);
+        });
+    }
+  }, [openExistingCustomerDialog]);
 
   const deleteRow = (inventoryID) => {
     axios
@@ -296,6 +332,7 @@ export const Bill = () => {
 
   return (
     <div className="flex w-screen ">
+
       {/* Dialog for customer selection */}
       <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Customer Selection</DialogTitle>
@@ -323,6 +360,7 @@ export const Bill = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Add New Customer  */}
       <Dialog
         open={openNewCustomerDialog}
         onClose={handleNewCustomerDialogClose}
@@ -331,10 +369,10 @@ export const Bill = () => {
           onSubmit: handleSubmit,
         }}
       >
-        <DialogTitle>Add Stock</DialogTitle>
+        <DialogTitle>Add New Customer</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            To add a stock arrival, please enter the details here.
+            To add a new customer, please enter the details here.
           </DialogContentText>
 
           <TextField
@@ -432,7 +470,50 @@ export const Bill = () => {
             Cancel
           </Button>
           <Button type="submit" variant="contained" color="primary">
-            Add Customer
+            Add New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Select Existing Customer  */}
+      <Dialog
+        open={openExistingCustomerDialog}
+        onClose={handleExistingCustomerDialogClose}
+      >
+        <DialogTitle>Select Existing Customer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select an existing customer from the list.
+          </DialogContentText>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="existing-customer-label">Customer</InputLabel>
+            <Select
+              labelId="existing-customer-label"
+              value={selectedCustomer}
+              onChange={handleExistingCustomerChange}
+              label="Customer"
+            >
+              {existingCustomers.map((customer) => (
+                <MenuItem key={customer.userID} value={customer.firstname}>
+                  {customer.fullname}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExistingCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              handleExistingCustomerSubmit();
+              console.log("Selected Customer:", selectedCustomer);
+            }}
+            variant="contained"
+            color="primary"
+          >
+            Select Customer
           </Button>
         </DialogActions>
       </Dialog>
