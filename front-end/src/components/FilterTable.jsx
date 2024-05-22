@@ -79,17 +79,23 @@ export default function DataGridDemo() {
   const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
     { field: 'Product_Name', headerName: 'Product Name', width: 200 },
-    { field: 'Stock_Arrival', headerName: 'Stock Arrival', width: 150 },
+    { field: 'Stock_Arrival', headerName: 'Stock Arrival', width: 200 },
     { field: 'Supplier', headerName: 'Supplier', width: 150 },
     { field: 'Purchase_Date', headerName: 'Received Date', type: 'date', width: 150 },
     { field: 'Expire_Date', headerName: 'Expire Date', type: 'date', width: 150 },
     { field: 'Batch_No', headerName: 'Batch Number', width: 150 },
-    { field: 'actions', headerName: '', width: 300, disableColumnMenu: true, renderCell: (params) => (
-        <div className=' flex gap-3 items-center h-full'>
+    { 
+      field: 'actions', 
+      headerName: '', 
+      width: 300, 
+      disableColumnMenu: true, 
+      renderCell: (params) => (
+        <Box display="flex" justifyContent="flex-end" width="100%">
           <Button variant="outlined" onClick={() => handleEditClick(params.row.id)}>Edit</Button>
-          <Button variant="outlined" onClick={() => deletePopup(params.row.id)}>Delete</Button>
-        </div>
-      )}
+          <Button variant="outlined" onClick={() => deletePopup(params.row.id)} style={{ marginLeft: 8 }}>Delete</Button>
+        </Box>
+      )
+    }
   ];
 
   return (

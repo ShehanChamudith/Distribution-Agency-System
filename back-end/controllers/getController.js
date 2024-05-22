@@ -128,7 +128,7 @@ const getItem = (req, res) => {
   }
 
   const getCustomer = (req,res) => {
-    DBconnect.query('SELECT firstname,userID, CONCAT(firstname, \' \', lastname) AS fullname FROM user WHERE usertypeID = 6', (err, results) => {
+    DBconnect.query('SELECT * FROM customer', (err, results) => {
       if (err) {
           console.error('Error querying MySQL database:', err);
           res.status(500).send('Internal Server Error');

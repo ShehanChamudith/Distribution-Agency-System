@@ -21,6 +21,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
+import porkIcon from "../assets/icons/pork.ico";
+import chickenIcon from "../assets/icons/hen.ico";
+import cpartIcon from "../assets/icons/food.ico";
+import sausageIcon from "../assets/icons/sausages.ico";
 
 export const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
@@ -30,7 +34,8 @@ export const Bill = () => {
   const [rows, setRows] = useState([]);
   const [openDialog, setOpenDialog] = useState(true);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
-  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] = useState(false);
+  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
+    useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [existingCustomers, setExistingCustomers] = useState([]);
   const [customerData, setcustomerData] = useState({
@@ -45,6 +50,7 @@ export const Bill = () => {
     usertypeID: 6,
   });
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedCustomerInfo, setSelectedCustomerInfo] = useState({});
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -63,6 +69,21 @@ export const Bill = () => {
   };
 
   const handleDialogClose = () => {
+    // Do nothing if the new or existing customer dialogs are not open
+    if (!openNewCustomerDialog && !openExistingCustomerDialog) {
+      Swal.fire({
+        icon: "warning",
+        title: "Please select a customer type",
+        text: "You need to select either 'New Customer' or 'Existing Customer' to proceed.",
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
+      return;
+    }
     setOpenDialog(false);
   };
 
@@ -92,7 +113,7 @@ export const Bill = () => {
       alert("Passwords do not match!");
       return;
     }
-    
+
     // Handle form submission, e.g., send data to the server
     axios
       .post("http://localhost:3001/adduser", customerData)
@@ -112,6 +133,20 @@ export const Bill = () => {
           usertypeID: 6,
         });
         setConfirmPassword("");
+
+        Swal.fire({
+          icon: "success",
+          title: "Customer Added Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          handleClose();
+          fetchCustomer(); // Call fetchCustomer to update the existing customers
+        });
       })
       .catch((error) => {
         console.error("Error adding customer:", error);
@@ -121,9 +156,12 @@ export const Bill = () => {
   const handleExistingCustomerSubmit = () => {
     console.log("Selected customer:", selectedCustomer);
     setOpenExistingCustomerDialog(false);
+    // Find the selected customer's information based on the selectedCustomer value
+    const customer = existingCustomers.find(
+      (customer) => customer.shop_name === selectedCustomer
+    );
+    setSelectedCustomerInfo(customer); // Update the selected customer's information
   };
-
-  
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -165,16 +203,20 @@ export const Bill = () => {
       });
   }, [category]);
 
+  const fetchCustomer = () => {
+    axios
+      .get("http://localhost:3001/getcustomer") // Adjust the endpoint as needed
+      .then((response) => {
+        setExistingCustomers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching existing customers:", error);
+      });
+  };
+
   useEffect(() => {
     if (openExistingCustomerDialog) {
-      axios
-        .get("http://localhost:3001/getcustomer") // Adjust the endpoint as needed
-        .then((response) => {
-          setExistingCustomers(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching existing customers:", error);
-        });
+      fetchCustomer();
     }
   }, [openExistingCustomerDialog]);
 
@@ -332,7 +374,6 @@ export const Bill = () => {
 
   return (
     <div className="flex w-screen ">
-
       {/* Dialog for customer selection */}
       <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Customer Selection</DialogTitle>
@@ -494,8 +535,8 @@ export const Bill = () => {
               label="Customer"
             >
               {existingCustomers.map((customer) => (
-                <MenuItem key={customer.userID} value={customer.firstname}>
-                  {customer.fullname}
+                <MenuItem key={customer.customerID} value={customer.shop_name}>
+                  {customer.shop_name}
                 </MenuItem>
               ))}
             </Select>
@@ -544,10 +585,42 @@ export const Bill = () => {
               aria-label="Platform"
             >
               <ToggleButton value="All">All</ToggleButton>
-              <ToggleButton value="Chicken">Chicken</ToggleButton>
-              <ToggleButton value="Chicken Parts">Chicken Parts</ToggleButton>
-              <ToggleButton value="Pork">Pork</ToggleButton>
-              <ToggleButton value="Sausages">Sausages</ToggleButton>
+              <ToggleButton value="Chicken">
+                <Box
+                  component="img"
+                  src={chickenIcon}
+                  alt="chicken"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken
+              </ToggleButton>
+              <ToggleButton value="Chicken Parts">
+                <Box
+                  component="img"
+                  src={cpartIcon}
+                  alt="chicken_part"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken Parts
+              </ToggleButton>
+              <ToggleButton value="Pork">
+                <Box
+                  component="img"
+                  src={porkIcon}
+                  alt="pork"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Pork
+              </ToggleButton>
+              <ToggleButton value="Sausages">
+                <Box
+                  component="img"
+                  src={sausageIcon}
+                  alt="sausages"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Sausages
+              </ToggleButton>
             </ToggleButtonGroup>
           </div>
         </div>
@@ -575,7 +648,13 @@ export const Bill = () => {
       </div>
 
       <div className="w-2/5 h-[84vh]  px-10 pt-10">
-        <div className=" rounded-md bg-slate-200 w-full h-full"></div>
+        <div className=" rounded-md bg-slate-200 w-full h-full border border-red-500 p-5">
+          <div className="border border-green-500">
+            {selectedCustomerInfo && (
+              <p className="text-md font-PoppinsM">Customer: {selectedCustomerInfo.shop_name}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

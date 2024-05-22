@@ -24,6 +24,11 @@ import Swal from "sweetalert2";
 import defImg from "../assets/images/defimg.png";
 import DynamicItemCard from "../components/DynamicItemCard";
 import DoughnutGraph from "../components/DoughnutGraph";
+import porkIcon from "../assets/icons/pork.ico";
+import chickenIcon from "../assets/icons/hen.ico";
+import cpartIcon from "../assets/icons/food.ico";
+import sausageIcon from "../assets/icons/sausages.ico";
+import Box from "@mui/material/Box";
 
 function ProductCatalog() {
   const [alignment, setAlignment] = React.useState("All");
@@ -290,8 +295,8 @@ export function topdiv(
   selectedFile
 ) {
   return (
-    <div className="flex w-screen py-10 ">
-      <div className="flex w-1/2 h-full pl-10 gap-10  ">
+    <div className="flex w-screen py-10  ">
+      <div className="flex w-2/3 h-full pl-10 gap-10  ">
         <div>
           <Button
             variant="contained"
@@ -308,23 +313,55 @@ export function topdiv(
         </div>
 
         <div>
-          <ToggleButtonGroup
-            color="primary"
-            value={alignment}
-            exclusive
-            onChange={handleChange}
-            aria-label="Platform"
-          >
-            <ToggleButton value="All">All</ToggleButton>
-            <ToggleButton value="Chicken">Chicken</ToggleButton>
-            <ToggleButton value="Chicken Parts">Chicken Parts</ToggleButton>
-            <ToggleButton value="Pork">Pork</ToggleButton>
-            <ToggleButton value="Sausages">Sausages</ToggleButton>
-          </ToggleButtonGroup>
+        <ToggleButtonGroup
+              color="primary"
+              value={alignment}
+              exclusive
+              onChange={handleChange}
+              aria-label="Platform"
+            >
+              <ToggleButton value="All">All</ToggleButton>
+              <ToggleButton value="Chicken">
+                <Box
+                  component="img"
+                  src={chickenIcon}
+                  alt="chicken"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken
+              </ToggleButton>
+              <ToggleButton value="Chicken Parts">
+                <Box
+                  component="img"
+                  src={cpartIcon}
+                  alt="chicken_part"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken Parts
+              </ToggleButton>
+              <ToggleButton value="Pork">
+                <Box
+                  component="img"
+                  src={porkIcon}
+                  alt="pork"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Pork
+              </ToggleButton>
+              <ToggleButton value="Sausages">
+                <Box
+                  component="img"
+                  src={sausageIcon}
+                  alt="sausages"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Sausages
+              </ToggleButton>
+            </ToggleButtonGroup>
         </div>
       </div>
 
-      <div className="flex w-1/2 pr-10   justify-end gap-9  ">
+      <div className="flex w-1/3 pr-10   justify-end gap-9  ">
         <div className="flex justify-end ">
           <Stack spacing={2} sx={{ width: 300 }}>
             <Autocomplete
