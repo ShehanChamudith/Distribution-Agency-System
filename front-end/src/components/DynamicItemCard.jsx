@@ -8,7 +8,19 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
 import Swal from "sweetalert2";
-import {Button,Dialog,DialogActions,DialogContent,DialogContentText,DialogTitle,FormControl,InputLabel,MenuItem,Select,TextField,} from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 
@@ -77,8 +89,7 @@ function ItemCard({ item }) {
 
   const handleClose = () => {
     setOpen(false);
-    setCategoryS('');
-
+    setCategoryS("");
   };
 
   const handleEdit = async (productId) => {
@@ -99,12 +110,6 @@ function ItemCard({ item }) {
         date_added: formattedDate,
       });
 
-      // const categoryResponse = await axios.get(
-      //   `http://localhost:3001/editItemCategoryGet/${productId}`
-      // );
-      // setSelectedCategoryGet(categoryResponse.data);
-      
-
       const categoriesResponse = await axios.get(
         "http://localhost:3001/category"
       );
@@ -115,33 +120,52 @@ function ItemCard({ item }) {
     }
   };
 
- 
   const handleEditSubmit = async (productId, e) => {
     e.preventDefault();
 
     console.log("Form submitted for editing:", editData);
     console.log(productId);
-    
-    axios.put(`http://localhost:3001/edititem/${productId}`, editData)
-    
-      .then(response => {
-        console.log('Edit request successful:', response.data);
+
+    axios
+      .put(`http://localhost:3001/edititem/${productId}`, editData)
+
+      .then((response) => {
+        console.log("Edit request successful:", response.data);
         // Handle successful response if needed
       })
-      .catch(error => {
-        console.error('Error editing item:', error);
+      .catch((error) => {
+        console.error("Error editing item:", error);
         // Handle error if needed
       });
-     
+
     handleClose();
-    window.location.reload(); 
+    window.location.reload();
   };
-  
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setEditData({ ...editData, [name]: value });
   };
+
+  const getStockStatus = (quantity) => {
+    let stockColor = "";
+    let stockLabel = "";
+
+    if (quantity > 10) {
+      stockLabel = "In Stock";
+      stockColor = "#33ba6f"; // Green color
+    } else if (quantity > 0) {
+      stockLabel = "Low Stock";
+      stockColor = "#FFA500"; // Orange color
+    } else {
+      stockLabel = "Out of Stock";
+      stockColor = "#f07651"; // Red color
+    }
+
+    return { label: stockLabel, color: stockColor };
+  };
+
+  const stockStatus = getStockStatus(item.stock_total);
 
   const VisuallyHiddenInput = styled("input")({
     clip: "rect(0 0 0 0)",
@@ -155,9 +179,7 @@ function ItemCard({ item }) {
     width: 1,
   });
 
-
   return (
-    
     <Card
       sx={{
         width: 200,
@@ -170,13 +192,27 @@ function ItemCard({ item }) {
       <CardMedia
         component="img"
         alt={item.name}
-        image={`http://localhost:3001/${item.image_path}` }
+        image={`http://localhost:3001/${item.image_path}`}
         sx={{ height: 150 }}
       />
       <CardContent>
         <Typography gutterBottom variant="h6" component="div">
           {item.product_name}
         </Typography>
+
+        <div
+          style={{
+            backgroundColor: stockStatus.color,
+            padding: "4px",
+            borderRadius: "4px",
+            display: "inline-block",
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {stockStatus.label}
+          </Typography>
+        </div>
+
         <Typography variant="body2" color="text.secondary">
           Stock: {item.stock_total} kg
         </Typography>
@@ -320,7 +356,6 @@ export default function DynamicItemCard({ category, searchQuery }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
@@ -341,7 +376,6 @@ export default function DynamicItemCard({ category, searchQuery }) {
         }
 
         setData(filteredData); // Set the filtered data to the state
-        
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -349,7 +383,7 @@ export default function DynamicItemCard({ category, searchQuery }) {
   }, [category, searchQuery]);
 
   return (
-    <div className="flex flex-wrap gap-4 justify-arround">
+    <div className="flex flex-wrap gap-8 justify-arround">
       {data.map((item) => (
         <ItemCard key={item.id} item={item} />
       ))}

@@ -256,10 +256,10 @@ function ProductCatalog() {
 
       <div className="flex w-screen px-10 py-5 gap-5 ">
         <div
-          className=" w-4/6 py-5 px-11 bg-slate-200 rounded-lg  "
+          className=" w-4/6 py-5 px-2 rounded-lg  "
           style={{ overflowY: "auto", height: "65vh" }}
         >
-          <DynamicItemCard category={alignment} searchQuery={searchQuery} />
+          <DynamicItemCard category={alignment} searchQuery={searchQuery}/>
         </div>
         <div className="w-2/6  bg-slate-200 rounded-lg">
           <div className="flex h-full w-full">
