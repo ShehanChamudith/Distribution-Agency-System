@@ -2,14 +2,14 @@ const DBconnect = require('../config/DBconnect');
 
 
 const addItem = (req, res) => {
-    const { product_name, stock_total, categoryID, wholesale_price, selling_price, date_added } = req.body;
+    const { product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, supplierID } = req.body;
     
     // Check if req.file exists
     const imagePath = req.file ? req.file.path : null; // Path to the uploaded image, or null if no file is uploaded
 
-    const insertQuery = 'INSERT INTO product (product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, image_path) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const insertQuery = 'INSERT INTO product (product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, image_path, supplierID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 
-    DBconnect.query(insertQuery, [product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, imagePath], (err, result) => {
+    DBconnect.query(insertQuery, [product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, imagePath, supplierID], (err, result) => {
         if (err) {
             console.error('Error inserting item into database:', err);
             res.status(500).send('Internal Server Error');
@@ -56,10 +56,34 @@ const updateItem = (req, res) => {
     });
 }
 
+const itemCheck = (req, res) => {
+    const { product_name, supplierID } = req.body;
+
+    console.log('Product Name:', product_name);
+    console.log('Supplier ID:', supplierID);
+
+    // Check if product with the given name and supplier ID already exists
+    DBconnect.query('SELECT * FROM product WHERE product_name = ? AND supplierID = ?', [product_name, supplierID], (err, rows) => {
+        if (err) {
+            console.error('Error querying MySQL database:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
+        if (rows.length > 0) {
+            res.status(200).json({ message: 'Product already exists' });
+            console.log('Product already exists');
+        } else {
+            res.status(200).json({ message: 'Product does not exist, can proceed with insertion' });
+            console.log('Product does not exist, can proceed with insertion');
+        }
+    });
+};
+
 
 module.exports = {
     addItem,
     deleteItem,
     updateItem,
-
+    itemCheck,
 };

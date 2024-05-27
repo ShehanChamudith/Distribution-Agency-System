@@ -1,9 +1,717 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Swal from "sweetalert2";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import porkIcon from "../assets/icons/pork.ico";
+import chickenIcon from "../assets/icons/hen.ico";
+import cpartIcon from "../assets/icons/food.ico";
+import sausageIcon from "../assets/icons/sausages.ico";
+import Card from "@mui/material/Card";
+import Modal from "@mui/material/Modal";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 
-export const Bill = () => {
+function ItemCard({ item, setAddedItems, addedItems }) {
+  const [open, setOpen] = useState(false);
+  const [quantity, setQuantity] = useState("");
+  const [alert, setAlert] = useState({
+    show: false,
+    severity: "",
+    message: "",
+  });
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleAddToBill = () => {
+    if (!quantity) {
+      setAlert({
+        show: true,
+        severity: "error",
+        message: "Quantity cannot be empty!",
+      });
+      return;
+    }
+
+    const newItem = { ...item, quantity };
+
+    const isItemAlreadyAdded = addedItems.some(
+      (addedItem) => addedItem.product_name === item.product_name
+    );
+
+    if (isItemAlreadyAdded) {
+      setAlert({
+        show: true,
+        severity: "error",
+        message: "Item is already added to the bill!",
+      });
+      return;
+    }
+
+    setAddedItems((prevItems) => [...prevItems, newItem]);
+    
+    setAlert({
+      show: true,
+      severity: "success",
+      message: "Item added to the bill",
+    });
+
+    console.log(`Added ${quantity} ${item.product_name} to bill!`);
+    setQuantity("");
+    handleClose();
+    //setItem({ product_name: '', image_path: '', selling_price: 0 });
+  };
+
+  const handleChange = (event) => {
+    setQuantity(event.target.value);
+  };
+
+  useEffect(() => {
+    if (alert.show) {
+      const timer = setTimeout(() => {
+        setAlert({ show: false, severity: "", message: "" });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
   return (
     <div>
-      <h1 className="text-3xl text-center text-black">This is Bill Page</h1>
+      {alert.show && (
+        <Alert
+          severity={alert.severity}
+          onClose={() => setAlert({ show: false, severity: "", message: "" })}
+          style={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            width: "100%",
+            maxWidth: "350px",
+          }}
+        >
+          {alert.message}
+        </Alert>
+      )}
+
+      <Card
+        sx={{
+          width: 200,
+          transition: "transform 0.2s",
+          "&:hover": {
+            transform: "scale(1.05)",
+          },
+        }}
+      >
+        <CardMedia
+          component="img"
+          alt={item.name}
+          image={`http://localhost:3001/${item.image_path}`}
+          sx={{ height: 150 }}
+        />
+        <CardContent>
+          <Typography gutterBottom variant="h6" component="div">
+            {item.product_name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Stock: {item.stock_total} kg
+          </Typography>
+          <Button onClick={handleOpen} variant="contained" sx={{ mt: 2 }}>
+            Add to Bill
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Quantity Modal */}
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 300,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Enter Quantity
+          </Typography>
+          <TextField
+            label="Quantity"
+            variant="outlined"
+            type="number"
+            value={quantity}
+            onChange={handleChange}
+            sx={{ mt: 2, mb: 2, display: "block" }}
+          />
+          <Button onClick={handleAddToBill} variant="contained">
+            Add
+          </Button>
+        </Box>
+      </Modal>
+    </div>
+  );
+}
+
+export const Bill = () => {
+  const [alignment, setAlignment] = React.useState("All");
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [category, setCategory] = useState("All");
+  const [openDialog, setOpenDialog] = useState(true);
+  const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
+  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
+    useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [existingCustomers, setExistingCustomers] = useState([]);
+  const [customerData, setcustomerData] = useState({
+    username: "",
+    password: "",
+    firstname: "",
+    lastname: "",
+    email: "",
+    phone: "",
+    address: "",
+    area: "",
+    usertypeID: 6,
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [selectedCustomerInfo, setSelectedCustomerInfo] = useState({});
+  const [data, setData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [addedItems, setAddedItems] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/inventory")
+      .then((response) => {
+        let filteredData = response.data;
+
+        // Filter items based on category
+        if (category && category !== "All") {
+          filteredData = filteredData.filter(
+            (item) => item.category === category
+          );
+        }
+
+        // Filter items based on search query
+        if (searchQuery) {
+          filteredData = filteredData.filter((item) =>
+            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+        }
+
+        setData(filteredData); // Set the filtered data to the state
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [category, searchQuery]);
+  const handleChangeForm = (event) => {
+    const { name, value } = event.target;
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+    } else {
+      setcustomerData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleExistingCustomerChange = (event) => {
+    setSelectedCustomer(event.target.value);
+  };
+
+  const handleDialogClose = () => {
+    // Do nothing if the new or existing customer dialogs are not open
+    if (!openNewCustomerDialog && !openExistingCustomerDialog) {
+      Swal.fire({
+        icon: "warning",
+        title: "Please select a customer type",
+        text: "You need to select either 'New Customer' or 'Existing Customer' to proceed.",
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
+      return;
+    }
+    setOpenDialog(false);
+  };
+
+  const handleExistingCustomer = () => {
+    console.log("Existing customer selected");
+    setOpenDialog(false);
+    setOpenExistingCustomerDialog(true);
+  };
+
+  const handleNewCustomer = () => {
+    console.log("New customer selected");
+    setOpenDialog(false);
+    setOpenNewCustomerDialog(true);
+  };
+
+  const handleNewCustomerDialogClose = () => {
+    setOpenNewCustomerDialog(false);
+  };
+
+  const handleExistingCustomerDialogClose = () => {
+    setOpenExistingCustomerDialog(false);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (customerData.password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    // Handle form submission, e.g., send data to the server
+    axios
+      .post("http://localhost:3001/adduser", customerData)
+      .then((response) => {
+        console.log("Customer added successfully:", response.data);
+        setOpenNewCustomerDialog(false);
+        // Clear form fields
+        setcustomerData({
+          username: "",
+          password: "",
+          firstname: "",
+          lastname: "",
+          email: "",
+          phone: "",
+          address: "",
+          area: "",
+          usertypeID: 6,
+        });
+        setConfirmPassword("");
+
+        Swal.fire({
+          icon: "success",
+          title: "Customer Added Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          handleClose();
+          fetchCustomer();
+        });
+      })
+      .catch((error) => {
+        console.error("Error adding customer:", error);
+      });
+  };
+
+  const handleExistingCustomerSubmit = () => {
+    console.log("Selected customer:", selectedCustomer);
+    setOpenExistingCustomerDialog(false);
+    const customer = existingCustomers.find(
+      (customer) => customer.shop_name === selectedCustomer
+    );
+    setSelectedCustomerInfo(customer);
+  };
+
+  const handleChange = (event, newAlignment) => {
+    setAlignment(newAlignment);
+    setCategory(newAlignment);
+  };
+
+  const fetchCustomer = () => {
+    axios
+      .get("http://localhost:3001/getcustomer")
+      .then((response) => {
+        setExistingCustomers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching existing customers:", error);
+      });
+  };
+
+  useEffect(() => {
+    if (openExistingCustomerDialog) {
+      fetchCustomer();
+    }
+  }, [openExistingCustomerDialog]);
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  function BillingItem({ item, onQuantityChange }) {
+    const [quantity, setQuantity] = useState(item.quantity);
+
+    const handleQuantityChange = (e) => {
+      const newQuantity = parseInt(e.target.value, 10);
+      setQuantity(newQuantity);
+      onQuantityChange(item.productID, newQuantity);
+    };
+
+    const totalPrice = (quantity * item.selling_price).toFixed(2);
+
+    return (
+      <div className="w-full flex items-center  p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
+        <div className="flex items-center w-3/6">
+          <img
+            src={`http://localhost:3001/${item.image_path}`}
+            alt={item.product_name}
+            className="w-12 h-12 object-cover"
+          />
+          <div className="ml-2">
+            <p className="text-sm font-medium">{item.product_name}</p>
+            <p className="text-xs text-gray-500">
+              {item.selling_price.toFixed(2)} LKR
+            </p>
+          </div>
+        </div>
+        <div className=" w-1/6 flex justify-end">
+          <input
+            type="number"
+            value={quantity}
+            onChange={handleQuantityChange}
+            className="w-20 p-1 border border-gray-400 rounded text-center"
+          />
+        </div>
+        <div className="w-2/6 flex justify-end">
+          <p className="text-sm ml-2">{totalPrice} LKR</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleQuantityChange = (productId, newQuantity) => {
+    // Update the quantity of the item with the given productId in the addedItems state
+    // You can implement this function to update the parent state accordingly
+  };
+
+  useEffect(() => {
+    console.log("Updated addedItems:", addedItems);
+  }, [addedItems]);
+
+  return (
+    <div className="flex w-screen gap-4">
+      {/* Dialog for customer selection */}
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>Customer Selection</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select whether the customer is an existing customer or a new
+            customer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            onClick={handleExistingCustomer}
+            sx={{ margin: 1 }}
+          >
+            Existing Customer
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNewCustomer}
+            sx={{ margin: 1 }}
+          >
+            New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add New Customer  */}
+      <Dialog
+        open={openNewCustomerDialog}
+        onClose={handleNewCustomerDialogClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleSubmit,
+        }}
+      >
+        <DialogTitle>Add New Customer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To add a new customer, please enter the details here.
+          </DialogContentText>
+
+          <TextField
+            label="Username"
+            name="username"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.username}
+            onChange={handleChangeForm}
+          />
+          <div className="flex gap-5">
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.password}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={confirmPassword}
+              onChange={handleChangeForm}
+            />
+          </div>
+          <div className="flex gap-5">
+            <TextField
+              label="First Name"
+              name="firstname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.firstname}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              label="Last Name"
+              name="lastname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.lastname}
+              onChange={handleChangeForm}
+            />
+          </div>
+
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.email}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Phone"
+            name="phone"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.phone}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Address"
+            name="address"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.address}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            label="Area (Delivery Route)"
+            name="area"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.area}
+            onChange={handleChangeForm}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNewCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            Add New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Select Existing Customer  */}
+      <Dialog
+        open={openExistingCustomerDialog}
+        onClose={handleExistingCustomerDialogClose}
+      >
+        <DialogTitle>Select Existing Customer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select an existing customer from the list.
+          </DialogContentText>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="existing-customer-label">Customer</InputLabel>
+            <Select
+              labelId="existing-customer-label"
+              value={selectedCustomer}
+              onChange={handleExistingCustomerChange}
+              label="Customer"
+            >
+              {existingCustomers.map((customer) => (
+                <MenuItem key={customer.customerID} value={customer.shop_name}>
+                  {customer.shop_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExistingCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              handleExistingCustomerSubmit();
+              console.log("Selected Customer:", selectedCustomer);
+            }}
+            variant="contained"
+            color="primary"
+          >
+            Select Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <div className="w-3/5 flex flex-col ">
+        {/* Filtering Bar */}
+        <div className="flex pl-10 py-10 gap-10  ">
+          <div>
+            <Button
+              variant="contained"
+              className="h-12"
+              disabled
+              style={{
+                pointerEvents: "none",
+                backgroundColor: "#1976d2",
+                color: "white",
+              }}
+            >
+              Filter by Category
+            </Button>
+          </div>
+
+          <div>
+            <ToggleButtonGroup
+              color="primary"
+              value={alignment}
+              exclusive
+              onChange={handleChange}
+              aria-label="Platform"
+            >
+              <ToggleButton value="All">All</ToggleButton>
+              <ToggleButton value="Chicken">
+                <Box
+                  component="img"
+                  src={chickenIcon}
+                  alt="chicken"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken
+              </ToggleButton>
+              <ToggleButton value="Chicken Parts">
+                <Box
+                  component="img"
+                  src={cpartIcon}
+                  alt="chicken_part"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Chicken Parts
+              </ToggleButton>
+              <ToggleButton value="Pork">
+                <Box
+                  component="img"
+                  src={porkIcon}
+                  alt="pork"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Pork
+              </ToggleButton>
+              <ToggleButton value="Sausages">
+                <Box
+                  component="img"
+                  src={sausageIcon}
+                  alt="sausages"
+                  sx={{ width: 24, height: 24, marginRight: 1 }}
+                />
+                Sausages
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </div>
+        </div>
+
+        {/* Items  */}
+        <div className=" w-full pl-10 h-[67vh] overflow-y-auto">
+          <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
+            {data.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                setAddedItems={setAddedItems}
+                addedItems={addedItems}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-2/5 h-[89vh] ">
+        <div className="  bg-slate-200 w-full h-full p-5">
+          <div className="">
+            {selectedCustomerInfo && (
+              <p className="text-md font-PoppinsM">
+                Customer: {selectedCustomerInfo.shop_name}
+              </p>
+            )}
+          </div>
+
+          <div className="w-full  p-4">
+            {addedItems.map((item) => (
+              <BillingItem
+                key={item.productID}
+                item={item}
+                onQuantityChange={handleQuantityChange}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

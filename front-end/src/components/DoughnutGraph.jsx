@@ -37,7 +37,7 @@ function DoughnutGraph({showLegend}) {
       },
       legend: {
         display: showLegend,
-        position: 'top',
+        position: 'bottom',
       },
     },
   };

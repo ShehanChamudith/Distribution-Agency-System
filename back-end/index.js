@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-
+const path = require('path');
 const app = express();
 
 app.use(cors());
@@ -10,7 +10,7 @@ const authRoute = require('./routes/authRoute');
 app.use('/', authRoute);
 
 const userRoute = require('./routes/userRoute');
-app.use('/home', userRoute); 
+app.use('/', userRoute); 
 
 const getRoute = require('./routes/getRoute');
 app.use('/', getRoute);
@@ -21,6 +21,7 @@ app.use('/', itemRoute);
 const inventoryRoute = require('./routes/inventoryRoute');
 app.use('/', inventoryRoute);
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Start the Express server

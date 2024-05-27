@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Table from "../components/Table";
 import Button from "@mui/material/Button";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import TextField from "@mui/material/TextField";
@@ -8,35 +7,30 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import Stack from "@mui/material/Stack";
-import Autocomplete from "@mui/material/Autocomplete";
 import axios from "axios";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-import { styled } from "@mui/material/styles";
+import Swal from "sweetalert2";
+//import moment from "moment";
+import { DatePicker, Space } from "antd";
+import BasicExampleDataGrid from "../components/FilterTable";
+const { RangePicker } = DatePicker;
 
 function Inventory() {
-  const [data, setData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = React.useState(false);
   const [productS, setProductS] = React.useState("");
   const [supplierS, setsupplierS] = React.useState("");
   const [product, setProduct] = useState([]);
   const [supplier, setSupplier] = useState([]);
-  const [formData, setFormData] = useState({
-    // productname: "",
-    // wholesaleprice: "",
-    // sellingprice: "",
-    // date: "",
-    wstaffID: 2,
-  });
+  const [formData, setFormData] = useState({ wstaffID: 2 });
+  //const [dateRange, setDateRange] = useState([]);
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-  };  
+  };
 
   const handleChangeSelectP = (event) => {
     const selectedProduct = event.target.value;
@@ -71,25 +65,31 @@ function Inventory() {
         //console.log("Selected File:", selectedFile);
 
         setFormData({
-          stock_arrival:"", 
-          supplierID:"", 
-          purchase_date:"", 
-          expire_date:"", 
-          productID:"",  
-          batch_no:"",
+          stock_arrival: "",
+          supplierID: "",
+          purchase_date: "",
+          expire_date: "",
+          productID: "",
+          batch_no: "",
         });
         setProductS("");
-        handleClose();
-       window.location.reload();
+        Swal.fire({
+          icon: "success",
+          title: "Stock Added Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          handleClose();
+          window.location.reload();
+        });
       })
       .catch((error) => {
         console.error("Error adding stock:", error);
       });
-  };
-
-
-  const handleSearchInputChange = (event) => {
-    setSearchQuery(event.target.value);
   };
 
   const handleClickOpen = () => {
@@ -99,20 +99,6 @@ function Inventory() {
   const handleClose = () => {
     setOpen(false);
   };
-
- 
-
-  const VisuallyHiddenInput = styled("input")({
-    clip: "rect(0 0 0 0)",
-    clipPath: "inset(50%)",
-    height: 1,
-    overflow: "hidden",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    whiteSpace: "nowrap",
-    width: 1,
-  });
 
   useEffect(() => {
     axios
@@ -131,7 +117,7 @@ function Inventory() {
         console.error("Error fetching data from product table:", error);
       });
 
-      axios
+    axios
       .get("http://localhost:3001/getsupplier")
       .then((response) => {
         setSupplier(response.data); // Update state with fetched categories
@@ -141,35 +127,52 @@ function Inventory() {
       });
   }, []);
 
+  // const handleDateChange = (dates, dateStrings) => {
+  //   // Check if dates is null
+  //   if (dates === null) {
+  //     // If dates is null, set an empty array or another default value
+  //     setDateRange([]);
+  //   } else {
+  //     // dates is not null, so update date range
+  //     console.log("Selected Dates:", dates);
+  //     console.log("Selected Date Strings:", dateStrings);
+  //     setDateRange(dates);
+  //   }
+  // };
+
   return (
-    <div className=" w-screen  ">
+    <div className=" w-screen">
       <div className="flex w-screen py-10 ">
-        <div className="w-1/2  pl-10"></div>
-
-        <div className="flex w-1/2 pr-10 justify-end gap-9 ">
-          <div className="flex ">
-            <Stack spacing={2} sx={{ width: 300 }}>
-              <Autocomplete
-                freeSolo
-                id="free-solo-2-demo"
-                disableClearable
-                options={data.map((item) => item.product_name)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Search Stock"
-                    InputProps={{
-                      ...params.InputProps,
-                      type: "search",
-                      sx: { height: 48 },
-                      onChange: handleSearchInputChange,
-                    }}
-                  />
-                )}
+        <div className="flex w-1/2 pl-10 gap-10 ">
+          <Button
+            variant="contained"
+            className="h-12"
+            disabled
+            style={{
+              pointerEvents: "none",
+              backgroundColor: "#1976d2",
+              color: "white",
+            }}
+          >
+            Filter by Date
+          </Button>
+          <div className="">
+            <Space direction="vertical" size={12}>
+              <RangePicker
+                className="h-12"
+                picker="date"
+                id={{
+                  start: "startInput",
+                  end: "endInput",
+                }}
+                // onChange={handleDateChange}
               />
-            </Stack>
+            </Space>
           </div>
+        </div>
 
+        <div className="flex w-1/2 pr-10 justify-end ">
+          
           <div className="">
             <React.Fragment>
               <Button
@@ -327,11 +330,9 @@ function Inventory() {
       </div>
 
       <div className="w-screen flex ">
-        <div className="w-4/6 border border-red-500 pl-10">
-          <Table />
-        </div>
-        <div className="w-2/6 border border-purple-500">
-          
+        <div className="w-screen px-10 overflow-y-auto h-[70vh]">
+          <BasicExampleDataGrid />
+          {/* <Table dateRange={dateRange} /> */}
         </div>
       </div>
     </div>
