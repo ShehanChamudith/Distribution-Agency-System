@@ -24,10 +24,16 @@ import Modal from "@mui/material/Modal";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
 
 function ItemCard({ item, setAddedItems, addedItems }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
+  const [alert, setAlert] = useState({
+    show: false,
+    severity: "",
+    message: "",
+  });
 
   const handleOpen = () => {
     setOpen(true);
@@ -39,22 +45,39 @@ function ItemCard({ item, setAddedItems, addedItems }) {
 
   const handleAddToBill = () => {
     if (!quantity) {
-      alert("Quantity cannot be empty");
+      setAlert({
+        show: true,
+        severity: "error",
+        message: "Quantity cannot be empty!",
+      });
       return;
     }
 
     const newItem = { ...item, quantity };
 
-    const isItemAlreadyAdded = addedItems.some(addedItem => addedItem.product_name === item.product_name);
+    const isItemAlreadyAdded = addedItems.some(
+      (addedItem) => addedItem.product_name === item.product_name
+    );
 
     if (isItemAlreadyAdded) {
-      alert("Item is already added to the bill");
+      setAlert({
+        show: true,
+        severity: "error",
+        message: "Item is already added to the bill!",
+      });
       return;
     }
 
-    setAddedItems(prevItems => [...prevItems, newItem]);
+    setAddedItems((prevItems) => [...prevItems, newItem]);
+    
+    setAlert({
+      show: true,
+      severity: "success",
+      message: "Item added to the bill",
+    });
+
     console.log(`Added ${quantity} ${item.product_name} to bill!`);
-    setQuantity('');
+    setQuantity("");
     handleClose();
     //setItem({ product_name: '', image_path: '', selling_price: 0 });
   };
@@ -63,8 +86,36 @@ function ItemCard({ item, setAddedItems, addedItems }) {
     setQuantity(event.target.value);
   };
 
+  useEffect(() => {
+    if (alert.show) {
+      const timer = setTimeout(() => {
+        setAlert({ show: false, severity: "", message: "" });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
   return (
     <div>
+      {alert.show && (
+        <Alert
+          severity={alert.severity}
+          onClose={() => setAlert({ show: false, severity: "", message: "" })}
+          style={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            width: "100%",
+            maxWidth: "350px",
+          }}
+        >
+          {alert.message}
+        </Alert>
+      )}
+
       <Card
         sx={{
           width: 200,
@@ -333,7 +384,7 @@ export const Bill = () => {
     const totalPrice = (quantity * item.selling_price).toFixed(2);
 
     return (
-      <div className="w-full flex items-center  p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300">
+      <div className="w-full flex items-center  p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
         <div className="flex items-center w-3/6">
           <img
             src={`http://localhost:3001/${item.image_path}`}
@@ -368,11 +419,11 @@ export const Bill = () => {
   };
 
   useEffect(() => {
-    console.log('Updated addedItems:', addedItems);
+    console.log("Updated addedItems:", addedItems);
   }, [addedItems]);
 
   return (
-    <div className="flex w-screen ">
+    <div className="flex w-screen gap-4">
       {/* Dialog for customer selection */}
       <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Customer Selection</DialogTitle>
@@ -558,7 +609,7 @@ export const Bill = () => {
         </DialogActions>
       </Dialog>
 
-      <div className="w-3/5 flex flex-col  ">
+      <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
           <div>
@@ -626,7 +677,7 @@ export const Bill = () => {
         </div>
 
         {/* Items  */}
-        <div className=" w-full pl-10 h-[64vh] overflow-y-auto">
+        <div className=" w-full pl-10 h-[67vh] overflow-y-auto">
           <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
             {data.map((item) => (
               <ItemCard
@@ -640,8 +691,8 @@ export const Bill = () => {
         </div>
       </div>
 
-      <div className="w-2/5 h-[84vh]  px-10 pt-10">
-        <div className=" rounded-md bg-slate-200 w-full h-full p-5">
+      <div className="w-2/5 h-[89vh] ">
+        <div className="  bg-slate-200 w-full h-full p-5">
           <div className="">
             {selectedCustomerInfo && (
               <p className="text-md font-PoppinsM">

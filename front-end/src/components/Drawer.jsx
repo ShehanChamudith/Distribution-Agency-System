@@ -28,7 +28,7 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
       <div>
         <div className="w-full h-20 font-PoppinsB border shadow-md flex items-center justify-center">
-          Maleesha Agency (Pvt) Ltd.
+          Distribution Agency System
         </div>
       </div>
       
