@@ -23,7 +23,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import defImg from "../assets/images/defimg.png";
 import DynamicItemCard from "../components/DynamicItemCard";
-import DoughnutGraph from "../components/DoughnutGraph";
+//import DoughnutGraph from "../components/DoughnutGraph";
 import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
@@ -256,19 +256,19 @@ function ProductCatalog() {
 
       <div className="flex w-screen px-10 py-5 gap-5 ">
         <div
-          className=" w-4/6 py-5 px-2 rounded-lg  "
+          className=" w-full py-5 px-2 rounded-lg  "
           style={{ overflowY: "auto", height: "65vh" }}
         >
           <DynamicItemCard category={alignment} searchQuery={searchQuery}/>
         </div>
-        <div className="w-2/6  bg-slate-200 rounded-lg">
+        {/* <div className="w-2/6  bg-slate-200 rounded-lg">
           <div className="flex h-full w-full">
             <div className="border border-red-500 w-1/2"></div>
             <div className="border border-red-500 w-1/2 h-full">
               <DoughnutGraph showLegend={true} />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

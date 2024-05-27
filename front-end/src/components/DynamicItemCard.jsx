@@ -151,7 +151,7 @@ function ItemCard({ item }) {
     let stockColor = "";
     let stockLabel = "";
 
-    if (quantity > 10) {
+    if (quantity > 20) {
       stockLabel = "In Stock";
       stockColor = "#33ba6f"; // Green color
     } else if (quantity > 0) {
@@ -200,22 +200,20 @@ function ItemCard({ item }) {
           {item.product_name}
         </Typography>
 
-        <div
+        <div 
           style={{
             backgroundColor: stockStatus.color,
-            padding: "4px",
+            padding: "6px",
             borderRadius: "4px",
             display: "inline-block",
           }}
         >
           <Typography variant="body2" color="text.secondary">
-            {stockStatus.label}
+          {stockStatus.label} ({item.stock_total} kg)
           </Typography>
         </div>
 
-        <Typography variant="body2" color="text.secondary">
-          Stock: {item.stock_total} kg
-        </Typography>
+        
       </CardContent>
       <CardActions className="flex justify-between">
         <Button

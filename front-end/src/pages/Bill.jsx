@@ -19,16 +19,15 @@ import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
 import sausageIcon from "../assets/icons/sausages.ico";
-import { styled } from "@mui/material/styles";
 import Card from "@mui/material/Card";
-import Modal from '@mui/material/Modal';
+import Modal from "@mui/material/Modal";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 
-function ItemCard({ item }) {
+function ItemCard({ item, setAddedItems, addedItems }) {
   const [open, setOpen] = useState(false);
-  const [quantity, setQuantity] = useState('');
+  const [quantity, setQuantity] = useState("");
 
   const handleOpen = () => {
     setOpen(true);
@@ -39,10 +38,25 @@ function ItemCard({ item }) {
   };
 
   const handleAddToBill = () => {
-    // You can perform the logic to add the item to the bill here
+    if (!quantity) {
+      alert("Quantity cannot be empty");
+      return;
+    }
+
+    const newItem = { ...item, quantity };
+
+    const isItemAlreadyAdded = addedItems.some(addedItem => addedItem.product_name === item.product_name);
+
+    if (isItemAlreadyAdded) {
+      alert("Item is already added to the bill");
+      return;
+    }
+
+    setAddedItems(prevItems => [...prevItems, newItem]);
     console.log(`Added ${quantity} ${item.product_name} to bill!`);
     setQuantity('');
     handleClose();
+    //setItem({ product_name: '', image_path: '', selling_price: 0 });
   };
 
   const handleChange = (event) => {
@@ -86,16 +100,18 @@ function ItemCard({ item }) {
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 300,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 300,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Enter Quantity
           </Typography>
@@ -105,7 +121,7 @@ function ItemCard({ item }) {
             type="number"
             value={quantity}
             onChange={handleChange}
-            sx={{ mt: 2, mb: 2, display: 'block' }}
+            sx={{ mt: 2, mb: 2, display: "block" }}
           />
           <Button onClick={handleAddToBill} variant="contained">
             Add
@@ -115,7 +131,6 @@ function ItemCard({ item }) {
     </div>
   );
 }
-
 
 export const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
@@ -142,6 +157,7 @@ export const Bill = () => {
   const [selectedCustomerInfo, setSelectedCustomerInfo] = useState({});
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [addedItems, setAddedItems] = useState([]);
 
   useEffect(() => {
     axios
@@ -262,7 +278,7 @@ export const Bill = () => {
           },
         }).then(() => {
           handleClose();
-          fetchCustomer(); // Call fetchCustomer to update the existing customers
+          fetchCustomer();
         });
       })
       .catch((error) => {
@@ -273,11 +289,10 @@ export const Bill = () => {
   const handleExistingCustomerSubmit = () => {
     console.log("Selected customer:", selectedCustomer);
     setOpenExistingCustomerDialog(false);
-    // Find the selected customer's information based on the selectedCustomer value
     const customer = existingCustomers.find(
       (customer) => customer.shop_name === selectedCustomer
     );
-    setSelectedCustomerInfo(customer); // Update the selected customer's information
+    setSelectedCustomerInfo(customer);
   };
 
   const handleChange = (event, newAlignment) => {
@@ -287,7 +302,7 @@ export const Bill = () => {
 
   const fetchCustomer = () => {
     axios
-      .get("http://localhost:3001/getcustomer") // Adjust the endpoint as needed
+      .get("http://localhost:3001/getcustomer")
       .then((response) => {
         setExistingCustomers(response.data);
       })
@@ -305,6 +320,56 @@ export const Bill = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  function BillingItem({ item, onQuantityChange }) {
+    const [quantity, setQuantity] = useState(item.quantity);
+
+    const handleQuantityChange = (e) => {
+      const newQuantity = parseInt(e.target.value, 10);
+      setQuantity(newQuantity);
+      onQuantityChange(item.productID, newQuantity);
+    };
+
+    const totalPrice = (quantity * item.selling_price).toFixed(2);
+
+    return (
+      <div className="w-full flex items-center  p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300">
+        <div className="flex items-center w-3/6">
+          <img
+            src={`http://localhost:3001/${item.image_path}`}
+            alt={item.product_name}
+            className="w-12 h-12 object-cover"
+          />
+          <div className="ml-2">
+            <p className="text-sm font-medium">{item.product_name}</p>
+            <p className="text-xs text-gray-500">
+              {item.selling_price.toFixed(2)} LKR
+            </p>
+          </div>
+        </div>
+        <div className=" w-1/6 flex justify-end">
+          <input
+            type="number"
+            value={quantity}
+            onChange={handleQuantityChange}
+            className="w-20 p-1 border border-gray-400 rounded text-center"
+          />
+        </div>
+        <div className="w-2/6 flex justify-end">
+          <p className="text-sm ml-2">{totalPrice} LKR</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleQuantityChange = (productId, newQuantity) => {
+    // Update the quantity of the item with the given productId in the addedItems state
+    // You can implement this function to update the parent state accordingly
+  };
+
+  useEffect(() => {
+    console.log('Updated addedItems:', addedItems);
+  }, [addedItems]);
 
   return (
     <div className="flex w-screen ">
@@ -564,15 +629,20 @@ export const Bill = () => {
         <div className=" w-full pl-10 h-[64vh] overflow-y-auto">
           <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
             {data.map((item) => (
-              <ItemCard key={item.id} item={item} />
+              <ItemCard
+                key={item.id}
+                item={item}
+                setAddedItems={setAddedItems}
+                addedItems={addedItems}
+              />
             ))}
           </div>
         </div>
       </div>
 
       <div className="w-2/5 h-[84vh]  px-10 pt-10">
-        <div className=" rounded-md bg-slate-200 w-full h-full border border-red-500 p-5">
-          <div className="border border-green-500">
+        <div className=" rounded-md bg-slate-200 w-full h-full p-5">
+          <div className="">
             {selectedCustomerInfo && (
               <p className="text-md font-PoppinsM">
                 Customer: {selectedCustomerInfo.shop_name}
@@ -580,8 +650,14 @@ export const Bill = () => {
             )}
           </div>
 
-          <div className="w-full border border-green-400">
-            <div></div>
+          <div className="w-full  p-4">
+            {addedItems.map((item) => (
+              <BillingItem
+                key={item.productID}
+                item={item}
+                onQuantityChange={handleQuantityChange}
+              />
+            ))}
           </div>
         </div>
       </div>
