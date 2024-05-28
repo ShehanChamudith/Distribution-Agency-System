@@ -69,7 +69,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
     }
 
     setAddedItems((prevItems) => [...prevItems, newItem]);
-    
+
     setAlert({
       show: true,
       severity: "success",
@@ -376,16 +376,18 @@ export const Bill = () => {
     const [quantity, setQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
-      const newQuantity = parseInt(e.target.value, 10);
-      setQuantity(newQuantity);
-      onQuantityChange(item.productID, newQuantity);
+      const value = e.target.value;
+      if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+        setQuantity(value);
+        onQuantityChange(item.productID, parseFloat(value) || 0);
+      }
     };
 
     const totalPrice = (quantity * item.selling_price).toFixed(2);
 
     return (
-      <div className="w-full flex items-center  p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
-        <div className="flex items-center w-3/6">
+      <div className="w-full flex items-center justify-between p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
+        <div className="w-1/2 flex items-center ">
           <img
             src={`http://localhost:3001/${item.image_path}`}
             alt={item.product_name}
@@ -398,29 +400,55 @@ export const Bill = () => {
             </p>
           </div>
         </div>
-        <div className=" w-1/6 flex justify-end">
-          <input
-            type="number"
-            value={quantity}
-            onChange={handleQuantityChange}
-            className="w-20 p-1 border border-gray-400 rounded text-center"
-          />
-        </div>
-        <div className="w-2/6 flex justify-end">
-          <p className="text-sm ml-2">{totalPrice} LKR</p>
+
+        <div className="w-1/2 flex items-center justify-between">
+          <div className="">
+            <input
+              type="number"
+              value={quantity}
+              onChange={handleQuantityChange}
+              className="w-20 p-1 border border-gray-400 rounded text-center"
+            />
+          </div>
+          <div className=" flex justify-end">
+            <p className="text-sm ml-2">{totalPrice} LKR</p>
+          </div>
         </div>
       </div>
     );
   }
 
   const handleQuantityChange = (productId, newQuantity) => {
-    // Update the quantity of the item with the given productId in the addedItems state
-    // You can implement this function to update the parent state accordingly
+    setAddedItems((prevItems) =>
+      prevItems.map((item) =>
+        item.productID === productId ? { ...item, quantity: newQuantity } : item
+      )
+    );
   };
 
   useEffect(() => {
     console.log("Updated addedItems:", addedItems);
   }, [addedItems]);
+
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleDateString();
+
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  });
+
+  // Time
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      );
+    }, 1000); // Update every minute
+
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+  }, []);
 
   return (
     <div className="flex w-screen gap-4">
@@ -692,16 +720,41 @@ export const Bill = () => {
       </div>
 
       <div className="w-2/5 h-[89vh] ">
-        <div className="  bg-slate-200 w-full h-full p-5">
-          <div className="">
-            {selectedCustomerInfo && (
-              <p className="text-md font-PoppinsM">
-                Customer: {selectedCustomerInfo.shop_name}
-              </p>
-            )}
+        <div className="flex flex-col gap-5  bg-slate-200 w-full h-full p-5">
+          <div className="flex flex-col gap-5">
+            <div className="flex justify-between font-PoppinsM text-2xl bg-white rounded-lg p-2">
+              <div>
+                Bill Details
+                <div className="">
+                  {selectedCustomerInfo && (
+                    <p className="text-sm font-PoppinsL">
+                      Customer Name: {selectedCustomerInfo.shop_name}
+                    </p>
+                  )}
+                  <p className="text-sm font-PoppinsL">
+                    Order Date: {formattedDate}
+                  </p>
+                  <p className="text-sm font-PoppinsL">
+                    Order Time: {currentTime}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p>#0001</p>
+              </div>
+            </div>
           </div>
 
-          <div className="w-full  p-4">
+          <div className="flex justify-between bg-white rounded-lg py-1 px-3">
+            <div className="w-1/2">Item</div>
+            <div className="flex justify-between w-1/2">
+              <div>Quantity (kg)</div>
+              <div>Price (LKR)</div>
+            </div>
+          </div>
+
+          <div className="w-full  py-4">
             {addedItems.map((item) => (
               <BillingItem
                 key={item.productID}
