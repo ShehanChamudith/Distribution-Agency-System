@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
+import {
+  Box,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  Card,
+  Modal,
+  CardContent,
+  CardMedia,
+  Typography,
+  Alert,
+} from "@mui/material";
 import Swal from "sweetalert2";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
 import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
 import sausageIcon from "../assets/icons/sausages.ico";
-import Card from "@mui/material/Card";
-import Modal from "@mui/material/Modal";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Typography from "@mui/material/Typography";
-import Alert from "@mui/material/Alert";
+import PaymentsTwoToneIcon from '@mui/icons-material/PaymentsTwoTone';
+import CreditCardOffTwoToneIcon from '@mui/icons-material/CreditCardOffTwoTone';
 
 function ItemCard({ item, setAddedItems, addedItems }) {
   const [open, setOpen] = useState(false);
@@ -209,6 +213,7 @@ export const Bill = () => {
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
+  const [paymentType, setPaymentType] = useState("");
 
   useEffect(() => {
     axios
@@ -372,7 +377,7 @@ export const Bill = () => {
     setAnchorEl(null);
   };
 
-  function BillingItem({ item, onQuantityChange }) {
+  function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
@@ -391,7 +396,7 @@ export const Bill = () => {
           <img
             src={`http://localhost:3001/${item.image_path}`}
             alt={item.product_name}
-            className="w-12 h-12 object-cover"
+            className="w-12 h-12 object-cover rounded-xl"
           />
           <div className="ml-2">
             <p className="text-sm font-medium">{item.product_name}</p>
@@ -410,8 +415,22 @@ export const Bill = () => {
               className="w-20 p-1 border border-gray-400 rounded text-center"
             />
           </div>
-          <div className=" flex justify-end">
+          <div className=" flex justify-end items-center">
             <p className="text-sm ml-2">{totalPrice} LKR</p>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              onClick={() => onRemoveItem(item.productID)}
+              sx={{
+                ml: 1,
+                minWidth: "auto",
+                padding: "4px 12px",
+                fontSize: "0.75rem",
+              }}
+            >
+              X
+            </Button>
           </div>
         </div>
       </div>
@@ -449,6 +468,20 @@ export const Bill = () => {
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
+
+  const calculateSubtotal = () => {
+    return addedItems
+      .reduce((total, item) => {
+        return total + item.quantity * item.selling_price;
+      }, 0)
+      .toFixed(2);
+  };
+
+  const handleRemoveItem = (productId) => {
+    setAddedItems((prevItems) =>
+      prevItems.filter((item) => item.productID !== productId)
+    );
+  };
 
   return (
     <div className="flex w-screen gap-4">
@@ -719,49 +752,75 @@ export const Bill = () => {
         </div>
       </div>
 
-      <div className="w-2/5 h-[89vh] ">
-        <div className="flex flex-col gap-5  bg-slate-200 w-full h-full p-5">
-          <div className="flex flex-col gap-5">
-            <div className="flex justify-between font-PoppinsM text-2xl bg-white rounded-lg p-2">
-              <div>
-                Bill Details
+      <div className="w-2/5 h-[89vh]  ">
+        <div className="flex flex-col justify-between  w-full h-full p-5">
+          <div className="">
+            <div className="flex flex-col gap-5 justify-between font-PoppinsM text-2xl rounded-lg p-2 ">
+              <div className="flex justify-between  border-b-4">
+                <div className="">Bill Details</div>
                 <div className="">
-                  {selectedCustomerInfo && (
-                    <p className="text-sm font-PoppinsL">
-                      Customer Name: {selectedCustomerInfo.shop_name}
-                    </p>
-                  )}
-                  <p className="text-sm font-PoppinsL">
-                    Order Date: {formattedDate}
-                  </p>
-                  <p className="text-sm font-PoppinsL">
-                    Order Time: {currentTime}
-                  </p>
+                  <p>#0001</p>
                 </div>
               </div>
-
-              <div>
-                <p>#0001</p>
+              <div className="">
+                {selectedCustomerInfo && (
+                  <p className="text-sm font-PoppinsL">
+                    Customer Name: {selectedCustomerInfo.shop_name}
+                  </p>
+                )}
+                <p className="text-sm font-PoppinsL">
+                  Order Date: {formattedDate}
+                </p>
+                <p className="text-sm font-PoppinsL">
+                  Order Time: {currentTime}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between bg-white rounded-lg py-1 px-3">
-            <div className="w-1/2">Item</div>
+          <div className="flex justify-between py-1 px-3">
+            <div className="w-1/2">Item Name</div>
             <div className="flex justify-between w-1/2">
               <div>Quantity (kg)</div>
               <div>Price (LKR)</div>
             </div>
           </div>
 
-          <div className="w-full  py-4">
+          <div className="w-full p-4 h-60 overflow-y-auto">
             {addedItems.map((item) => (
               <BillingItem
                 key={item.productID}
                 item={item}
                 onQuantityChange={handleQuantityChange}
+                onRemoveItem={handleRemoveItem}
               />
             ))}
+          </div>
+
+          <div className="bg-slate-100 rounded-lg p-2">
+            <div className="flex justify-between">
+              <Typography variant="h6">Subtotal:</Typography>
+              <Typography variant="h6">{calculateSubtotal()} LKR</Typography>
+            </div>
+          </div>
+
+          <div className="w-full flex items-center gap-5 mt-4">
+            <Button
+              variant={paymentType === "cash" ? "contained" : "outlined"}
+              onClick={() => setPaymentType("cash")}
+              sx={{ flexDirection: 'column', '& .MuiButton-startIcon': { marginBottom: 1, paddingLeft: 1 } }}
+              startIcon={<PaymentsTwoToneIcon />}
+            >
+              Cash
+            </Button>
+            <Button
+              variant={paymentType === "credit" ? "contained" : "outlined"}
+              onClick={() => setPaymentType("credit")}
+              sx={{ flexDirection: 'column', '& .MuiButton-startIcon': { marginBottom: 1, paddingLeft: 1 } }}
+              startIcon={<CreditCardOffTwoToneIcon />}
+            >
+              Credit
+            </Button>
           </div>
         </div>
       </div>
