@@ -27,8 +27,9 @@ import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
 import sausageIcon from "../assets/icons/sausages.ico";
-import PaymentsTwoToneIcon from '@mui/icons-material/PaymentsTwoTone';
-import CreditCardOffTwoToneIcon from '@mui/icons-material/CreditCardOffTwoTone';
+import PaymentsTwoToneIcon from "@mui/icons-material/PaymentsTwoTone";
+import CreditCardOffTwoToneIcon from "@mui/icons-material/CreditCardOffTwoTone";
+import PriceChangeTwoToneIcon from "@mui/icons-material/PriceChangeTwoTone";
 
 function ItemCard({ item, setAddedItems, addedItems }) {
   const [open, setOpen] = useState(false);
@@ -797,30 +798,68 @@ export const Bill = () => {
             ))}
           </div>
 
-          <div className="bg-slate-100 rounded-lg p-2">
-            <div className="flex justify-between">
+          <div className="flex flex-col bg-slate-100 rounded-lg p-2 gap-3 ">
+
+            <div className="flex justify-between px-1">
               <Typography variant="h6">Subtotal:</Typography>
               <Typography variant="h6">{calculateSubtotal()} LKR</Typography>
             </div>
-          </div>
 
-          <div className="w-full flex items-center gap-5 mt-4">
-            <Button
-              variant={paymentType === "cash" ? "contained" : "outlined"}
-              onClick={() => setPaymentType("cash")}
-              sx={{ flexDirection: 'column', '& .MuiButton-startIcon': { marginBottom: 1, paddingLeft: 1 } }}
-              startIcon={<PaymentsTwoToneIcon />}
-            >
-              Cash
-            </Button>
-            <Button
-              variant={paymentType === "credit" ? "contained" : "outlined"}
-              onClick={() => setPaymentType("credit")}
-              sx={{ flexDirection: 'column', '& .MuiButton-startIcon': { marginBottom: 1, paddingLeft: 1 } }}
-              startIcon={<CreditCardOffTwoToneIcon />}
-            >
-              Credit
-            </Button>
+            <div className="w-full flex items-center gap-5 justify-between px-1">
+              <Button
+                variant={paymentType === "cash" ? "contained" : "outlined"}
+                onClick={() => setPaymentType("cash")}
+                sx={{
+                  flexDirection: "column",
+                  "& .MuiButton-startIcon": {
+                    marginBottom: 1,
+                    paddingLeft: 1,
+                  },
+                  borderRadius: 4,
+                  flex: 0.2,
+                }}
+                startIcon={<PaymentsTwoToneIcon />}
+              >
+                Cash
+              </Button>
+              <Button
+                variant={paymentType === "credit" ? "contained" : "outlined"}
+                onClick={() => setPaymentType("credit")}
+                sx={{
+                  flexDirection: "column",
+                  "& .MuiButton-startIcon": {
+                    marginBottom: 1,
+                    paddingLeft: 1,
+                  },
+                  borderRadius: 4,
+                  flex: 0.2,
+                }}
+                startIcon={<CreditCardOffTwoToneIcon />}
+              >
+                Credit
+              </Button>
+              <Button
+                variant={paymentType === "cheque" ? "contained" : "outlined"}
+                onClick={() => setPaymentType("cheque")}
+                sx={{
+                  flexDirection: "column",
+                  "& .MuiButton-startIcon": {
+                    marginBottom: 1,
+                    paddingLeft: 1,
+                  },
+                  borderRadius: 4,
+                  flex: 0.2,
+                }}
+                startIcon={<PriceChangeTwoToneIcon />}
+              >
+                Cheque
+              </Button>
+            </div>
+            <div className="px-1">
+              <Button variant="contained" sx={{ paddingY: 1, width: '100%', borderRadius: 3 }}>
+                Proceed to Checkout
+              </Button>
+            </div>
           </div>
         </div>
       </div>
