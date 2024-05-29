@@ -6,12 +6,13 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import MenuIcon from "@mui/icons-material/Menu";
 import Profile from "./Profile";
+import {jwtDecode} from 'jwt-decode';
+
 
 export default function TemporaryDrawer({ setIsAuthenticated }) {
   const [open, setOpen] = React.useState(false);
   const [interfaceTitle, setInterfaceTitle] = useState("My Dashboard");
 
-  //const filteredSidebarData = SideBarData.filter(item => item.roles.includes(currentUser.role));
 
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
@@ -24,6 +25,17 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
     handleClose(); // Close the Offcanvas after navigating
   };
 
+    // Decode the token to get user role
+    let userRole = '';
+  const token = sessionStorage.getItem('accessToken');
+  if (token) {
+    const decodedToken = jwtDecode(token);
+    userRole = decodedToken.usertypeID;
+  }
+  
+    // Filter sidebar items based on user role
+    const filteredSidebarData = SideBarData.filter(item => item.roles.includes(userRole));
+
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
       <div>
@@ -34,7 +46,7 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
       
       <div className="">
         <ul className="w-full h-full p-0">
-          {SideBarData.map((val, key) => (
+          {filteredSidebarData.map((val, key) => (
             <li key={key} className="">
               <Link
                 to={val.link}

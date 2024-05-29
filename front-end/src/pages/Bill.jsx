@@ -188,7 +188,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
   );
 }
 
-export const Bill = () => {
+const Bill = () => {
   const [alignment, setAlignment] = React.useState("All");
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [category, setCategory] = useState("All");
@@ -883,3 +883,5 @@ export const Bill = () => {
     </div>
   );
 };
+
+export default Bill ;

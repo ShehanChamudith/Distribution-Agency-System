@@ -15,45 +15,54 @@ export const SideBarData = [
   //   link: "/home",
   // },
 
+  // 1 = admin
+
   {
     title: "Inventory",
     icon: <InventoryIcon />,
     link: "/inventory",
+    roles: [1],
   },
 
   {
     title: "Loading",
     icon: <LoadIcon />,
     link: "/loading",
+    roles: [1],
   },
 
   {
     title: "Bill",
     icon: <ShoppingCartIcon />,
     link: "/bill",
+    roles: [1],
   },
 
   {
     title: "Pre Orders",
     icon: <RotateRightIcon />,
     link: "/pre-orders",
+    roles: [1],
   },
 
   {
     title: "Reports",
     icon: <AssessmentIcon />,
     link: "/reports",
+    roles: [1],
   },
 
   {
     title: "Product Catalog",
     icon: <BallotIcon />,
     link: "/product-catalog",
+    roles: [1],
   },
 
   {
     title: "My Dashboard",
     icon: <DashboardIcon />,
-    link: "/my-dashboard",
+    link: "/admin-dashboard",
+    roles: [1],
   },
 ];

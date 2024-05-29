@@ -3,6 +3,7 @@ import BasicButton from "../components/BasicButton";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import {jwtDecode} from 'jwt-decode';
 
 function Login({ setIsAuthenticated }) {
   const [username, setUsername] = useState("");
@@ -44,10 +45,23 @@ function Login({ setIsAuthenticated }) {
         } else {
           
           const accessToken = response.data.accessToken;
-          sessionStorage.setItem("accessToken", accessToken);
+          sessionStorage.setItem("accessToken",JSON.stringify({accessToken}) );
           setIsAuthenticated(true);
-          navigate("/my-dashboard");
-
+          const values=jwtDecode(accessToken);
+          console.log(values);
+          if (values.usertypeID == '1') {
+            navigate('/admin-dashboard');
+          } else if (values.usertypeID == '2') {
+            navigate('/dashboard2');
+          } else if (values.usertypeID == '3') {
+            navigate('/dashboard3');
+          } else if (values.usertypeID == '4') {
+            navigate('/dashboard4');
+          } else if (values.usertypeID == '5') {
+            navigate('/dashboard5');
+          } else if (values.usertypeID == '6') {
+            navigate('/dashboard6');
+          }
         }
       })
       .catch((error) => {
