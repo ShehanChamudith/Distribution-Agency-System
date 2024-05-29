@@ -9,11 +9,11 @@ import BallotIcon from "@mui/icons-material/Ballot";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 
 export const SideBarData = [
-  {
-    title: "Home",
-    icon: <HomeIcon />,
-    link: "/home",
-  },
+  // {
+  //   title: "Home",
+  //   icon: <HomeIcon />,
+  //   link: "/home",
+  // },
 
   {
     title: "Inventory",

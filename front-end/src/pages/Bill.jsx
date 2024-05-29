@@ -529,6 +529,7 @@ export const Bill = () => {
           </DialogContentText>
 
           <TextField
+            required
             label="Username"
             name="username"
             variant="filled"
@@ -539,6 +540,7 @@ export const Bill = () => {
           />
           <div className="flex gap-5">
             <TextField
+            required
               label="Password"
               name="password"
               type="password"
@@ -549,6 +551,7 @@ export const Bill = () => {
               onChange={handleChangeForm}
             />
             <TextField
+            required
               label="Confirm Password"
               name="confirmPassword"
               type="password"
@@ -561,6 +564,7 @@ export const Bill = () => {
           </div>
           <div className="flex gap-5">
             <TextField
+            required
               label="First Name"
               name="firstname"
               variant="filled"
@@ -570,6 +574,7 @@ export const Bill = () => {
               onChange={handleChangeForm}
             />
             <TextField
+            required
               label="Last Name"
               name="lastname"
               variant="filled"
@@ -581,6 +586,7 @@ export const Bill = () => {
           </div>
 
           <TextField
+          required
             label="Email"
             name="email"
             type="email"
@@ -591,6 +597,7 @@ export const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
+          required
             label="Phone"
             name="phone"
             variant="filled"
@@ -600,6 +607,7 @@ export const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
+          required
             label="Address"
             name="address"
             variant="filled"
@@ -609,6 +617,7 @@ export const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
+          required
             label="Area (Delivery Route)"
             name="area"
             variant="filled"
@@ -653,6 +662,14 @@ export const Bill = () => {
               ))}
             </Select>
           </FormControl>
+          <Typography
+          variant="body2"
+          color="primary"
+          onClick={handleNewCustomer}
+          sx={{ cursor: 'pointer', marginTop: 2 }}
+        >
+          Customer doesn't exist? Add New Customer Here
+        </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleExistingCustomerDialogClose} color="primary">
@@ -816,7 +833,7 @@ export const Bill = () => {
                     paddingLeft: 1,
                   },
                   borderRadius: 4,
-                  flex: 0.2,
+                  flex: 0.15,
                 }}
                 startIcon={<PaymentsTwoToneIcon />}
               >
@@ -832,7 +849,7 @@ export const Bill = () => {
                     paddingLeft: 1,
                   },
                   borderRadius: 4,
-                  flex: 0.2,
+                  flex: 0.15,
                 }}
                 startIcon={<CreditCardOffTwoToneIcon />}
               >
@@ -848,7 +865,7 @@ export const Bill = () => {
                     paddingLeft: 1,
                   },
                   borderRadius: 4,
-                  flex: 0.2,
+                  flex: 0.15,
                 }}
                 startIcon={<PriceChangeTwoToneIcon />}
               >

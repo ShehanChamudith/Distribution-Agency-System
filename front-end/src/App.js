@@ -13,6 +13,7 @@ import Inventory from "./pages/Inventory";
 import TemporaryDrawer from "./components/Drawer";
 import React, { useState } from "react";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import PreOrders from "./pages/PreOrders";
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/my-dashboard" element={<Admin />} />
               <Route path="/inventory" element={<Inventory />} />
+              <Route path="/pre-orders" element={<PreOrders />} />
             </Route>
           </Routes>
         </div>

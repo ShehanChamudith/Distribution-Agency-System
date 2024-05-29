@@ -1,0 +1,114 @@
+[
+{"type":"header","version":"5.2.1","comment":"Export to JSON plugin for PHPMyAdmin"},
+{"type":"database","name":"development_project"},
+{"type":"table","name":"category","database":"development_project","data":
+[
+{"categoryID":"1","category":"Chicken"},
+{"categoryID":"3","category":"Pork"},
+{"categoryID":"4","category":"Sausages"},
+{"categoryID":"5","category":"Chicken Parts"}
+]
+}
+,{"type":"table","name":"customer","database":"development_project","data":
+[
+{"customerID":"1","userID":"21","area":"Kelaniya","shop_name":"Spar Super Market"},
+{"customerID":"2","userID":"22","area":"Colombo","shop_name":"Keels Super"},
+{"customerID":"5","userID":"25","area":"w","shop_name":""}
+]
+}
+,{"type":"table","name":"expenses","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"inventory","database":"development_project","data":
+[
+{"inventoryID":"25","stock_arrival":"20","supplierID":"1","purchase_date":"2024-05-01","expire_date":"2024-05-31","productID":"35","wstaffID":"2","batch_no":"1"},
+{"inventoryID":"26","stock_arrival":"30","supplierID":"3","purchase_date":"2024-04-15","expire_date":"2024-05-31","productID":"90","wstaffID":"2","batch_no":"2"},
+{"inventoryID":"27","stock_arrival":"20","supplierID":"3","purchase_date":"2024-05-14","expire_date":"2024-05-31","productID":"91","wstaffID":"2","batch_no":"3"},
+{"inventoryID":"30","stock_arrival":"30","supplierID":"2","purchase_date":"2024-05-15","expire_date":"2024-05-31","productID":"93","wstaffID":"2","batch_no":"4"},
+{"inventoryID":"32","stock_arrival":"70","supplierID":"1","purchase_date":"2024-05-16","expire_date":"2024-05-31","productID":"97","wstaffID":"2","batch_no":"5"},
+{"inventoryID":"34","stock_arrival":"100","supplierID":"3","purchase_date":"2024-05-16","expire_date":"2024-05-31","productID":"95","wstaffID":"2","batch_no":"6"},
+{"inventoryID":"35","stock_arrival":"5","supplierID":"3","purchase_date":"2024-05-16","expire_date":"2024-05-31","productID":"136","wstaffID":"2","batch_no":"8"},
+{"inventoryID":"36","stock_arrival":"5","supplierID":"1","purchase_date":"2024-05-03","expire_date":"2024-06-06","productID":"136","wstaffID":"2","batch_no":"5"}
+]
+}
+,{"type":"table","name":"officestaff","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"payment","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"pre_order","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"product","database":"development_project","data":
+[
+{"productID":"35","product_name":"Full Chicken","stock_total":"87","categoryID":"1","wholesale_price":"1200","selling_price":"1450","date_added":"2024-05-04","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"2"},
+{"productID":"90","product_name":"Pork 400g Pack","stock_total":"230","categoryID":"3","wholesale_price":"200","selling_price":"300","date_added":"2024-04-30","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"1"},
+{"productID":"91","product_name":"Sausages","stock_total":"220","categoryID":"4","wholesale_price":"300","selling_price":"500","date_added":"2024-05-08","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"3"},
+{"productID":"93","product_name":"Chicken Breast","stock_total":"230","categoryID":"1","wholesale_price":"200","selling_price":"600","date_added":"2024-05-01","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"2"},
+{"productID":"95","product_name":"Sausage Catering","stock_total":"100","categoryID":"4","wholesale_price":"450","selling_price":"800","date_added":"2024-04-30","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"3"},
+{"productID":"97","product_name":"Half Chicken","stock_total":"70","categoryID":"1","wholesale_price":"200","selling_price":"300","date_added":"2024-05-09","image_path":"uploads\\1715540975512-zedge profile.png","supplierID":"2"},
+{"productID":"98","product_name":"Drumsticks","stock_total":"0","categoryID":"5","wholesale_price":"20","selling_price":"40","date_added":"2024-05-08","image_path":"uploads\/1715540975512-zedge profile.png","supplierID":"2"},
+{"productID":"136","product_name":"Pork 1kg Pack","stock_total":"10","categoryID":"3","wholesale_price":"200","selling_price":"300","date_added":"2024-05-16","image_path":"uploads\\1715948155175-134684008.jpg","supplierID":"3"}
+]
+}
+,{"type":"table","name":"productsale","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"sale","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"salesrep","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"supplier","database":"development_project","data":
+[
+{"supplierID":"1","userID":"18","supplier_company":"Tops Chicken"},
+{"supplierID":"2","userID":"16","supplier_company":"Crysbro"},
+{"supplierID":"3","userID":"17","supplier_company":"Nelna"}
+]
+}
+,{"type":"table","name":"user","database":"development_project","data":
+[
+{"userID":"12","usertypeID":"1","username":"shehan","password":"1234","firstname":"Shehan","lastname":"Chamudith","email":"schamudith@gmail.com","phone":"0774439693","address":"Ratnapura"},
+{"userID":"13","usertypeID":"2","username":"achila","password":"4567","firstname":"Achila","lastname":"Dilshan","email":"achila@gmail.com","phone":"0767439893","address":"Kandy"},
+{"userID":"14","usertypeID":"3","username":"john_doe","password":"password123","firstname":"John","lastname":"Doe","email":"john.doe@example.com","phone":"1234567890","address":"New York"},
+{"userID":"15","usertypeID":"4","username":"jane_smith","password":"password456","firstname":"Jane","lastname":"Smith","email":"jane.smith@example.com","phone":"9876543210","address":"Los Angeles"},
+{"userID":"16","usertypeID":"5","username":"Crysbro","password":"pw123","firstname":"Crysbro","lastname":"Chicken","email":"abc@gmail.com","phone":"0887736782","address":"Colombo"},
+{"userID":"17","usertypeID":"5","username":"Nelna","password":"1234","firstname":"Nelna","lastname":"Pork","email":"def@gmail.com","phone":"0774439693","address":"Colombo"},
+{"userID":"18","usertypeID":"5","username":"Tops","password":"tops123","firstname":"Tops","lastname":"Chicken","email":"tops@gmail.com","phone":"0774439693","address":"Kahawatta"},
+{"userID":"21","usertypeID":"6","username":"spar","password":"$2b$10$d6qeTLWpXtImgb3QHpUdb.UI6V7TutCNaCbSp204cHYxV3s2QuHK2","firstname":"Spar","lastname":"Supermarket","email":"sparsuper@gmail.com","phone":"0774439693","address":"Dalugama,Kelaniya"},
+{"userID":"22","usertypeID":"6","username":"keels","password":"$2b$10$fjAS2TROghptBO.qcDwJFOKM4Q85w\/aIIl5YFMb5GJeXhVy7zg.UK","firstname":"Keels","lastname":"Super","email":"keels@gmail.com","phone":"0775185791","address":"Colombo"},
+{"userID":"25","usertypeID":"6","username":"w","password":"$2b$10$wpCCa2tthn2393zUppumZ.YECJ2YpuOz5FRidMuZJJMcYyuI.PbEi","firstname":"w","lastname":"w","email":"ww@d","phone":"0775185791","address":"Colombo"}
+]
+}
+,{"type":"table","name":"usertype","database":"development_project","data":
+[
+{"usertypeID":"1","usertype_name":"admin"},
+{"usertypeID":"2","usertype_name":"office"},
+{"usertypeID":"3","usertype_name":"salesRep"},
+{"usertypeID":"4","usertype_name":"warehouse"},
+{"usertypeID":"5","usertype_name":"supplier"},
+{"usertypeID":"6","usertype_name":"customer"}
+]
+}
+,{"type":"table","name":"warehousestaff","database":"development_project","data":
+[
+{"wstaffID":"2","userID":"15","hired_date":"2024-05-01"}
+]
+}
+]

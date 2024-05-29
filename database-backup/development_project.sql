@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2024 at 12:05 PM
+-- Generation Time: May 29, 2024 at 04:54 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,8 +51,18 @@ INSERT INTO `category` (`categoryID`, `category`) VALUES
 CREATE TABLE `customer` (
   `customerID` int(10) NOT NULL,
   `userID` int(10) NOT NULL,
-  `area` varchar(30) NOT NULL
+  `area` varchar(30) NOT NULL,
+  `shop_name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `customer`
+--
+
+INSERT INTO `customer` (`customerID`, `userID`, `area`, `shop_name`) VALUES
+(1, 21, 'Kelaniya', 'Spar Super Market'),
+(2, 22, 'Colombo', 'Keels Super'),
+(5, 25, 'w', '');
 
 -- --------------------------------------------------------
 
@@ -81,8 +91,23 @@ CREATE TABLE `inventory` (
   `purchase_date` date NOT NULL,
   `expire_date` date NOT NULL,
   `productID` int(10) NOT NULL,
-  `wstaffID` int(10) NOT NULL
+  `wstaffID` int(10) NOT NULL,
+  `batch_no` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `inventory`
+--
+
+INSERT INTO `inventory` (`inventoryID`, `stock_arrival`, `supplierID`, `purchase_date`, `expire_date`, `productID`, `wstaffID`, `batch_no`) VALUES
+(25, 20, 1, '2024-05-01', '2024-05-31', 35, 2, 1),
+(26, 30, 3, '2024-04-15', '2024-05-31', 90, 2, 2),
+(27, 20, 3, '2024-05-14', '2024-05-31', 91, 2, 3),
+(30, 30, 2, '2024-05-15', '2024-05-31', 93, 2, 4),
+(32, 70, 1, '2024-05-16', '2024-05-31', 97, 2, 5),
+(34, 100, 3, '2024-05-16', '2024-05-31', 95, 2, 6),
+(35, 5, 3, '2024-05-16', '2024-05-31', 136, 2, 8),
+(36, 5, 1, '2024-05-03', '2024-06-06', 136, 2, 5);
 
 -- --------------------------------------------------------
 
@@ -138,18 +163,24 @@ CREATE TABLE `product` (
   `categoryID` int(10) NOT NULL,
   `wholesale_price` int(10) NOT NULL,
   `selling_price` int(10) NOT NULL,
-  `date_added` date NOT NULL
+  `date_added` date NOT NULL,
+  `image_path` varchar(100) NOT NULL,
+  `supplierID` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`productID`, `product_name`, `stock_total`, `categoryID`, `wholesale_price`, `selling_price`, `date_added`) VALUES
-(35, 'Full chicken', 1000, 1, 1300, 1450, '2024-05-04'),
-(90, 'Pork 400g', 0, 3, 200, 300, '2024-05-01'),
-(91, 'Sausages', 0, 4, 300, 500, '2024-05-08'),
-(93, 'Chicken Breast', 0, 5, 200, 600, '2024-05-03');
+INSERT INTO `product` (`productID`, `product_name`, `stock_total`, `categoryID`, `wholesale_price`, `selling_price`, `date_added`, `image_path`, `supplierID`) VALUES
+(35, 'Full Chicken', 87, 1, 1200, 1450, '2024-05-04', 'uploads\\1715540975512-zedge profile.png', 2),
+(90, 'Pork 400g Pack', 230, 3, 200, 300, '2024-04-30', 'uploads\\1715540975512-zedge profile.png', 1),
+(91, 'Sausages', 220, 4, 300, 500, '2024-05-08', 'uploads\\1715540975512-zedge profile.png', 3),
+(93, 'Chicken Breast', 230, 1, 200, 600, '2024-05-01', 'uploads\\1715540975512-zedge profile.png', 2),
+(95, 'Sausage Catering', 100, 4, 450, 800, '2024-04-30', 'uploads\\1715540975512-zedge profile.png', 3),
+(97, 'Half Chicken', 70, 1, 200, 300, '2024-05-09', 'uploads\\1715540975512-zedge profile.png', 2),
+(98, 'Drumsticks', 0, 5, 20, 40, '2024-05-08', 'uploads/1715540975512-zedge profile.png', 2),
+(136, 'Pork 1kg Pack', 10, 3, 200, 300, '2024-05-16', 'uploads\\1715948155175-134684008.jpg', 3);
 
 -- --------------------------------------------------------
 
@@ -210,7 +241,9 @@ CREATE TABLE `supplier` (
 --
 
 INSERT INTO `supplier` (`supplierID`, `userID`, `supplier_company`) VALUES
-(1, 1, 'Crysbro');
+(1, 18, 'Tops Chicken'),
+(2, 16, 'Crysbro'),
+(3, 17, 'Nelna');
 
 -- --------------------------------------------------------
 
@@ -220,7 +253,7 @@ INSERT INTO `supplier` (`supplierID`, `userID`, `supplier_company`) VALUES
 
 CREATE TABLE `user` (
   `userID` int(10) NOT NULL,
-  `usertype` varchar(20) NOT NULL,
+  `usertypeID` int(10) NOT NULL,
   `username` varchar(30) NOT NULL,
   `password` varchar(100) NOT NULL,
   `firstname` varchar(30) NOT NULL,
@@ -234,11 +267,40 @@ CREATE TABLE `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`userID`, `usertype`, `username`, `password`, `firstname`, `lastname`, `email`, `phone`, `address`) VALUES
-(1, 'admin', 'abc', '1234', 'Shehan', 'Chamudith', 'schamudith@gmail.com', '0774439693', '274/1, Buluwana, Atakalanpanna.'),
-(2, 'office', 'achila', '456', 'Achila', 'Dilshan', 'achila@gmail.com', '0887736782', 'Peradeniya,Kandy'),
-(10, 'admin', 'user', '$2b$10$Lqxv75zYuDylOYTn4QFhh.EoY.9A1AxCqK7HiCRUI3OTVztA80ojW', 'User', 'User', 'user@gmail.com', '0774439693', 'Ratnapura'),
-(11, 'warehouse', 'def', '12345', 'def', 'ghi', 'def@gmail.com', '0887736782', 'colombo');
+INSERT INTO `user` (`userID`, `usertypeID`, `username`, `password`, `firstname`, `lastname`, `email`, `phone`, `address`) VALUES
+(12, 1, 'shehan', '1234', 'Shehan', 'Chamudith', 'schamudith@gmail.com', '0774439693', 'Ratnapura'),
+(13, 2, 'achila', '4567', 'Achila', 'Dilshan', 'achila@gmail.com', '0767439893', 'Kandy'),
+(14, 3, 'john_doe', 'password123', 'John', 'Doe', 'john.doe@example.com', '1234567890', 'New York'),
+(15, 4, 'jane_smith', 'password456', 'Jane', 'Smith', 'jane.smith@example.com', '9876543210', 'Los Angeles'),
+(16, 5, 'Crysbro', 'pw123', 'Crysbro', 'Chicken', 'abc@gmail.com', '0887736782', 'Colombo'),
+(17, 5, 'Nelna', '1234', 'Nelna', 'Pork', 'def@gmail.com', '0774439693', 'Colombo'),
+(18, 5, 'Tops', 'tops123', 'Tops', 'Chicken', 'tops@gmail.com', '0774439693', 'Kahawatta'),
+(21, 6, 'spar', '$2b$10$d6qeTLWpXtImgb3QHpUdb.UI6V7TutCNaCbSp204cHYxV3s2QuHK2', 'Spar', 'Supermarket', 'sparsuper@gmail.com', '0774439693', 'Dalugama,Kelaniya'),
+(22, 6, 'keels', '$2b$10$fjAS2TROghptBO.qcDwJFOKM4Q85w/aIIl5YFMb5GJeXhVy7zg.UK', 'Keels', 'Super', 'keels@gmail.com', '0775185791', 'Colombo'),
+(25, 6, 'w', '$2b$10$wpCCa2tthn2393zUppumZ.YECJ2YpuOz5FRidMuZJJMcYyuI.PbEi', 'w', 'w', 'ww@d', '0775185791', 'Colombo');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `usertype`
+--
+
+CREATE TABLE `usertype` (
+  `usertypeID` int(10) NOT NULL,
+  `usertype_name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `usertype`
+--
+
+INSERT INTO `usertype` (`usertypeID`, `usertype_name`) VALUES
+(1, 'admin'),
+(2, 'office'),
+(3, 'salesRep'),
+(4, 'warehouse'),
+(5, 'supplier'),
+(6, 'customer');
 
 -- --------------------------------------------------------
 
@@ -257,7 +319,7 @@ CREATE TABLE `warehousestaff` (
 --
 
 INSERT INTO `warehousestaff` (`wstaffID`, `userID`, `hired_date`) VALUES
-(1, 11, '2024-04-30');
+(2, 15, '2024-05-01');
 
 --
 -- Indexes for dumped tables
@@ -356,7 +418,14 @@ ALTER TABLE `supplier`
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
-  ADD PRIMARY KEY (`userID`);
+  ADD PRIMARY KEY (`userID`),
+  ADD KEY `usertypeID` (`usertypeID`);
+
+--
+-- Indexes for table `usertype`
+--
+ALTER TABLE `usertype`
+  ADD PRIMARY KEY (`usertypeID`);
 
 --
 -- Indexes for table `warehousestaff`
@@ -379,7 +448,7 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `customerID` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `customerID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `expenses`
@@ -391,7 +460,7 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `inventoryID` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `inventoryID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `officestaff`
@@ -415,7 +484,7 @@ ALTER TABLE `pre_order`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `productID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `productID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=141;
 
 --
 -- AUTO_INCREMENT for table `sale`
@@ -433,19 +502,25 @@ ALTER TABLE `salesrep`
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
-  MODIFY `supplierID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `supplierID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `userID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `userID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+
+--
+-- AUTO_INCREMENT for table `usertype`
+--
+ALTER TABLE `usertype`
+  MODIFY `usertypeID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `warehousestaff`
 --
 ALTER TABLE `warehousestaff`
-  MODIFY `wstaffID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `wstaffID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -523,6 +598,12 @@ ALTER TABLE `salesrep`
 --
 ALTER TABLE `supplier`
   ADD CONSTRAINT `supplier_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`);
+
+--
+-- Constraints for table `user`
+--
+ALTER TABLE `user`
+  ADD CONSTRAINT `user_ibfk_1` FOREIGN KEY (`usertypeID`) REFERENCES `usertype` (`usertypeID`);
 
 --
 -- Constraints for table `warehousestaff`
