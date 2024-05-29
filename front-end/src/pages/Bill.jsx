@@ -400,10 +400,10 @@ const Bill = () => {
             className="w-12 h-12 object-cover rounded-xl"
           />
           <div className="ml-2">
-            <p className="text-sm font-medium">{item.product_name}</p>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-sm font-medium">{item.product_name}</h1>
+            <h1 className="text-xs text-gray-500">
               {item.selling_price.toFixed(2)} LKR
-            </p>
+            </h1>
           </div>
         </div>
 
@@ -417,7 +417,7 @@ const Bill = () => {
             />
           </div>
           <div className=" flex justify-end items-center">
-            <p className="text-sm ml-2">{totalPrice} LKR</p>
+            <h1 className="text-sm ml-2">{totalPrice} LKR</h1>
             <Button
               variant="outlined"
               color="error"

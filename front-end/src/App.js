@@ -18,9 +18,17 @@ import { jwtDecode } from 'jwt-decode';
 
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
+  // useEffect(() => {
+  //  const data = window.localStorage.getItem('authState');
+  //  if (data !== null) setIsAuthenticated(JSON.parse(data))
+  // }, []);
+
+  // useEffect(() => {
+  //   window.localStorage.setItem('authState', JSON.stringify(isAuthenticated))
+  // }, [isAuthenticated]);
   
   useEffect(() => {
     // Decode token when component mounts
@@ -33,10 +41,14 @@ function App() {
       try {
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken);
+        setIsAuthenticated(true); // Set authentication state to true
         console.log(decodedToken);
       } catch (error) {
         console.error('Error decoding token:', error);
+        setIsAuthenticated(false); // Set authentication state to false on error
       }
+    } else {
+      setIsAuthenticated(false); // No token found
     }
   };
 

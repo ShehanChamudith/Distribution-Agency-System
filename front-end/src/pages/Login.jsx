@@ -45,22 +45,22 @@ function Login({ setIsAuthenticated }) {
         } else {
           
           const accessToken = response.data.accessToken;
-          sessionStorage.setItem("accessToken",JSON.stringify({accessToken}) );
+          localStorage.setItem("accessToken",accessToken );
           setIsAuthenticated(true);
           const values=jwtDecode(accessToken);
           console.log(values);
-          if (values.usertypeID == '1') {
+          if (values.usertype_name === 'Admin') {
             navigate('/admin-dashboard');
-          } else if (values.usertypeID == '2') {
-            navigate('/dashboard2');
-          } else if (values.usertypeID == '3') {
-            navigate('/dashboard3');
-          } else if (values.usertypeID == '4') {
-            navigate('/dashboard4');
-          } else if (values.usertypeID == '5') {
-            navigate('/dashboard5');
-          } else if (values.usertypeID == '6') {
-            navigate('/dashboard6');
+          } else if (values.usertype_name === 'Office') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'SalesRep') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Warehouse') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Supplier') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Customer') {
+            navigate('/admin-dashboard');
           }
         }
       })

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const login = (req, res) => {
     const { username, password } = req.body;
     
-    DBconnect.query('SELECT * FROM user WHERE username = ? AND password = ?', [username, password], (err, rows) => {
+    DBconnect.query('SELECT user.*, usertype.usertype_name FROM user JOIN usertype ON user.usertypeID = usertype.usertypeID WHERE user.username = ? AND user.password = ?', [username, password], (err, rows) => {
         if (err) {
             console.error('Error querying MySQL database:', err);
             res.status(500).send('Internal Server Error');
@@ -13,8 +13,8 @@ const login = (req, res) => {
         }
 
         if (rows.length === 1) {
-            const { username, userID, usertypeID } = rows[0];
-            const accessToken = jwt.sign({ username, userID, usertypeID }, "jwtSecretToken");
+            const { username, userID, usertypeID, firstname, lastname , usertype_name } = rows[0];
+            const accessToken = jwt.sign({ username, userID, usertypeID, firstname, lastname, usertype_name }, "jwtSecretToken");
 
             res.json({ accessToken }); // Send user role if login is successful
         } else {
