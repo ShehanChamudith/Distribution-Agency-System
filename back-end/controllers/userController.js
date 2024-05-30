@@ -2,7 +2,7 @@ const DBconnect = require('../config/DBconnect');
 const bcrypt = require('bcrypt');
 
 const addUser = (req, res) => {
-    const { usertypeID, username, password, firstname, lastname, email, phone, address, area } = req.body;
+    const { usertypeID, username, password, firstname, lastname, email, phone, address, area, shop_name } = req.body;
 
     // Generate a salt with 10 rounds
     bcrypt.genSalt(10, (saltErr, salt) => {
@@ -36,9 +36,9 @@ const addUser = (req, res) => {
 
                 // If usertype is 6, insert into the customer table
                 if (usertypeID === 6) {
-                    const insertCustomerQuery = 'INSERT INTO customer (userID, area) VALUES (?, ?)';
+                    const insertCustomerQuery = 'INSERT INTO customer (userID, area, shop_name) VALUES (?, ?, ?)';
                     
-                    DBconnect.query(insertCustomerQuery, [userID, area], (customerErr, customerResult) => {
+                    DBconnect.query(insertCustomerQuery, [userID, area, shop_name], (customerErr, customerResult) => {
                         if (customerErr) {
                             console.error('Error inserting customer into database:', customerErr);
                             res.status(500).send('Internal Server Error');

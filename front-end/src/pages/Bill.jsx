@@ -21,6 +21,7 @@ import {
   CardMedia,
   Typography,
   Alert,
+  Snackbar,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import porkIcon from "../assets/icons/pork.ico";
@@ -30,6 +31,42 @@ import sausageIcon from "../assets/icons/sausages.ico";
 import PaymentsTwoToneIcon from "@mui/icons-material/PaymentsTwoTone";
 import CreditCardOffTwoToneIcon from "@mui/icons-material/CreditCardOffTwoTone";
 import PriceChangeTwoToneIcon from "@mui/icons-material/PriceChangeTwoTone";
+import PropTypes from "prop-types";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+
+function CustomTabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 0 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
+
+CustomTabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired,
+};
+
+function a11yProps(index) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  };
+}
 
 function ItemCard({ item, setAddedItems, addedItems }) {
   const [open, setOpen] = useState(false);
@@ -207,6 +244,7 @@ const Bill = () => {
     phone: "",
     address: "",
     area: "",
+    shop_name: "",
     usertypeID: 6,
   });
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -215,6 +253,29 @@ const Bill = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [paymentType, setPaymentType] = useState("");
+  const [value, setValue] = React.useState(0);
+  const [paymentEnabled, setPaymentEnabled] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleProceedToCheckout = () => {
+    if (addedItems.length > 0) {
+      setValue(1); // Switch to the payment tab
+      //setPaymentEnabled(true);
+    } else {
+      setOpen(true);
+    }
+  };
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpen(false);
+  };
+
+  const handleChangeTab = (event, newValue) => {
+    setValue(newValue);
+  };
 
   useEffect(() => {
     axios
@@ -242,6 +303,7 @@ const Bill = () => {
         console.error("Error fetching data:", error);
       });
   }, [category, searchQuery]);
+
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
     if (name === "confirmPassword") {
@@ -290,11 +352,52 @@ const Bill = () => {
   };
 
   const handleNewCustomerDialogClose = () => {
-    setOpenNewCustomerDialog(false);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to proceed without adding a new customer? There won't be a customer name on the bill!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      cancelButtonText: "No, go back",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      // If user confirms, close the dialog
+      if (result.isConfirmed) {
+        setOpenNewCustomerDialog(false);
+      }
+    });
   };
 
   const handleExistingCustomerDialogClose = () => {
-    setOpenExistingCustomerDialog(false);
+    // Display SweetAlert confirmation dialog
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to proceed without selecting a customer?  There won't be a customer name on the bill!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      cancelButtonText: "No, go back",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      // If user confirms, close the dialog
+      if (result.isConfirmed) {
+        setOpenExistingCustomerDialog(false);
+      }
+    });
   };
 
   const handleSubmit = (event) => {
@@ -320,6 +423,7 @@ const Bill = () => {
           phone: "",
           address: "",
           area: "",
+          shop_name: "",
           usertypeID: 6,
         });
         setConfirmPassword("");
@@ -336,6 +440,7 @@ const Bill = () => {
         }).then(() => {
           handleClose();
           fetchCustomer();
+          setOpenExistingCustomerDialog(true);
         });
       })
       .catch((error) => {
@@ -540,7 +645,7 @@ const Bill = () => {
           />
           <div className="flex gap-5">
             <TextField
-            required
+              required
               label="Password"
               name="password"
               type="password"
@@ -551,7 +656,7 @@ const Bill = () => {
               onChange={handleChangeForm}
             />
             <TextField
-            required
+              required
               label="Confirm Password"
               name="confirmPassword"
               type="password"
@@ -564,7 +669,7 @@ const Bill = () => {
           </div>
           <div className="flex gap-5">
             <TextField
-            required
+              required
               label="First Name"
               name="firstname"
               variant="filled"
@@ -574,7 +679,7 @@ const Bill = () => {
               onChange={handleChangeForm}
             />
             <TextField
-            required
+              required
               label="Last Name"
               name="lastname"
               variant="filled"
@@ -586,7 +691,17 @@ const Bill = () => {
           </div>
 
           <TextField
-          required
+            required
+            label="Shop Name"
+            name="shop_name"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.shop_name}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            required
             label="Email"
             name="email"
             type="email"
@@ -597,7 +712,7 @@ const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
-          required
+            required
             label="Phone"
             name="phone"
             variant="filled"
@@ -607,7 +722,7 @@ const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
-          required
+            required
             label="Address"
             name="address"
             variant="filled"
@@ -617,7 +732,7 @@ const Bill = () => {
             onChange={handleChangeForm}
           />
           <TextField
-          required
+            required
             label="Area (Delivery Route)"
             name="area"
             variant="filled"
@@ -650,6 +765,7 @@ const Bill = () => {
           <FormControl fullWidth margin="normal">
             <InputLabel id="existing-customer-label">Customer</InputLabel>
             <Select
+              required
               labelId="existing-customer-label"
               value={selectedCustomer}
               onChange={handleExistingCustomerChange}
@@ -663,13 +779,13 @@ const Bill = () => {
             </Select>
           </FormControl>
           <Typography
-          variant="body2"
-          color="primary"
-          onClick={handleNewCustomer}
-          sx={{ cursor: 'pointer', marginTop: 2 }}
-        >
-          Customer doesn't exist? Add New Customer Here
-        </Typography>
+            variant="body2"
+            color="primary"
+            onClick={handleNewCustomer}
+            sx={{ cursor: "pointer", marginTop: 2 }}
+          >
+            Customer doesn't exist? Add New Customer Here
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleExistingCustomerDialogClose} color="primary">
@@ -680,6 +796,7 @@ const Bill = () => {
               handleExistingCustomerSubmit();
               console.log("Selected Customer:", selectedCustomer);
             }}
+            disabled={!selectedCustomer}
             variant="contained"
             color="primary"
           >
@@ -756,7 +873,7 @@ const Bill = () => {
         </div>
 
         {/* Items  */}
-        <div className=" w-full pl-10 h-[67vh] overflow-y-auto">
+        <div className=" w-full pl-8 h-[67vh] overflow-y-auto">
           <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
             {data.map((item) => (
               <ItemCard
@@ -770,118 +887,160 @@ const Bill = () => {
         </div>
       </div>
 
-      <div className="w-2/5 h-[89vh]  ">
-        <div className="flex flex-col justify-between  w-full h-full p-5">
-          <div className="">
-            <div className="flex flex-col gap-5 justify-between font-PoppinsM text-2xl rounded-lg p-2 ">
-              <div className="flex justify-between  border-b-4">
-                <div className="">Bill Details</div>
+      <div className="w-2/5 h-[89vh]  pr-8 ">
+        <Box sx={{ width: "100%" }}>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs
+              value={value}
+              onChange={handleChangeTab}
+              aria-label="basic tabs example"
+            >
+              <Tab label="Bill" {...a11yProps(0)} />
+              <Tab
+                label="Payment"
+                {...a11yProps(1)}
+                disabled={!paymentEnabled}
+              />
+            </Tabs>
+          </Box>
+          <CustomTabPanel value={value} index={0}>
+            <div className="flex flex-col justify-between  w-full h-full px-1">
+              <div className="flex flex-col gap-5 justify-between font-PoppinsM text-2xl rounded-lg p-2">
+                <div className="flex justify-between  border-b-4">
+                  <div className="">Bill Details</div>
+                  <div className="">
+                    <p>#0001</p>
+                  </div>
+                </div>
                 <div className="">
-                  <p>#0001</p>
+                  {selectedCustomerInfo && (
+                    <p className="text-sm font-PoppinsL">
+                      Customer Name: {selectedCustomerInfo.shop_name}
+                    </p>
+                  )}
+                  <p className="text-sm font-PoppinsL">
+                    Order Date: {formattedDate}
+                  </p>
+                  <p className="text-sm font-PoppinsL">
+                    Order Time: {currentTime}
+                  </p>
                 </div>
               </div>
-              <div className="">
-                {selectedCustomerInfo && (
-                  <p className="text-sm font-PoppinsL">
-                    Customer Name: {selectedCustomerInfo.shop_name}
-                  </p>
-                )}
-                <p className="text-sm font-PoppinsL">
-                  Order Date: {formattedDate}
-                </p>
-                <p className="text-sm font-PoppinsL">
-                  Order Time: {currentTime}
-                </p>
+
+              <div className="flex justify-between px-3">
+                <div className="w-1/2">Item Name</div>
+                <div className="flex justify-between w-1/2">
+                  <div>Quantity (kg)</div>
+                  <div>Price (LKR)</div>
+                </div>
+              </div>
+
+              <div className="w-full px-4 h-60 overflow-y-auto">
+                {addedItems.map((item) => (
+                  <BillingItem
+                    key={item.productID}
+                    item={item}
+                    onQuantityChange={handleQuantityChange}
+                    onRemoveItem={handleRemoveItem}
+                  />
+                ))}
+              </div>
+
+              <div className="flex flex-col bg-slate-100 rounded-lg p-2 gap-3 ">
+                <div className="flex justify-between px-1">
+                  <Typography variant="h6">Subtotal:</Typography>
+                  <Typography variant="h6">
+                    {calculateSubtotal()} LKR
+                  </Typography>
+                </div>
+
+                <div className="w-full flex items-center gap-5 justify-between px-1">
+                  <Button
+                    variant={paymentType === "cash" ? "contained" : "outlined"}
+                    onClick={() => setPaymentType("cash")}
+                    sx={{
+                      flexDirection: "column",
+                      "& .MuiButton-startIcon": {
+                        marginBottom: 1,
+                        paddingLeft: 1,
+                      },
+                      borderRadius: 4,
+                      flex: 0.15,
+                    }}
+                    startIcon={<PaymentsTwoToneIcon />}
+                  >
+                    Cash
+                  </Button>
+                  <Button
+                    variant={
+                      paymentType === "credit" ? "contained" : "outlined"
+                    }
+                    onClick={() => setPaymentType("credit")}
+                    sx={{
+                      flexDirection: "column",
+                      "& .MuiButton-startIcon": {
+                        marginBottom: 1,
+                        paddingLeft: 1,
+                      },
+                      borderRadius: 4,
+                      flex: 0.15,
+                    }}
+                    startIcon={<CreditCardOffTwoToneIcon />}
+                  >
+                    Credit
+                  </Button>
+                  <Button
+                    variant={
+                      paymentType === "cheque" ? "contained" : "outlined"
+                    }
+                    onClick={() => setPaymentType("cheque")}
+                    sx={{
+                      flexDirection: "column",
+                      "& .MuiButton-startIcon": {
+                        marginBottom: 1,
+                        paddingLeft: 1,
+                      },
+                      borderRadius: 4,
+                      flex: 0.15,
+                    }}
+                    startIcon={<PriceChangeTwoToneIcon />}
+                  >
+                    Cheque
+                  </Button>
+                </div>
+                <div className="px-1">
+                  <Button
+                    variant="contained"
+                    sx={{ paddingY: 1, width: "100%", borderRadius: 3 }}
+                    onClick={handleProceedToCheckout}
+                  >
+                    Proceed to Checkout
+                  </Button>
+                  <Snackbar
+                    open={open}
+                    autoHideDuration={1500}
+                    onClose={handleCloseAlert}
+                    anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                  >
+                    <Alert
+                      onClose={handleCloseAlert}
+                      severity="warning"
+                      sx={{ width: "100%" }}
+                    >
+                      Please add at least one item to the bill.
+                    </Alert>
+                  </Snackbar>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex justify-between py-1 px-3">
-            <div className="w-1/2">Item Name</div>
-            <div className="flex justify-between w-1/2">
-              <div>Quantity (kg)</div>
-              <div>Price (LKR)</div>
-            </div>
-          </div>
-
-          <div className="w-full p-4 h-60 overflow-y-auto">
-            {addedItems.map((item) => (
-              <BillingItem
-                key={item.productID}
-                item={item}
-                onQuantityChange={handleQuantityChange}
-                onRemoveItem={handleRemoveItem}
-              />
-            ))}
-          </div>
-
-          <div className="flex flex-col bg-slate-100 rounded-lg p-2 gap-3 ">
-
-            <div className="flex justify-between px-1">
-              <Typography variant="h6">Subtotal:</Typography>
-              <Typography variant="h6">{calculateSubtotal()} LKR</Typography>
-            </div>
-
-            <div className="w-full flex items-center gap-5 justify-between px-1">
-              <Button
-                variant={paymentType === "cash" ? "contained" : "outlined"}
-                onClick={() => setPaymentType("cash")}
-                sx={{
-                  flexDirection: "column",
-                  "& .MuiButton-startIcon": {
-                    marginBottom: 1,
-                    paddingLeft: 1,
-                  },
-                  borderRadius: 4,
-                  flex: 0.15,
-                }}
-                startIcon={<PaymentsTwoToneIcon />}
-              >
-                Cash
-              </Button>
-              <Button
-                variant={paymentType === "credit" ? "contained" : "outlined"}
-                onClick={() => setPaymentType("credit")}
-                sx={{
-                  flexDirection: "column",
-                  "& .MuiButton-startIcon": {
-                    marginBottom: 1,
-                    paddingLeft: 1,
-                  },
-                  borderRadius: 4,
-                  flex: 0.15,
-                }}
-                startIcon={<CreditCardOffTwoToneIcon />}
-              >
-                Credit
-              </Button>
-              <Button
-                variant={paymentType === "cheque" ? "contained" : "outlined"}
-                onClick={() => setPaymentType("cheque")}
-                sx={{
-                  flexDirection: "column",
-                  "& .MuiButton-startIcon": {
-                    marginBottom: 1,
-                    paddingLeft: 1,
-                  },
-                  borderRadius: 4,
-                  flex: 0.15,
-                }}
-                startIcon={<PriceChangeTwoToneIcon />}
-              >
-                Cheque
-              </Button>
-            </div>
-            <div className="px-1">
-              <Button variant="contained" sx={{ paddingY: 1, width: '100%', borderRadius: 3 }}>
-                Proceed to Checkout
-              </Button>
-            </div>
-          </div>
-        </div>
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+            Payment Tab
+          </CustomTabPanel>
+        </Box>
       </div>
     </div>
   );
 };
 
-export default Bill ;
+export default Bill;
