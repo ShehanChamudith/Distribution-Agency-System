@@ -20,6 +20,8 @@ import { jwtDecode } from 'jwt-decode';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
 
   // useEffect(() => {
   //  const data = window.localStorage.getItem('authState');
@@ -50,6 +52,7 @@ function App() {
     } else {
       setIsAuthenticated(false); // No token found
     }
+    setIsLoading(false);
   };
 
   function ConditionalSideBar() {
@@ -59,6 +62,10 @@ function App() {
       return <TemporaryDrawer setIsAuthenticated={setIsAuthenticated} />;
     }
     return null;
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Render loading indicator until authentication status is determined
   }
 
   return (
