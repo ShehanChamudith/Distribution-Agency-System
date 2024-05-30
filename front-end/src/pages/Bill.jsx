@@ -256,13 +256,18 @@ const Bill = () => {
   const [value, setValue] = React.useState(0);
   const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
   const handleProceedToCheckout = () => {
-    if (addedItems.length > 0) {
-      setValue(1); // Switch to the payment tab
-      //setPaymentEnabled(true);
-    } else {
+    if (addedItems.length === 0) {
+      setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
+    } else if (!paymentType) {
+      setAlertMessage("Please select a payment method.");
+      setOpen(true);
+    } else {
+      setValue(1); // Switch to the payment tab
+      // setPaymentEnabled(true);
     }
   };
 
@@ -887,6 +892,7 @@ const Bill = () => {
         </div>
       </div>
 
+      {/* Billing Tabs */}
       <div className="w-2/5 h-[89vh]  pr-8 ">
         <Box sx={{ width: "100%" }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -903,6 +909,7 @@ const Bill = () => {
               />
             </Tabs>
           </Box>
+          {/* Bill Tab */}
           <CustomTabPanel value={value} index={0}>
             <div className="flex flex-col justify-between  w-full h-full px-1">
               <div className="flex flex-col gap-5 justify-between font-PoppinsM text-2xl rounded-lg p-2">
@@ -1027,16 +1034,16 @@ const Bill = () => {
                       severity="warning"
                       sx={{ width: "100%" }}
                     >
-                      Please add at least one item to the bill.
+                      {alertMessage}
                     </Alert>
                   </Snackbar>
                 </div>
               </div>
             </div>
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
-            Payment Tab
-          </CustomTabPanel>
+
+          {/* Payment Tab */}
+          <CustomTabPanel value={value} index={1}></CustomTabPanel>
         </Box>
       </div>
     </div>
