@@ -12,7 +12,7 @@ import Logout from '@mui/icons-material/Logout';
 import myPhoto from '../assets/images/hehe.jpg';
 
 
-export default function Profile({ setIsAuthenticated }) {
+export default function Profile({ setIsAuthenticated, setUserInfo }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -25,6 +25,7 @@ export default function Profile({ setIsAuthenticated }) {
 
   const logout = () => {
     setIsAuthenticated(false);
+    setUserInfo(null);
     sessionStorage.removeItem("accessToken");
   };
 

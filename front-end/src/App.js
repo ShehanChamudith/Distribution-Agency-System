@@ -15,6 +15,7 @@ import TemporaryDrawer from "./components/Drawer";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PreOrders from "./pages/PreOrders";
 import { jwtDecode } from 'jwt-decode';
+import Unauthorized from "./pages/Unauthorized";
 
 
 function App() {
@@ -38,13 +39,13 @@ function App() {
   }, []);
 
   const decodeTokenFromLocalStorage = () => {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        setUserInfo(decodedToken);
+        setUserInfo(decodedToken.usertypeID);
         setIsAuthenticated(true); // Set authentication state to true
-        console.log(decodedToken);
+        //console.log(decodedToken);
       } catch (error) {
         console.error('Error decoding token:', error);
         setIsAuthenticated(false); // Set authentication state to false on error
@@ -59,7 +60,7 @@ function App() {
     const location = useLocation();
     // Render Sidebar only if the current location is not the root path ("/")
     if (location.pathname !== "/") {
-      return <TemporaryDrawer setIsAuthenticated={setIsAuthenticated} />;
+      return <TemporaryDrawer setIsAuthenticated={setIsAuthenticated} setUserInfo={setUserInfo} />;
     }
     return null;
   }
@@ -68,6 +69,10 @@ function App() {
     return <div>Loading...</div>; // Render loading indicator until authentication status is determined
   }
 
+  //const userRole = userInfo?.usertypeID;
+  console.log(userInfo);
+
+
   return (
     
     <Router>
@@ -75,14 +80,21 @@ function App() {
         <ConditionalSideBar />
         <div className="">
           <Routes>
-            <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated} setUserInfo={setUserInfo} />} />
 
-            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,2,3,4,5,6]} />}>
+              <Route path="/unauthorized" element={<Unauthorized />} />
+            </Route>
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
               <Route path="/bill" element={<Bill />} />
               <Route path="/product-catalog" element={<ProductCatalog />} />
-              <Route path="/admin-dashboard" element={<Admin />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />
+            </Route>
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
+              <Route path="/admin-dashboard" element={<Admin />} />
             </Route>
           </Routes>
         </div>

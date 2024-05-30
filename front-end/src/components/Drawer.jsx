@@ -8,7 +8,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Profile from "./Profile";
 import { jwtDecode } from "jwt-decode";
 
-export default function TemporaryDrawer({ setIsAuthenticated }) {
+export default function TemporaryDrawer({ setIsAuthenticated, setUserInfo  }) {
   const [open, setOpen] = React.useState(false);
   const [interfaceTitle, setInterfaceTitle] = useState("My Dashboard");
 
@@ -28,7 +28,7 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
   let fName = "";
   let lName = "";
   let userType = "";
-  const token = localStorage.getItem("accessToken");
+  const token = sessionStorage.getItem("accessToken");
   if (token) {
     const decodedToken = jwtDecode(token);
     userRole = decodedToken.usertypeID;
@@ -100,7 +100,7 @@ export default function TemporaryDrawer({ setIsAuthenticated }) {
             </div>
 
             <div className=" h-full ">
-              <Profile setIsAuthenticated={setIsAuthenticated} />
+              <Profile setIsAuthenticated={setIsAuthenticated} setUserInfo={setUserInfo} />
             </div>
           </div>
         </div>
