@@ -22,6 +22,8 @@ import {
   Typography,
   Alert,
   Snackbar,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import porkIcon from "../assets/icons/pork.ico";
@@ -257,6 +259,12 @@ const Bill = () => {
   const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [bankName, setBankName] = useState("");
+  const [chequeNumber, setChequeNumber] = useState("");
+  const [chequeValue, setChequeValue] = useState(0);
+  const [printBill, setPrintBill] = useState(false);
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -269,6 +277,42 @@ const Bill = () => {
       setValue(1); // Switch to the payment tab
       // setPaymentEnabled(true);
     }
+  };
+
+  const handlePaidAmountChange = (event) => {
+    setPaidAmount(event.target.value);
+  };
+
+  const handleDiscountChange = (event) => {
+    setDiscount(event.target.value);
+  };
+
+  const calculateBalance = () => {
+    const subtotal = calculateSubtotal();
+    const discountAmount = discount ? parseFloat(discount) : 0;
+    const totalAfterDiscount = subtotal - discountAmount;
+    return paidAmount - totalAfterDiscount;
+  };
+
+  const handleBankNameChange = (event) => {
+    setBankName(event.target.value);
+  };
+
+  const handleChequeNumberChange = (event) => {
+    setChequeNumber(event.target.value);
+  };
+
+  const handleChequeValueChange = (event) => {
+    setChequeValue(event.target.value);
+  };
+
+  const handlePrintBillChange = (event) => {
+    setPrintBill(event.target.checked);
+  };
+
+  const handleCreateInvoice = () => {
+    // Handle invoice creation logic here
+    alert("Invoice created successfully.");
   };
 
   const handleCloseAlert = (event, reason) => {
@@ -911,7 +955,7 @@ const Bill = () => {
           </Box>
           {/* Bill Tab */}
           <CustomTabPanel value={value} index={0}>
-            <div className="flex flex-col justify-between  w-full h-full px-1">
+            <div className="flex flex-col w-full">
               <div className="flex flex-col gap-5 justify-between font-PoppinsM text-2xl rounded-lg p-2">
                 <div className="flex justify-between  border-b-4">
                   <div className="">Bill Details</div>
@@ -1018,7 +1062,7 @@ const Bill = () => {
                 <div className="px-1">
                   <Button
                     variant="contained"
-                    sx={{ paddingY: 1, width: "100%", borderRadius: 3 }}
+                    sx={{ paddingY: 1, width: "100%", borderRadius: 2 }}
                     onClick={handleProceedToCheckout}
                   >
                     Proceed to Checkout
@@ -1043,7 +1087,142 @@ const Bill = () => {
           </CustomTabPanel>
 
           {/* Payment Tab */}
-          <CustomTabPanel value={value} index={1}></CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+            <div className="flex flex-col border justify-between p-4 gap-4">
+              <div className="flex justify-between">
+                <Typography variant="h6">Subtotal:</Typography>
+                <Typography variant="h6">{calculateSubtotal()} LKR</Typography>
+              </div>
+
+              {paymentType === "cash" && (
+                <>
+                  <TextField
+                    label="Paid Amount"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={paidAmount}
+                    onChange={handlePaidAmountChange}
+                    sx={{ marginBottom: 2 }}
+                  />
+
+                  <TextField
+                    label="Discount (Optional)"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={discount}
+                    onChange={handleDiscountChange}
+                    sx={{ marginBottom: 2 }}
+                  />
+
+                  <div className="flex justify-between">
+                    <Typography variant="h6">Balance:</Typography>
+                    <Typography variant="h6">
+                      {calculateBalance()} LKR
+                    </Typography>
+                  </div>
+
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={printBill}
+                        onChange={handlePrintBillChange}
+                        color="primary"
+                      />
+                    }
+                    label="Print Bill"
+                  />
+
+                  <Button
+                    variant="contained"
+                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 22}}
+                    onClick={handleCreateInvoice}
+                  >
+                    Create Invoice
+                  </Button>
+                </>
+              )}
+
+              {paymentType === "cheque" && (
+                <>
+                  <TextField
+                    label="Bank Name"
+                    variant="outlined"
+                    fullWidth
+                    value={bankName}
+                    onChange={handleBankNameChange}
+                    sx={{ marginBottom: 2 }}
+                  />
+
+                  <TextField
+                    label="Cheque Number"
+                    variant="outlined"
+                    fullWidth
+                    value={chequeNumber}
+                    onChange={handleChequeNumberChange}
+                    sx={{ marginBottom: 2 }}
+                  />
+
+                  <TextField
+                    label="Cheque Value"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={chequeValue}
+                    onChange={handleChequeValueChange}
+                    sx={{ marginBottom: 2 }}
+                  />
+
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={printBill}
+                        onChange={handlePrintBillChange}
+                        color="primary"
+                      />
+                    }
+                    label="Print Bill"
+                  />
+
+                  <Button
+                    variant="contained"
+                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 17}}
+                    onClick={handleCreateInvoice}
+                  >
+                    Create Invoice
+                  </Button>
+                </>
+              )}
+
+              {paymentType === "credit" && (
+                <>
+                  <Typography variant="h6">
+                    Please follow the credit payment process.
+                  </Typography>
+
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={printBill}
+                        onChange={handlePrintBillChange}
+                        color="primary"
+                      />
+                    }
+                    label="Print Bill"
+                  />
+                  
+                  <Button
+                    variant="contained"
+                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 44 }}
+                    onClick={handleCreateInvoice}
+                  >
+                    Create Invoice
+                  </Button>
+                </>
+              )}
+            </div>
+          </CustomTabPanel>
         </Box>
       </div>
     </div>
