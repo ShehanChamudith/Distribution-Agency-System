@@ -207,9 +207,9 @@ function ItemCard({ item, setAddedItems, addedItems }) {
             p: 4,
           }}
         >
-          <Typography id="modal-modal-title" variant="h6" component="h2">
+          <h2>
             Enter Quantity
-          </Typography>
+          </h2>
           <TextField
             label="Quantity"
             variant="outlined"
@@ -283,11 +283,42 @@ const Bill = ({ userID }) => {
   };
 
   const handlePaidAmountChange = (event) => {
-    setPaidAmount(event.target.value);
+    let newValue = event.target.value;
+
+    // Remove leading zeros
+    newValue = newValue.replace(/^0+/, '');
+    
+    //If there are no decimal points, append ".00"
+    
+    // Ensure only numbers and two decimal points are allowed
+    newValue = newValue.replace(/^0+(\d+)/, '$1'); // Remove leading zeros
+    newValue = newValue.replace(/(\.\d\d)\d+/, '$1'); // Limit to two decimal points
+
+    setPaidAmount(newValue);
+  };
+
+  const handleFocus = () => {
+    // Clear the existing "0" when the user clicks on the input field
+    if (paidAmount === '0') {
+      setPaidAmount('');
+    } if (discount === '0') {
+      setDiscount('');
+    }
   };
 
   const handleDiscountChange = (event) => {
-    setDiscount(event.target.value);
+    let newValue = event.target.value;
+
+    // Remove leading zeros
+    newValue = newValue.replace(/^0+/, '');
+    
+    //If there are no decimal points, append ".00"
+    
+    // Ensure only numbers and two decimal points are allowed
+    newValue = newValue.replace(/^0+(\d+)/, '$1'); // Remove leading zeros
+    newValue = newValue.replace(/(\.\d\d)\d+/, '$1'); // Limit to two decimal points
+
+    setDiscount(newValue);
   };
 
   const calculateBalance = () => {
@@ -314,16 +345,47 @@ const Bill = ({ userID }) => {
   };
 
   const handleCreateInvoice = () => {
+    let subtotal = calculateSubtotal();
+   
+    let paidAmountFormatted = parseFloat(paidAmount).toFixed(2).toString();
+
+    if (paymentType === "cash" && paidAmountFormatted === subtotal) {
+      createInvoice(subtotal, "cash");
+    } else if (paymentType === "cheque" && chequeValue === subtotal) {
+      createInvoice(subtotal, "cheque");
+    } else if ((paymentType === "cash" && paidAmountFormatted < subtotal) || (paymentType === "cheque" && chequeValue < subtotal)) {
+      const creditValue = subtotal - (paymentType === "cash" ? paidAmountFormatted : chequeValue);
+      Swal.fire({
+        title: "Insufficient Payment",
+        html: `The ${paymentType === "cash" ? "paid amount" : "cheque value"} is less than the subtotal. <br/>Proceed with a credit value of ${creditValue} LKR?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          createInvoice(subtotal, "credit");
+        } else {
+          Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+        }
+      });
+    } else {
+      Swal.fire("Invalid Payment", "The paid amount or cheque value does not match the subtotal.", "error");
+    }
+  };
+  
+  
+  const createInvoice = (saleAmount, paymentType) => {
     const invoiceData = {
-      sale_amount: calculateSubtotal(),
+      sale_amount: saleAmount,
       payment_type: paymentType,
       note: "Your note here",
       userID: userID,
       customerID: selectedCustomer.customerID,
     };
-
+  
     console.log(invoiceData);
-
+  
     axios
       .post("http://localhost:3001/addsale", invoiceData)
       .then((response) => {
@@ -1024,10 +1086,10 @@ const Bill = ({ userID }) => {
 
               <div className="flex flex-col bg-slate-100 rounded-lg p-2 gap-3 ">
                 <div className="flex justify-between px-1">
-                  <Typography variant="h6">Subtotal:</Typography>
-                  <Typography variant="h6">
+                  <p>Subtotal:</p>
+                  <p>
                     {calculateSubtotal()} LKR
-                  </Typography>
+                  </p>
                 </div>
 
                 <div className="w-full flex items-center gap-5 justify-between px-1">
@@ -1115,8 +1177,8 @@ const Bill = ({ userID }) => {
           <CustomTabPanel value={value} index={1}>
             <div className="flex flex-col border justify-between p-4 gap-4">
               <div className="flex justify-between">
-                <Typography variant="h6">Subtotal:</Typography>
-                <Typography variant="h6">{calculateSubtotal()} LKR</Typography>
+                <h5>Subtotal:</h5>
+                <h5>{calculateSubtotal()} LKR</h5>
               </div>
 
               {paymentType === "cash" && (
@@ -1142,10 +1204,10 @@ const Bill = ({ userID }) => {
                   />
 
                   <div className="flex justify-between">
-                    <Typography variant="h6">Balance:</Typography>
-                    <Typography variant="h6">
+                    <p>Balance:</p>
+                    <p>
                       {calculateBalance()} LKR
-                    </Typography>
+                    </p>
                   </div>
 
                   <FormControlLabel
@@ -1234,9 +1296,9 @@ const Bill = ({ userID }) => {
 
               {paymentType === "credit" && (
                 <>
-                  <Typography variant="h6">
+                  <h1>
                     Please follow the credit payment process.
-                  </Typography>
+                  </h1>
 
                   <FormControlLabel
                     control={
