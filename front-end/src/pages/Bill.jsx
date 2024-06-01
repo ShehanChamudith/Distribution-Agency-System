@@ -36,6 +36,39 @@ import PriceChangeTwoToneIcon from "@mui/icons-material/PriceChangeTwoTone";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+
+const generatePDF = (invoiceData, addedItems) => {
+  const doc = new jsPDF();
+
+  // Add title and basic information
+  doc.setFontSize(20);
+  doc.text('Invoice', 20, 20, "center");
+  doc.setFontSize(12);
+  doc.text(`Sale Amount: ${invoiceData.sale_amount}`, 20, 30);
+  doc.text(`Payment Type: ${invoiceData.payment_type}`, 20, 40);
+  doc.text(`Customer ID: ${invoiceData.customerID}`, 20, 50);
+  doc.text(`User ID: ${invoiceData.userID}`, 20, 60);
+  doc.text(`Note: ${invoiceData.note}`, 20, 70);
+  doc.text(`Discount: ${invoiceData.discount}`, 20, 80);
+  doc.text(`Balance: ${invoiceData.balance}`, 20, 90);
+
+  // Add items table
+  const headers = [['Product Name', 'Quantity', 'Selling Price']];
+  const data = addedItems.map(item => [item.product_name, item.quantity, item.selling_price]);
+
+  doc.autoTable({
+    startY: 100,
+    head: headers,
+    body: data,
+  });
+
+  // Save the PDF
+  doc.save(`invoice_${new Date().toISOString()}.pdf`);
+};
+
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -428,6 +461,10 @@ const Bill = ({ userID }) => {
       .post("http://localhost:3001/addsale", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
+
+        if(printBill){
+          generatePDF(invoiceData, addedItems);
+        }
 
         Swal.fire({
           icon: "success",
