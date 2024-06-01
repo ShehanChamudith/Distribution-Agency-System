@@ -21,18 +21,9 @@ import Unauthorized from "./pages/Unauthorized";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [userID, setUserID] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
-  // useEffect(() => {
-  //  const data = window.localStorage.getItem('authState');
-  //  if (data !== null) setIsAuthenticated(JSON.parse(data))
-  // }, []);
-
-  // useEffect(() => {
-  //   window.localStorage.setItem('authState', JSON.stringify(isAuthenticated))
-  // }, [isAuthenticated]);
-  
   useEffect(() => {
     // Decode token when component mounts
     decodeTokenFromLocalStorage();
@@ -44,6 +35,7 @@ function App() {
       try {
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken.usertypeID);
+        setUserID(decodedToken.userID);
         setIsAuthenticated(true); // Set authentication state to true
         //console.log(decodedToken);
       } catch (error) {
@@ -69,9 +61,6 @@ function App() {
     return <div>Loading...</div>; // Render loading indicator until authentication status is determined
   }
 
-  //const userRole = userInfo?.usertypeID;
-  console.log(userInfo);
-
 
   return (
     
@@ -87,7 +76,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
-              <Route path="/bill" element={<Bill />} />
+              <Route path="/bill" element={<Bill userID={userID} />} />
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />

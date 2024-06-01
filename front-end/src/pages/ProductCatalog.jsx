@@ -534,7 +534,7 @@ export function topdiv(
                       accept=".jpg,.jpeg,.png"
                     />
                   </Button>
-                  {selectedFile && <p>{selectedFile.name}</p>}
+                  {selectedFile && <h1>{selectedFile.name}</h1>}
                 </div>
               </DialogContent>
               <DialogActions>

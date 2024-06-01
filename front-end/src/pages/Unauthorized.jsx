@@ -4,7 +4,7 @@ const Unauthorized = () => {
   return (
     <div>
       <h1>Unauthorized</h1>
-      <p>You do not have permission to view this page.</p>
+      <h2>You do not have permission to view this page.</h2>
     </div>
   );
 };

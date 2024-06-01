@@ -227,7 +227,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
   );
 }
 
-const Bill = () => {
+const Bill = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [category, setCategory] = useState("All");
@@ -235,7 +235,10 @@ const Bill = () => {
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
     useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState({
+    customerID: "",
+    shop_name: "",
+  });
   const [existingCustomers, setExistingCustomers] = useState([]);
   const [customerData, setcustomerData] = useState({
     username: "",
@@ -311,8 +314,26 @@ const Bill = () => {
   };
 
   const handleCreateInvoice = () => {
-    // Handle invoice creation logic here
-    alert("Invoice created successfully.");
+    const invoiceData = {
+      sale_amount: calculateSubtotal(),
+      payment_type: paymentType,
+      note: "Your note here",
+      userID: userID,
+      customerID: selectedCustomer.customerID,
+    };
+
+    console.log(invoiceData);
+
+    axios
+      .post("http://localhost:3001/addsale", invoiceData)
+      .then((response) => {
+        console.log("Invoice created successfully:", response.data);
+        alert("Invoice created successfully.");
+      })
+      .catch((error) => {
+        console.error("Error creating invoice:", error);
+        alert("Error creating invoice. Please try again.");
+      });
   };
 
   const handleCloseAlert = (event, reason) => {
@@ -366,7 +387,11 @@ const Bill = () => {
   };
 
   const handleExistingCustomerChange = (event) => {
-    setSelectedCustomer(event.target.value);
+    const selectedCustomer = existingCustomers.find(
+      (customer) => customer.shop_name === event.target.value
+    );
+    setSelectedCustomer(selectedCustomer);
+    console.log(selectedCustomer);
   };
 
   const handleDialogClose = () => {
@@ -816,7 +841,7 @@ const Bill = () => {
             <Select
               required
               labelId="existing-customer-label"
-              value={selectedCustomer}
+              value={selectedCustomer.shop_name}
               onChange={handleExistingCustomerChange}
               label="Customer"
             >
@@ -960,21 +985,21 @@ const Bill = () => {
                 <div className="flex justify-between  border-b-4">
                   <div className="">Bill Details</div>
                   <div className="">
-                    <p>#0001</p>
+                    <h1>#0001</h1>
                   </div>
                 </div>
                 <div className="">
-                  {selectedCustomerInfo && (
-                    <p className="text-sm font-PoppinsL">
-                      Customer Name: {selectedCustomerInfo.shop_name}
-                    </p>
+                  {selectedCustomer.shop_name && (
+                    <h1 className="text-sm font-PoppinsL">
+                      Customer Name: {selectedCustomer.shop_name}
+                    </h1>
                   )}
-                  <p className="text-sm font-PoppinsL">
+                  <h1 className="text-sm font-PoppinsL">
                     Order Date: {formattedDate}
-                  </p>
-                  <p className="text-sm font-PoppinsL">
+                  </h1>
+                  <h1 className="text-sm font-PoppinsL">
                     Order Time: {currentTime}
-                  </p>
+                  </h1>
                 </div>
               </div>
 
@@ -1136,8 +1161,14 @@ const Bill = () => {
 
                   <Button
                     variant="contained"
-                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 22}}
+                    sx={{
+                      paddingY: 1,
+                      width: "100%",
+                      borderRadius: 2,
+                      marginTop: 22,
+                    }}
                     onClick={handleCreateInvoice}
+                    disabled={!paidAmount}
                   >
                     Create Invoice
                   </Button>
@@ -1187,8 +1218,14 @@ const Bill = () => {
 
                   <Button
                     variant="contained"
-                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 17}}
+                    sx={{
+                      paddingY: 1,
+                      width: "100%",
+                      borderRadius: 2,
+                      marginTop: 17,
+                    }}
                     onClick={handleCreateInvoice}
+                    disabled={!bankName || !chequeNumber}
                   >
                     Create Invoice
                   </Button>
@@ -1211,10 +1248,15 @@ const Bill = () => {
                     }
                     label="Print Bill"
                   />
-                  
+
                   <Button
                     variant="contained"
-                    sx={{ paddingY: 1, width: "100%", borderRadius: 2, marginTop: 44 }}
+                    sx={{
+                      paddingY: 1,
+                      width: "100%",
+                      borderRadius: 2,
+                      marginTop: 44,
+                    }}
                     onClick={handleCreateInvoice}
                   >
                     Create Invoice
