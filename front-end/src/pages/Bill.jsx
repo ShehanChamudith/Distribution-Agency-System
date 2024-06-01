@@ -207,9 +207,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
             p: 4,
           }}
         >
-          <h2>
-            Enter Quantity
-          </h2>
+          <h2>Enter Quantity</h2>
           <TextField
             label="Quantity"
             variant="outlined"
@@ -229,7 +227,6 @@ function ItemCard({ item, setAddedItems, addedItems }) {
 
 const Bill = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
-  const [anchorEl, setAnchorEl] = React.useState(null);
   const [category, setCategory] = useState("All");
   const [openDialog, setOpenDialog] = useState(true);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
@@ -253,13 +250,12 @@ const Bill = ({ userID }) => {
     usertypeID: 6,
   });
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [selectedCustomerInfo, setSelectedCustomerInfo] = useState({});
+  const [selectedCustomerInfo, setSelectedCustomerInfo] = useState("");
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
-  const [paymentEnabled, setPaymentEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [paidAmount, setPaidAmount] = useState(0);
@@ -268,6 +264,8 @@ const Bill = ({ userID }) => {
   const [chequeNumber, setChequeNumber] = useState("");
   const [chequeValue, setChequeValue] = useState(0);
   const [printBill, setPrintBill] = useState(false);
+  const [creditedValue, setCreditedValue] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -277,55 +275,63 @@ const Bill = ({ userID }) => {
       setAlertMessage("Please select a payment method.");
       setOpen(true);
     } else {
+      if (paymentType === "credit") {
+        setCreditedValue(subtotal); // Store the subtotal as the credited value
+        console.log(creditedValue);
+      }
       setValue(1); // Switch to the payment tab
       // setPaymentEnabled(true);
     }
   };
 
+  useEffect(() => {
+    if (paymentType === "cash" && paidAmount < subtotal) {
+      setCreditedValue(subtotal - paidAmount);
+    } else {
+      setCreditedValue(0);
+    }
+  }, [subtotal, paidAmount, paymentType]);
+
   const handlePaidAmountChange = (event) => {
     let newValue = event.target.value;
 
     // Remove leading zeros
-    newValue = newValue.replace(/^0+/, '');
-    
+    newValue = newValue.replace(/^0+/, "");
+
     //If there are no decimal points, append ".00"
-    
+
     // Ensure only numbers and two decimal points are allowed
-    newValue = newValue.replace(/^0+(\d+)/, '$1'); // Remove leading zeros
-    newValue = newValue.replace(/(\.\d\d)\d+/, '$1'); // Limit to two decimal points
+    newValue = newValue.replace(/^0+(\d+)/, "$1"); // Remove leading zeros
+    newValue = newValue.replace(/(\.\d\d)\d+/, "$1"); // Limit to two decimal points
 
     setPaidAmount(newValue);
-  };
-
-  const handleFocus = () => {
-    // Clear the existing "0" when the user clicks on the input field
-    if (paidAmount === '0') {
-      setPaidAmount('');
-    } if (discount === '0') {
-      setDiscount('');
-    }
   };
 
   const handleDiscountChange = (event) => {
     let newValue = event.target.value;
 
     // Remove leading zeros
-    newValue = newValue.replace(/^0+/, '');
-    
+    newValue = newValue.replace(/^0+/, "");
+
     //If there are no decimal points, append ".00"
-    
+
     // Ensure only numbers and two decimal points are allowed
-    newValue = newValue.replace(/^0+(\d+)/, '$1'); // Remove leading zeros
-    newValue = newValue.replace(/(\.\d\d)\d+/, '$1'); // Limit to two decimal points
+    newValue = newValue.replace(/^0+(\d+)/, "$1"); // Remove leading zeros
+    newValue = newValue.replace(/(\.\d\d)\d+/, "$1"); // Limit to two decimal points
 
     setDiscount(newValue);
   };
 
   const calculateBalance = () => {
-    const subtotal = calculateSubtotal();
-    const discountAmount = discount ? parseFloat(discount) : 0;
-    const totalAfterDiscount = subtotal - discountAmount;
-    return paidAmount - totalAfterDiscount;
+    let totalAfterDiscount = subtotal;
+    if (paymentType === "cash") {
+      totalAfterDiscount -= discount ? parseFloat(discount) : 0;
+      return paidAmount - totalAfterDiscount;
+    } else if (paymentType === "cheque") {
+      return chequeValue - totalAfterDiscount;
+    } else {
+      return 0; // Handle other payment types if needed
+    }
   };
 
   const handleBankNameChange = (event) => {
@@ -345,36 +351,46 @@ const Bill = ({ userID }) => {
   };
 
   const handleCreateInvoice = () => {
-    let subtotal = calculateSubtotal();
-   
     let paidAmountFormatted = parseFloat(paidAmount).toFixed(2).toString();
 
-    if (paymentType === "cash" && paidAmountFormatted === subtotal) {
+    if (paymentType === "cash" && paidAmountFormatted >= subtotal) {
       createInvoice(subtotal, "cash");
     } else if (paymentType === "cheque" && chequeValue === subtotal) {
       createInvoice(subtotal, "cheque");
-    } else if ((paymentType === "cash" && paidAmountFormatted < subtotal) || (paymentType === "cheque" && chequeValue < subtotal)) {
-      const creditValue = subtotal - (paymentType === "cash" ? paidAmountFormatted : chequeValue);
+    } else if (
+      (paymentType === "cash" && paidAmountFormatted < subtotal) ||
+      (paymentType === "cheque" && chequeValue < subtotal)
+    ) {
+      const creditValue =
+        subtotal - (paymentType === "cash" ? paidAmountFormatted : chequeValue);
+      setCreditedValue(creditValue);
+
       Swal.fire({
         title: "Insufficient Payment",
-        html: `The ${paymentType === "cash" ? "paid amount" : "cheque value"} is less than the subtotal. <br/>Proceed with a credit value of ${creditValue} LKR?`,
+        html: `The ${
+          paymentType === "cash" ? "paid amount" : "cheque value"
+        } is less than the subtotal. <br/>Proceed with a credit value of ${creditValue} LKR?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Yes",
         cancelButtonText: "No",
       }).then((result) => {
         if (result.isConfirmed) {
+          setCreditedValue(creditValue);
           createInvoice(subtotal, "credit");
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else {
-      Swal.fire("Invalid Payment", "The paid amount or cheque value does not match the subtotal.", "error");
+      Swal.fire(
+        "Invalid Payment",
+        "The paid amount or cheque value does not match the subtotal.",
+        "error"
+      );
     }
   };
-  
-  
+
   const createInvoice = (saleAmount, paymentType) => {
     const invoiceData = {
       sale_amount: saleAmount,
@@ -382,10 +398,18 @@ const Bill = ({ userID }) => {
       note: "Your note here",
       userID: userID,
       customerID: selectedCustomer.customerID,
+      cash_amount: paidAmount,
+      balance: calculateBalance(),
+      discount: discount,
+      credit_amount: creditedValue,
+      bank_name: bankName,
+      cheque_number: chequeNumber,
+      cheque_value: chequeValue,
+
     };
-  
+
     console.log(invoiceData);
-  
+
     axios
       .post("http://localhost:3001/addsale", invoiceData)
       .then((response) => {
@@ -449,11 +473,8 @@ const Bill = ({ userID }) => {
   };
 
   const handleExistingCustomerChange = (event) => {
-    const selectedCustomer = existingCustomers.find(
-      (customer) => customer.shop_name === event.target.value
-    );
-    setSelectedCustomer(selectedCustomer);
-    console.log(selectedCustomer);
+    setSelectedCustomerInfo(event.target.value); // Update temporary state
+    console.log("Temporarily selected shop name:", event.target.value);
   };
 
   const handleDialogClose = () => {
@@ -574,7 +595,6 @@ const Bill = ({ userID }) => {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
-          handleClose();
           fetchCustomer();
           setOpenExistingCustomerDialog(true);
         });
@@ -588,9 +608,10 @@ const Bill = ({ userID }) => {
     console.log("Selected customer:", selectedCustomer);
     setOpenExistingCustomerDialog(false);
     const customer = existingCustomers.find(
-      (customer) => customer.shop_name === selectedCustomer
+      (customer) => customer.shop_name === selectedCustomerInfo
     );
-    setSelectedCustomerInfo(customer);
+    setSelectedCustomer(customer);
+    console.log("Selected Customer after button click:", customer);
   };
 
   const handleChange = (event, newAlignment) => {
@@ -614,10 +635,6 @@ const Bill = ({ userID }) => {
       fetchCustomer();
     }
   }, [openExistingCustomerDialog]);
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
@@ -711,13 +728,18 @@ const Bill = ({ userID }) => {
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
-  const calculateSubtotal = () => {
-    return addedItems
-      .reduce((total, item) => {
-        return total + item.quantity * item.selling_price;
-      }, 0)
-      .toFixed(2);
-  };
+  useEffect(() => {
+    const calculateSubtotal = () => {
+      return addedItems
+        .reduce((total, item) => {
+          return total + item.quantity * item.selling_price;
+        }, 0)
+        .toFixed(2);
+    };
+
+    const calculatedSubtotal = calculateSubtotal();
+    setSubtotal(calculatedSubtotal);
+  }, [addedItems]);
 
   const handleRemoveItem = (productId) => {
     setAddedItems((prevItems) =>
@@ -903,7 +925,7 @@ const Bill = ({ userID }) => {
             <Select
               required
               labelId="existing-customer-label"
-              value={selectedCustomer.shop_name}
+              value={selectedCustomerInfo.shop_name}
               onChange={handleExistingCustomerChange}
               label="Customer"
             >
@@ -1033,11 +1055,7 @@ const Bill = ({ userID }) => {
               aria-label="basic tabs example"
             >
               <Tab label="Bill" {...a11yProps(0)} />
-              <Tab
-                label="Payment"
-                {...a11yProps(1)}
-                disabled={!paymentEnabled}
-              />
+              <Tab label="Payment" {...a11yProps(1)} disabled={true} />
             </Tabs>
           </Box>
           {/* Bill Tab */}
@@ -1087,9 +1105,7 @@ const Bill = ({ userID }) => {
               <div className="flex flex-col bg-slate-100 rounded-lg p-2 gap-3 ">
                 <div className="flex justify-between px-1">
                   <p>Subtotal:</p>
-                  <p>
-                    {calculateSubtotal()} LKR
-                  </p>
+                  <p>{subtotal} LKR</p>
                 </div>
 
                 <div className="w-full flex items-center gap-5 justify-between px-1">
@@ -1178,7 +1194,7 @@ const Bill = ({ userID }) => {
             <div className="flex flex-col border justify-between p-4 gap-4">
               <div className="flex justify-between">
                 <h5>Subtotal:</h5>
-                <h5>{calculateSubtotal()} LKR</h5>
+                <h5>{subtotal} LKR</h5>
               </div>
 
               {paymentType === "cash" && (
@@ -1203,11 +1219,18 @@ const Bill = ({ userID }) => {
                     sx={{ marginBottom: 2 }}
                   />
 
-                  <div className="flex justify-between">
-                    <p>Balance:</p>
-                    <p>
-                      {calculateBalance()} LKR
-                    </p>
+                  <div className="flex flex-col justify-between">
+                    <div className="flex justify-between">
+                      <p>Balance:</p>
+                      <p>{Math.max(calculateBalance(), 0)} LKR</p>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <p>Credited Amount:</p>
+                      <p>
+                        {calculateBalance() < 0 ? -calculateBalance() : 0} LKR{" "}
+                      </p>
+                    </div>
                   </div>
 
                   <FormControlLabel
@@ -1227,7 +1250,7 @@ const Bill = ({ userID }) => {
                       paddingY: 1,
                       width: "100%",
                       borderRadius: 2,
-                      marginTop: 22,
+                      marginTop: 20,
                     }}
                     onClick={handleCreateInvoice}
                     disabled={!paidAmount}
@@ -1267,6 +1290,16 @@ const Bill = ({ userID }) => {
                     sx={{ marginBottom: 2 }}
                   />
 
+                  <div className="flex justify-between">
+                    <p>Credited Value:</p>
+                    <p>
+                      {calculateBalance() < 0
+                        ? -calculateBalance()
+                        : calculateBalance()}{" "}
+                      LKR
+                    </p>
+                  </div>
+
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -1284,7 +1317,7 @@ const Bill = ({ userID }) => {
                       paddingY: 1,
                       width: "100%",
                       borderRadius: 2,
-                      marginTop: 17,
+                      marginTop: 12,
                     }}
                     onClick={handleCreateInvoice}
                     disabled={!bankName || !chequeNumber}
@@ -1296,9 +1329,7 @@ const Bill = ({ userID }) => {
 
               {paymentType === "credit" && (
                 <>
-                  <h1>
-                    Please follow the credit payment process.
-                  </h1>
+                  <h1>Please follow the credit payment process.</h1>
 
                   <FormControlLabel
                     control={
