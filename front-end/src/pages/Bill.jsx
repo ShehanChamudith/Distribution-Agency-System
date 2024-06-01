@@ -275,22 +275,26 @@ const Bill = ({ userID }) => {
       setAlertMessage("Please select a payment method.");
       setOpen(true);
     } else {
-      if (paymentType === "credit") {
-        setCreditedValue(subtotal); // Store the subtotal as the credited value
-        console.log(creditedValue);
-      }
       setValue(1); // Switch to the payment tab
       // setPaymentEnabled(true);
     }
   };
 
   useEffect(() => {
-    if (paymentType === "cash" && paidAmount < subtotal) {
-      setCreditedValue(subtotal - paidAmount);
+    let creditedValue;
+
+    if (paymentType === "cash") {
+      creditedValue = subtotal - paidAmount;
+    } else if (paymentType === "cheque") {
+      creditedValue = subtotal - chequeValue;
+    } else if (paymentType === "credit") {
+      creditedValue = subtotal;
     } else {
-      setCreditedValue(0);
+      creditedValue = 0;
     }
-  }, [subtotal, paidAmount, paymentType]);
+
+    setCreditedValue(Math.max(creditedValue, 0));
+  }, [subtotal, paidAmount, paymentType, chequeValue]);
 
   const handlePaidAmountChange = (event) => {
     let newValue = event.target.value;
@@ -352,18 +356,25 @@ const Bill = ({ userID }) => {
 
   const handleCreateInvoice = () => {
     let paidAmountFormatted = parseFloat(paidAmount).toFixed(2).toString();
+    let chequeValueFormatted = parseFloat(chequeValue).toFixed(2).toString();
 
     if (paymentType === "cash" && paidAmountFormatted >= subtotal) {
       createInvoice(subtotal, "cash");
-    } else if (paymentType === "cheque" && chequeValue === subtotal) {
+    } else if (paymentType === "cheque" && chequeValueFormatted === subtotal) {
       createInvoice(subtotal, "cheque");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotal) ||
-      (paymentType === "cheque" && chequeValue < subtotal)
+      (paymentType === "cheque" && chequeValueFormatted < subtotal)
     ) {
-      const creditValue =
-        subtotal - (paymentType === "cash" ? paidAmountFormatted : chequeValue);
-      setCreditedValue(creditValue);
+      let creditValue;
+
+      if (paymentType === "cash") {
+        creditValue = subtotal - paidAmountFormatted;
+      } else if (paymentType === "cheque") {
+        creditValue = subtotal - chequeValueFormatted;
+      } else {
+        creditValue = subtotal;
+      }
 
       Swal.fire({
         title: "Insufficient Payment",
@@ -382,6 +393,8 @@ const Bill = ({ userID }) => {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
+    } else if (paymentType === "credit") {
+      createInvoice(subtotal, "credit");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -405,8 +418,9 @@ const Bill = ({ userID }) => {
       bank_name: bankName,
       cheque_number: chequeNumber,
       cheque_value: chequeValue,
-
+      addedItems: addedItems // Array of added items
     };
+    
 
     console.log(invoiceData);
 
@@ -414,7 +428,19 @@ const Bill = ({ userID }) => {
       .post("http://localhost:3001/addsale", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
-        alert("Invoice created successfully.");
+
+        Swal.fire({
+          icon: "success",
+          title: "Invoice Created Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          window.location.reload();
+        });
       })
       .catch((error) => {
         console.error("Error creating invoice:", error);
@@ -1329,7 +1355,7 @@ const Bill = ({ userID }) => {
 
               {paymentType === "credit" && (
                 <>
-                  <h1>Please follow the credit payment process.</h1>
+                  <h1>This Bill will be recorded as a Credit Bill!</h1>
 
                   <FormControlLabel
                     control={
