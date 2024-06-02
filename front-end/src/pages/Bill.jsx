@@ -43,26 +43,127 @@ import 'jspdf-autotable';
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
 
+  console.log(invoiceData);
+
+  const shopInfo = {
+    name: 'Distribution Agency',
+    address: 'Atakalanpanna, Kahawatta',
+    tel: '077-4439693'
+  };
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const lineSpacing = 5;
+
+  const currentDate = new Date();
+  const orderDate = currentDate.toLocaleDateString();
+  const orderTime = currentDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const shopNameFontSize = 20;
+  const addressFontSize = 16;
+  const telFontSize = 14;
+
+    // Shop Name
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(shopNameFontSize);
+    const shopNameWidth = doc.getTextDimensions(shopInfo.name).w;
+    doc.text(shopInfo.name, (pageWidth - shopNameWidth) / 2, 10);
+
+    // Address
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(addressFontSize);
+    const addressWidth = doc.getTextDimensions(shopInfo.address).w;
+    doc.text(shopInfo.address, (pageWidth - addressWidth) / 2, 10 + lineSpacing * 2);
+
+    // Tel
+    doc.setFontSize(telFontSize);
+    const telWidth = doc.getTextDimensions(`Tel: ${shopInfo.tel}`).w;
+    doc.text(`Tel: ${shopInfo.tel}`, (pageWidth - telWidth) / 2, 10 + lineSpacing * 3);
+
+
   // Add title and basic information
-  doc.setFontSize(20);
-  doc.text('Invoice', 20, 20, "center");
-  doc.setFontSize(12);
-  doc.text(`Sale Amount: ${invoiceData.sale_amount}`, 20, 30);
-  doc.text(`Payment Type: ${invoiceData.payment_type}`, 20, 40);
-  doc.text(`Customer ID: ${invoiceData.customerID}`, 20, 50);
-  doc.text(`User ID: ${invoiceData.userID}`, 20, 60);
-  doc.text(`Note: ${invoiceData.note}`, 20, 70);
-  doc.text(`Discount: ${invoiceData.discount}`, 20, 80);
-  doc.text(`Balance: ${invoiceData.balance}`, 20, 90);
+  doc.setFontSize(13);
+  let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
+
+  doc.text(`Order Number: #0001`, 15, startY);
+  doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
+  doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
+  doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
+  doc.text(`Order Time: ${orderTime}`, 15, startY + lineSpacing * 4);
 
   // Add items table
-  const headers = [['Product Name', 'Quantity', 'Selling Price']];
-  const data = addedItems.map(item => [item.product_name, item.quantity, item.selling_price]);
+  const headers = [['Product Name', 'Quantity', 'Unit Price', 'Price']];
+  const data = addedItems.map(item => [
+    item.product_name,
+    item.quantity,
+    item.selling_price,
+    item.quantity * item.selling_price // Calculate total price
+  ]);
+
+  let paymentAmount, paymentLabel;
+  switch (invoiceData.payment_type) {
+    case 'cash':
+      paymentAmount = invoiceData.cash_amount;
+      paymentLabel = 'Cash Amount Paid';
+      break;
+    case 'cheque':
+      paymentAmount = invoiceData.cheque_value;
+      paymentLabel = 'Cheque Value';
+      break;
+    case 'credit':
+      paymentAmount = invoiceData.credit_amount;
+      paymentLabel = 'Credited Value';
+      break;
+    default:
+      paymentAmount = 0;
+      paymentLabel = 'Payment Amount';
+  }
+
 
   doc.autoTable({
-    startY: 100,
+    startY: startY + lineSpacing * 7,
     head: headers,
     body: data,
+    didDrawPage: function (data) {
+      let tableHeight = data.cursor.y;
+      
+      
+      doc.line(15, tableHeight + lineSpacing * 2, pageWidth - 15, tableHeight + lineSpacing * 2);
+
+      doc.text(`Subtotal:`, 15, tableHeight + lineSpacing* 4.5);
+      // Right align the sale amount
+      const saleAmountValue = `${invoiceData.sale_amount}`;
+      const saleAmountWidth = doc.getTextWidth(saleAmountValue);
+      const saleAmountXPosition = pageWidth - saleAmountWidth - 15; // Right align, leaving a 15 unit margin
+      doc.text(saleAmountValue, saleAmountXPosition, tableHeight + lineSpacing * 4.5);
+
+      doc.text(`Discount:`, 15, tableHeight + lineSpacing * 6);
+      // Right align the discount
+      const discountValue = `${invoiceData.discount}`;
+      const discountWidth = doc.getTextWidth(discountValue);
+      const discountXPosition = pageWidth - discountWidth - 15; // Right align, leaving a 15 unit margin
+      doc.text(discountValue, discountXPosition, tableHeight + lineSpacing * 6);
+
+      doc.text(`${paymentLabel}:`, 15, tableHeight + lineSpacing * 7.5);
+      // Right align the payment amount
+      const paymentAmountValue = `${paymentAmount}`;
+      const paymentAmountWidth = doc.getTextWidth(paymentAmountValue);
+      const paymentAmountXPosition = pageWidth - paymentAmountWidth - 15; // Right align, leaving a 15 unit margin
+      doc.text(paymentAmountValue, paymentAmountXPosition, tableHeight + lineSpacing * 7.5);
+
+      doc.text(`Balance:`, 15, tableHeight + lineSpacing * 9);
+      // Right align the balance
+      const balanceValue = `${invoiceData.balance}`;
+      const balanceWidth = doc.getTextWidth(balanceValue);
+      const balanceXPosition = pageWidth - balanceWidth - 15; // Right align, leaving a 15 unit margin
+      doc.text(balanceValue, balanceXPosition, tableHeight + lineSpacing * 9);
+
+      doc.text(`Payment Type:`, 15, tableHeight + lineSpacing * 10.5);
+      // Right align the payment type
+      const paymentTypeValue = `${invoiceData.payment_type}`;
+      const paymentTypeWidth = doc.getTextWidth(paymentTypeValue);
+      const paymentTypeXPosition = pageWidth - paymentTypeWidth - 15; // Right align, leaving a 15 unit margin
+      doc.text(paymentTypeValue, paymentTypeXPosition, tableHeight + lineSpacing * 10.5);
+    }
   });
 
   // Save the PDF
@@ -476,7 +577,7 @@ const Bill = ({ userID }) => {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
-          window.location.reload();
+          //window.location.reload();
         });
       })
       .catch((error) => {
