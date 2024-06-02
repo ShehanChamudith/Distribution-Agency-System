@@ -36,9 +36,8 @@ import PriceChangeTwoToneIcon from "@mui/icons-material/PriceChangeTwoTone";
 import PropTypes from "prop-types";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -46,9 +45,9 @@ const generatePDF = (invoiceData, addedItems) => {
   console.log(invoiceData);
 
   const shopInfo = {
-    name: 'Distribution Agency',
-    address: 'Atakalanpanna, Kahawatta',
-    tel: '077-4439693'
+    name: "Distribution Agency",
+    address: "Atakalanpanna, Kahawatta",
+    tel: "077-4439693",
   };
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -56,29 +55,39 @@ const generatePDF = (invoiceData, addedItems) => {
 
   const currentDate = new Date();
   const orderDate = currentDate.toLocaleDateString();
-  const orderTime = currentDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const orderTime = currentDate.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   const shopNameFontSize = 20;
   const addressFontSize = 16;
   const telFontSize = 14;
 
-    // Shop Name
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(shopNameFontSize);
-    const shopNameWidth = doc.getTextDimensions(shopInfo.name).w;
-    doc.text(shopInfo.name, (pageWidth - shopNameWidth) / 2, 10);
+  // Shop Name
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(shopNameFontSize);
+  const shopNameWidth = doc.getTextDimensions(shopInfo.name).w;
+  doc.text(shopInfo.name, (pageWidth - shopNameWidth) / 2, 10);
 
-    // Address
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(addressFontSize);
-    const addressWidth = doc.getTextDimensions(shopInfo.address).w;
-    doc.text(shopInfo.address, (pageWidth - addressWidth) / 2, 10 + lineSpacing * 2);
+  // Address
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(addressFontSize);
+  const addressWidth = doc.getTextDimensions(shopInfo.address).w;
+  doc.text(
+    shopInfo.address,
+    (pageWidth - addressWidth) / 2,
+    10 + lineSpacing * 2
+  );
 
-    // Tel
-    doc.setFontSize(telFontSize);
-    const telWidth = doc.getTextDimensions(`Tel: ${shopInfo.tel}`).w;
-    doc.text(`Tel: ${shopInfo.tel}`, (pageWidth - telWidth) / 2, 10 + lineSpacing * 3);
-
+  // Tel
+  doc.setFontSize(telFontSize);
+  const telWidth = doc.getTextDimensions(`Tel: ${shopInfo.tel}`).w;
+  doc.text(
+    `Tel: ${shopInfo.tel}`,
+    (pageWidth - telWidth) / 2,
+    10 + lineSpacing * 3
+  );
 
   // Add title and basic information
   doc.setFontSize(13);
@@ -91,33 +100,32 @@ const generatePDF = (invoiceData, addedItems) => {
   doc.text(`Order Time: ${orderTime}`, 15, startY + lineSpacing * 4);
 
   // Add items table
-  const headers = [['Product Name', 'Quantity', 'Unit Price', 'Price']];
-  const data = addedItems.map(item => [
+  const headers = [["Product Name", "Quantity", "Unit Price", "Price"]];
+  const data = addedItems.map((item) => [
     item.product_name,
     item.quantity,
-    item.selling_price,
-    item.quantity * item.selling_price // Calculate total price
+    `${item.selling_price} LKR`,
+    `${item.quantity * item.selling_price} LKR`,
   ]);
 
   let paymentAmount, paymentLabel;
   switch (invoiceData.payment_type) {
-    case 'cash':
+    case "cash":
       paymentAmount = invoiceData.cash_amount;
-      paymentLabel = 'Cash Amount Paid';
+      paymentLabel = "Cash Amount Paid";
       break;
-    case 'cheque':
+    case "cheque":
       paymentAmount = invoiceData.cheque_value;
-      paymentLabel = 'Cheque Value';
+      paymentLabel = "Cheque Value";
       break;
-    case 'credit':
+    case "credit":
       paymentAmount = invoiceData.credit_amount;
-      paymentLabel = 'Credited Value';
+      paymentLabel = "Credited Value";
       break;
     default:
       paymentAmount = 0;
-      paymentLabel = 'Payment Amount';
+      paymentLabel = "Payment Amount";
   }
-
 
   doc.autoTable({
     startY: startY + lineSpacing * 7,
@@ -125,16 +133,24 @@ const generatePDF = (invoiceData, addedItems) => {
     body: data,
     didDrawPage: function (data) {
       let tableHeight = data.cursor.y;
-      
-      
-      doc.line(15, tableHeight + lineSpacing * 2, pageWidth - 15, tableHeight + lineSpacing * 2);
 
-      doc.text(`Subtotal:`, 15, tableHeight + lineSpacing* 4.5);
+      doc.line(
+        15,
+        tableHeight + lineSpacing * 2,
+        pageWidth - 15,
+        tableHeight + lineSpacing * 2
+      );
+
+      doc.text(`Subtotal:`, 15, tableHeight + lineSpacing * 4.5);
       // Right align the sale amount
       const saleAmountValue = `${invoiceData.sale_amount}`;
       const saleAmountWidth = doc.getTextWidth(saleAmountValue);
       const saleAmountXPosition = pageWidth - saleAmountWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(saleAmountValue, saleAmountXPosition, tableHeight + lineSpacing * 4.5);
+      doc.text(
+        saleAmountValue,
+        saleAmountXPosition,
+        tableHeight + lineSpacing * 4.5
+      );
 
       doc.text(`Discount:`, 15, tableHeight + lineSpacing * 6);
       // Right align the discount
@@ -148,7 +164,11 @@ const generatePDF = (invoiceData, addedItems) => {
       const paymentAmountValue = `${paymentAmount}`;
       const paymentAmountWidth = doc.getTextWidth(paymentAmountValue);
       const paymentAmountXPosition = pageWidth - paymentAmountWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(paymentAmountValue, paymentAmountXPosition, tableHeight + lineSpacing * 7.5);
+      doc.text(
+        paymentAmountValue,
+        paymentAmountXPosition,
+        tableHeight + lineSpacing * 7.5
+      );
 
       doc.text(`Balance:`, 15, tableHeight + lineSpacing * 9);
       // Right align the balance
@@ -162,14 +182,17 @@ const generatePDF = (invoiceData, addedItems) => {
       const paymentTypeValue = `${invoiceData.payment_type}`;
       const paymentTypeWidth = doc.getTextWidth(paymentTypeValue);
       const paymentTypeXPosition = pageWidth - paymentTypeWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(paymentTypeValue, paymentTypeXPosition, tableHeight + lineSpacing * 10.5);
-    }
+      doc.text(
+        paymentTypeValue,
+        paymentTypeXPosition,
+        tableHeight + lineSpacing * 10.5
+      );
+    },
   });
 
   // Save the PDF
   doc.save(`invoice_${new Date().toISOString()}.pdf`);
 };
-
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -204,7 +227,8 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems }) {
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -212,17 +236,34 @@ function ItemCard({ item, setAddedItems, addedItems }) {
     severity: "",
     message: "",
   });
+  const [stock, setStock] = useState(item.stock_total);
 
   const handleOpen = () => {
     setOpen(true);
   };
+
+  useEffect(() => {
+    console.log(stock);
+    if (restore.productID !== ''){
+      if(item.productID === restore.productID) {
+      setStock((prevStock) => prevStock + restore.amount);
+      setRestore(({
+        productID: '',
+        amount: '',
+      })); // Update restore state to null using setRestore
+    }
+  }
+  }, [restore]);
+  
 
   const handleClose = () => {
     setOpen(false);
   };
 
   const handleAddToBill = () => {
-    if (!quantity) {
+    const enteredQuantity = parseFloat(quantity); // Ensure quantity is treated as a number
+
+    if (!enteredQuantity) {
       setAlert({
         show: true,
         severity: "error",
@@ -231,10 +272,19 @@ function ItemCard({ item, setAddedItems, addedItems }) {
       return;
     }
 
-    const newItem = { ...item, quantity };
+    if (enteredQuantity > stock) {
+      setAlert({
+        show: true,
+        severity: "error",
+        message: "Entered quantity exceeds available stock!",
+      });
+      return;
+    }
+
+    const newItem = { ...item, quantity: enteredQuantity };
 
     const isItemAlreadyAdded = addedItems.some(
-      (addedItem) => addedItem.product_name === item.product_name
+      (addedItem) => addedItem.productID === item.productID
     );
 
     if (isItemAlreadyAdded) {
@@ -247,6 +297,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
     }
 
     setAddedItems((prevItems) => [...prevItems, newItem]);
+    setStock((prevStock) => prevStock - enteredQuantity); // Update the stock
 
     setAlert({
       show: true,
@@ -254,10 +305,10 @@ function ItemCard({ item, setAddedItems, addedItems }) {
       message: "Item added to the bill",
     });
 
-    console.log(`Added ${quantity} ${item.product_name} to bill!`);
+    console.log(`Added ${enteredQuantity} ${item.product_name} to bill!`);
     setQuantity("");
     handleClose();
-    //setItem({ product_name: '', image_path: '', selling_price: 0 });
+    // setItem({ product_name: '', image_path: '', selling_price: 0 });
   };
 
   const handleChange = (event) => {
@@ -305,7 +356,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
       >
         <CardMedia
           component="img"
-          alt={item.name}
+          alt={item.product_name}
           image={`http://localhost:3001/${item.image_path}`}
           sx={{ height: 150 }}
         />
@@ -314,7 +365,7 @@ function ItemCard({ item, setAddedItems, addedItems }) {
             {item.product_name}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Stock: {item.stock_total} kg
+            Stock: {stock} kg
           </Typography>
           <Button onClick={handleOpen} variant="contained" sx={{ mt: 2 }}>
             Add to Bill
@@ -388,6 +439,10 @@ const Bill = ({ userID }) => {
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
+  const [stock, setStock] = useState({
+    productID: '',
+    amount: '',
+  });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
   const [open, setOpen] = useState(false);
@@ -491,23 +546,27 @@ const Bill = ({ userID }) => {
   const handleCreateInvoice = () => {
     let paidAmountFormatted = parseFloat(paidAmount).toFixed(2).toString();
     let chequeValueFormatted = parseFloat(chequeValue).toFixed(2).toString();
+    const subtotalNumber = parseFloat(subtotal);
 
-    if (paymentType === "cash" && paidAmountFormatted >= subtotal) {
+    if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
       createInvoice(subtotal, "cash");
-    } else if (paymentType === "cheque" && chequeValueFormatted === subtotal) {
+    } else if (
+      paymentType === "cheque" &&
+      chequeValueFormatted === subtotalNumber
+    ) {
       createInvoice(subtotal, "cheque");
     } else if (
-      (paymentType === "cash" && paidAmountFormatted < subtotal) ||
-      (paymentType === "cheque" && chequeValueFormatted < subtotal)
+      (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
+      (paymentType === "cheque" && chequeValueFormatted < subtotalNumber)
     ) {
       let creditValue;
 
       if (paymentType === "cash") {
-        creditValue = subtotal - paidAmountFormatted;
+        creditValue = subtotalNumber - paidAmountFormatted;
       } else if (paymentType === "cheque") {
-        creditValue = subtotal - chequeValueFormatted;
+        creditValue = subtotalNumber - chequeValueFormatted;
       } else {
-        creditValue = subtotal;
+        creditValue = subtotalNumber;
       }
 
       Swal.fire({
@@ -552,9 +611,8 @@ const Bill = ({ userID }) => {
       bank_name: bankName,
       cheque_number: chequeNumber,
       cheque_value: chequeValue,
-      addedItems: addedItems // Array of added items
+      addedItems: addedItems, // Array of added items
     };
-    
 
     console.log(invoiceData);
 
@@ -563,7 +621,7 @@ const Bill = ({ userID }) => {
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
 
-        if(printBill){
+        if (printBill) {
           generatePDF(invoiceData, addedItems);
         }
 
@@ -844,7 +902,7 @@ const Bill = ({ userID }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => onRemoveItem(item.productID)}
+              onClick={() => onRemoveItem(item.productID,quantity)}
               sx={{
                 ml: 1,
                 minWidth: "auto",
@@ -905,12 +963,15 @@ const Bill = ({ userID }) => {
     setSubtotal(calculatedSubtotal);
   }, [addedItems]);
 
-  const handleRemoveItem = (productId) => {
+  const handleRemoveItem = (productId,amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
+    setStock({productID: productId, amount:amount});
+
   };
 
+console.log(stock);
   return (
     <div className="flex w-screen gap-4">
       {/* Dialog for customer selection */}
@@ -1203,6 +1264,8 @@ const Bill = ({ userID }) => {
                 item={item}
                 setAddedItems={setAddedItems}
                 addedItems={addedItems}
+                restore={stock}
+                setRestore={setStock}
               />
             ))}
           </div>
