@@ -242,8 +242,8 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     setOpen(true);
   };
 
+
   useEffect(() => {
-    console.log(stock);
     if (restore.productID !== ''){
       if(item.productID === restore.productID) {
       setStock((prevStock) => prevStock + restore.amount);
@@ -696,7 +696,7 @@ const Bill = ({ userID }) => {
 
   const handleExistingCustomerChange = (event) => {
     setSelectedCustomerInfo(event.target.value); // Update temporary state
-    console.log("Temporarily selected shop name:", event.target.value);
+    //console.log("Temporarily selected shop name:", event.target.value);
   };
 
   const handleDialogClose = () => {
@@ -827,7 +827,6 @@ const Bill = ({ userID }) => {
   };
 
   const handleExistingCustomerSubmit = () => {
-    console.log("Selected customer:", selectedCustomer);
     setOpenExistingCustomerDialog(false);
     const customer = existingCustomers.find(
       (customer) => customer.shop_name === selectedCustomerInfo
@@ -971,7 +970,6 @@ const Bill = ({ userID }) => {
 
   };
 
-console.log(stock);
   return (
     <div className="flex w-screen gap-4">
       {/* Dialog for customer selection */}

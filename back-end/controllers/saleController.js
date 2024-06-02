@@ -95,25 +95,49 @@ const addSale = (req, res) => {
                     });
                   }
 
-                  // Commit the transaction
-                  connection.commit((err) => {
-                    if (err) {
-                      console.error("Error committing transaction: ", err);
-                      return connection.rollback(() => {
+                  // Update stock_total in product table
+                  const updateStockPromises = addedItems.map(item => {
+                    return new Promise((resolve, reject) => {
+                      const updateStockQuery = `UPDATE product SET stock_total = stock_total - ? WHERE productID = ?`;
+                      connection.query(updateStockQuery, [item.quantity, item.productID], (err, result) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          resolve(result);
+                        }
+                      });
+                    });
+                  });
+
+                  Promise.all(updateStockPromises)
+                    .then(() => {
+                      // Commit the transaction
+                      connection.commit((err) => {
+                        if (err) {
+                          console.error("Error committing transaction: ", err);
+                          return connection.rollback(() => {
+                            connection.release(); // Release the connection back to the pool
+                            res.status(500).json({ error: "Internal server error" });
+                          });
+                        }
+
+                        console.log("Sale, payment, and product sales created successfully");
+                        connection.release(); // Release the connection back to the pool
+                        res.status(200).json({
+                          message: "Sale, payment, and product sales created successfully",
+                          saleID: saleID,
+                          paymentID: paymentID,
+                          specificSaleID: specificSaleResults.insertId
+                        });
+                      });
+                    })
+                    .catch(err => {
+                      console.error("Error updating stock totals: ", err);
+                      connection.rollback(() => {
                         connection.release(); // Release the connection back to the pool
                         res.status(500).json({ error: "Internal server error" });
                       });
-                    }
-
-                    console.log("Sale, payment, and product sales created successfully");
-                    connection.release(); // Release the connection back to the pool
-                    res.status(200).json({
-                      message: "Sale, payment, and product sales created successfully",
-                      saleID: saleID,
-                      paymentID: paymentID,
-                      specificSaleID: specificSaleResults.insertId
                     });
-                  });
                 });
               });
             }
