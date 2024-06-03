@@ -1,6 +1,5 @@
 const DBconnect = require('../config/DBconnect');
 
-
 const addLoading = (req, res) => {
     const { total_value, repID, addedItems, vehicleID, userID } = req.body;
     const date = new Date().toISOString().slice(0, 19).replace("T", " ");
@@ -54,18 +53,42 @@ const addLoading = (req, res) => {
                         return;
                     }
 
-                    connection.commit((err) => {
-                        if (err) {
-                            console.error('Error committing database transaction:', err);
+                    // Update stock_total in product table
+                    const updateStockPromises = addedItems.map((item) => {
+                        return new Promise((resolve, reject) => {
+                            const updateStockQuery = `UPDATE product SET stock_total = stock_total - ? WHERE productID = ?`;
+                            connection.query(updateStockQuery, [item.quantity, item.productID], (err, result) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            });
+                        });
+                    });
+
+                    Promise.all(updateStockPromises)
+                        .then(() => {
+                            connection.commit((err) => {
+                                if (err) {
+                                    console.error('Error committing database transaction:', err);
+                                    connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).send('Internal Server Error');
+                                    });
+                                    return;
+                                }
+                                res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
+                                connection.release();
+                            });
+                        })
+                        .catch((err) => {
+                            console.error('Error updating product stock:', err);
                             connection.rollback(() => {
                                 connection.release();
                                 res.status(500).send('Internal Server Error');
                             });
-                            return;
-                        }
-                        res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
-                        connection.release();
-                    });
+                        });
                 });
             });
         });
