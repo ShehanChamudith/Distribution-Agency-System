@@ -207,7 +207,7 @@ function CustomTabPanel(props) {
     >
       {value === index && (
         <Box sx={{ p: 0 }}>
-          <Typography>{children}</Typography>
+          <div>{children}</div>
         </Box>
       )}
     </div>
@@ -981,8 +981,11 @@ const Bill = ({ userID }) => {
       .get("http://localhost:3001/getsale")
       .then((response) => {
         const presaleID = response.data.saleID;
-        console.log(presaleID);
-        setSaleID(parseFloat(presaleID)+1); // Set the filtered data to the state
+        if (presaleID === 0) {
+          setSaleID(1);
+        } else {
+          setSaleID(parseFloat(presaleID) + 1);
+        }
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -1167,7 +1170,7 @@ const Bill = ({ userID }) => {
             <Select
               required
               labelId="existing-customer-label"
-              value={selectedCustomerInfo.shop_name}
+              value={selectedCustomerInfo}
               onChange={handleExistingCustomerChange}
               label="Customer"
             >
@@ -1277,7 +1280,7 @@ const Bill = ({ userID }) => {
           <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
             {data.map((item) => (
               <ItemCard
-                key={item.id}
+                key={item.productID}
                 item={item}
                 setAddedItems={setAddedItems}
                 addedItems={addedItems}

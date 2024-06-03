@@ -30,8 +30,6 @@ import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
 import sausageIcon from "../assets/icons/sausages.ico";
 import PropTypes from "prop-types";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -216,12 +214,6 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
 
 function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   const [open, setOpen] = useState(false);
@@ -413,7 +405,7 @@ const CreateLoading = ({ userID }) => {
     firstname: "",
   });
   const [existingRep, setExistingRep] = useState([]);
-  const [selectedRepInfo, setSelectedRepInfo] = useState("");
+  const [selectedRepInfo, setSelectedRepInfo] = useState('');
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -422,7 +414,6 @@ const CreateLoading = ({ userID }) => {
     amount: "",
   });
 
-  const [value, setValue] = React.useState(0);
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
@@ -489,9 +480,7 @@ const CreateLoading = ({ userID }) => {
     setOpen(false);
   };
 
-  const handleChangeTab = (event, newValue) => {
-    setValue(newValue);
-  };
+
 
   useEffect(() => {
     axios
@@ -683,10 +672,15 @@ const CreateLoading = ({ userID }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/getsale")
+      .get("http://localhost:3001/getloading")
       .then((response) => {
-        const presaleID = response.data.saleID;
-        setpreOrderID(parseFloat(presaleID) + 1); // Set the filtered data to the state
+        const preloadID = response.data.loadingID;
+        console.log(preloadID);
+        if (preloadID === 0) {
+          setpreOrderID(1);
+        } else {
+          setpreOrderID(parseFloat(preloadID) + 1);
+        }
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -712,7 +706,7 @@ const CreateLoading = ({ userID }) => {
             <Select
               required
               labelId="existing-rep-label"
-              value={selectedRepInfo.firstname}
+              value={selectedRepInfo}
               onChange={handleExistingRepChange}
               label="Sales Representative"
             >
@@ -728,7 +722,6 @@ const CreateLoading = ({ userID }) => {
           <Button
             onClick={() => {
               handleExistingCustomerSubmit();
-              console.log("Selected Customer:", selectedRep);
             }}
             disabled={!selectedRep}
             variant="contained"
@@ -811,7 +804,7 @@ const CreateLoading = ({ userID }) => {
           <div className="flex flex-wrap gap-3 justify-arround overflow-y-auto p-2">
             {data.map((item) => (
               <ItemCard
-                key={item.id}
+                key={item.productID}
                 item={item}
                 setAddedItems={setAddedItems}
                 addedItems={addedItems}

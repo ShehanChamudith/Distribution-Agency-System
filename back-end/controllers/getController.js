@@ -136,7 +136,7 @@ const getItem = (req, res) => {
       }
   
       if (results.length === 0) {
-          console.warn('No data found in user table');
+          console.warn('No data found in customer table');
           res.status(404).send('No data found');
           return;
       }
@@ -166,22 +166,32 @@ const getItem = (req, res) => {
   }
 
   const getSale = (req, res) => {
-    DBconnect.query('SELECT saleID FROM sale ORDER BY saleID DESC', (err, results) => {
+    DBconnect.query('SELECT saleID FROM sale ORDER BY saleID DESC LIMIT 1', (err, results) => {
       if (err) {
         console.error('Error querying MySQL database:', err);
         res.status(500).send('Internal Server Error');
         return;
       }
   
-      if (results.length === 0) {
-        console.warn('No data found in sale table');
-        res.status(404).send('No data found');
+      const saleID = results.length === 0 ? 0 : results[0].saleID;
+      res.json({ saleID });
+    });
+  };
+  
+
+  const getLoading = (req, res) => {
+    DBconnect.query('SELECT loadingID FROM loading ORDER BY loadingID DESC LIMIT 1', (err, results) => {
+      if (err) {
+        console.error('Error querying MySQL database:', err);
+        res.status(500).send('Internal Server Error');
         return;
       }
   
-      res.json(results[0]); // Return only the last saleID
+      const loadingID = results.length === 0 ? 0 : results[0].loadingID;
+      res.json({ loadingID });
     });
   };
+  
 
 
 
@@ -195,5 +205,6 @@ module.exports = {
     getCustomer,
     getSale,
     getSalesRep,
+    getLoading
 };
 
