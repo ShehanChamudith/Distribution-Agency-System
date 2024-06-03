@@ -455,6 +455,7 @@ const Bill = ({ userID }) => {
   const [printBill, setPrintBill] = useState(false);
   const [creditedValue, setCreditedValue] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
+  const [saleID, setSaleID] = useState("");
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -544,17 +545,15 @@ const Bill = ({ userID }) => {
   };
 
   const handleCreateInvoice = () => {
-    let paidAmountFormatted = parseFloat(paidAmount).toFixed(2).toString();
-    let chequeValueFormatted = parseFloat(chequeValue).toFixed(2).toString();
+    let paidAmountFormatted = parseFloat(paidAmount).toFixed(2);
+    let chequeValueFormatted = parseFloat(chequeValue).toFixed(2);
     const subtotalNumber = parseFloat(subtotal);
 
     if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
-      createInvoice(subtotal, "cash");
+      createInvoice(subtotal, "cash", "fully paid");
     } else if (
-      paymentType === "cheque" &&
-      chequeValueFormatted === subtotalNumber
-    ) {
-      createInvoice(subtotal, "cheque");
+      paymentType === "cheque" && chequeValueFormatted === subtotalNumber) {
+      createInvoice(subtotal, "cheque", "fully paid");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
       (paymentType === "cheque" && chequeValueFormatted < subtotalNumber)
@@ -581,13 +580,18 @@ const Bill = ({ userID }) => {
       }).then((result) => {
         if (result.isConfirmed) {
           setCreditedValue(creditValue);
-          createInvoice(subtotal, "credit");
+          if(paymentType==="cash"){
+            createInvoice(subtotal, "cash", "partially paid");
+          }else if (paymentType==="cheque"){
+            createInvoice(subtotal, "cheque", "partially paid");
+          }
+          
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit");
+      createInvoice(subtotal, "credit","not paid");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -597,7 +601,8 @@ const Bill = ({ userID }) => {
     }
   };
 
-  const createInvoice = (saleAmount, paymentType) => {
+
+  const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
       sale_amount: saleAmount,
       payment_type: paymentType,
@@ -612,6 +617,7 @@ const Bill = ({ userID }) => {
       cheque_number: chequeNumber,
       cheque_value: chequeValue,
       addedItems: addedItems, // Array of added items
+      payment_status: payment_status,
     };
 
     console.log(invoiceData);
@@ -635,7 +641,7 @@ const Bill = ({ userID }) => {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
-          //window.location.reload();
+          window.location.reload();
         });
       })
       .catch((error) => {
@@ -970,6 +976,19 @@ const Bill = ({ userID }) => {
 
   };
 
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getsale")
+      .then((response) => {
+        const presaleID = response.data.saleID;
+        console.log(presaleID);
+        setSaleID(parseFloat(presaleID)+1); // Set the filtered data to the state
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
   return (
     <div className="flex w-screen gap-4">
       {/* Dialog for customer selection */}
@@ -1290,7 +1309,7 @@ const Bill = ({ userID }) => {
                 <div className="flex justify-between  border-b-4">
                   <div className="">Bill Details</div>
                   <div className="">
-                    <h1>#0001</h1>
+                    <h1>#00{saleID}</h1>
                   </div>
                 </div>
                 <div className="">

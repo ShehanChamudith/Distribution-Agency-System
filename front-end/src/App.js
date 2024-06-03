@@ -16,6 +16,7 @@ import ProtectedRoute from "./utils/ProtectedRoute";
 import PreOrders from "./pages/PreOrders";
 import { jwtDecode } from 'jwt-decode';
 import Unauthorized from "./pages/Unauthorized";
+import CreateLoading from "./pages/CreateLoading";
 
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />
+              <Route path="/create-loading" element={<CreateLoading />} />
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>

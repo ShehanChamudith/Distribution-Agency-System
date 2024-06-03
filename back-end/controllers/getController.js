@@ -145,7 +145,43 @@ const getItem = (req, res) => {
   });
   
   }
+
+  const getSalesRep = (req,res) => {
+    DBconnect.query('SELECT * FROM user WHERE usertypeID = 3', (err, results) => {
+      if (err) {
+          console.error('Error querying MySQL database:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
   
+      if (results.length === 0) {
+          console.warn('No data found in user table');
+          res.status(404).send('No data found');
+          return;
+      }
+  
+      res.json(results);
+  });
+  
+  }
+
+  const getSale = (req, res) => {
+    DBconnect.query('SELECT saleID FROM sale ORDER BY saleID DESC', (err, results) => {
+      if (err) {
+        console.error('Error querying MySQL database:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+  
+      if (results.length === 0) {
+        console.warn('No data found in sale table');
+        res.status(404).send('No data found');
+        return;
+      }
+  
+      res.json(results[0]); // Return only the last saleID
+    });
+  };
 
 
 
@@ -156,6 +192,8 @@ module.exports = {
     getCategory,
     getStock,
     getSupplier,
-    getCustomer
+    getCustomer,
+    getSale,
+    getSalesRep,
 };
 

@@ -7,6 +7,8 @@ const {getCategory} = require('../controllers/getController');
 const {getStock} = require('../controllers/getController');
 const {getSupplier} = require('../controllers/getController');
 const {getCustomer} = require('../controllers/getController');
+const {getSale} = require('../controllers/getController');
+const {getSalesRep} = require('../controllers/getController');
 
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
@@ -15,6 +17,8 @@ router.get('/editItemCategoryGet/:productId', getCategory);
 router.get('/getstock', getStock);
 router.get('/getsupplier', getSupplier);
 router.get('/getcustomer', getCustomer);
+router.get('/getsale', getSale);
+router.get('/getsalerep', getSalesRep);
 
 
 module.exports = router;
