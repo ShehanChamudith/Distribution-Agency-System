@@ -25,6 +25,9 @@ app.use('/', inventoryRoute);
 const saleRoute = require('./routes/saleRoute');
 app.use('/', saleRoute);
 
+const loadingRoute = require('./routes/loadingRoute');
+app.use('/', loadingRoute);
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 

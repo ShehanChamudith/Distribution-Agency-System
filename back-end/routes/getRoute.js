@@ -10,6 +10,7 @@ const {getCustomer} = require('../controllers/getController');
 const {getSale} = require('../controllers/getController');
 const {getSalesRep} = require('../controllers/getController');
 const {getLoading} = require('../controllers/getController');
+const {getVehicle} = require('../controllers/getController');
 
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
@@ -21,6 +22,7 @@ router.get('/getcustomer', getCustomer);
 router.get('/getsale', getSale);
 router.get('/getsalerep', getSalesRep);
 router.get('/getloading', getLoading);
+router.get('/getvehicle', getVehicle);
 
 
 module.exports = router;

@@ -23,16 +23,7 @@ const login = (req, res) => {
     });
 };
 
-module.exports = { login };
-
-
-//Logout Function
-const logout = (req,res) => {
-
-}
 
 module.exports = {
-    login,
-    logout
-   
+    login, 
 };

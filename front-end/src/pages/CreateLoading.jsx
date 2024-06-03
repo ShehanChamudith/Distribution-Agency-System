@@ -214,7 +214,6 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-
 function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
@@ -401,11 +400,15 @@ const CreateLoading = ({ userID }) => {
   const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
     useState(true);
   const [selectedRep, setSelectedRep] = useState({
-    userID: "",
+    repID: "",
     firstname: "",
   });
-  const [existingRep, setExistingRep] = useState([]);
-  const [selectedRepInfo, setSelectedRepInfo] = useState('');
+  const [selectedVehicle, setselectedVehicle] = useState({
+    vehicleID: "",
+    vehicle_number: "",
+  });
+  const [selectedRepInfo, setSelectedRepInfo] = useState("");
+  const [selectedVehicleInfo, setSelectedVehicleInfo] = useState("");
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -413,65 +416,58 @@ const CreateLoading = ({ userID }) => {
     productID: "",
     amount: "",
   });
-
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
   const [preOrderID, setpreOrderID] = useState("");
+  const [vehicle, setVehicle] = useState([]);
+  const [existingRep, setExistingRep] = useState([]);
 
-  const handleProceedToCheckout = () => {
+  const handleCreateLoading = () => {
     if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
+    }else{
+        const loadingData = {
+            total_value: subtotal,
+            repID: selectedRep.repID,
+            addedItems: addedItems,
+            vehicleID: selectedVehicle.vehicleID,
+            userID: userID,
+          };
+      
+          console.log(loadingData);
+      
+          axios
+            .post("http://localhost:3001/addloading", loadingData)
+            .then((response) => {
+              console.log("Invoice created successfully:", response.data);
+      
+              // if (printBill) {
+              //   generatePDF(invoiceData, addedItems);
+              // }
+      
+              Swal.fire({
+                icon: "success",
+                title: "Loading Invoice Created Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              }).then(() => {
+                window.location.reload();
+              });
+            })
+            .catch((error) => {
+              console.error("Error creating invoice:", error);
+              alert("Error creating invoice. Please try again.");
+            });
     }
+
+    
   };
-
-  //   const createInvoice = (saleAmount, paymentType, payment_status) => {
-  //     const invoiceData = {
-  //       sale_amount: saleAmount,
-  //       payment_type: paymentType,
-  //       note: "Your note here",
-  //       userID: userID,
-  //       repID: selectedRep.userID,
-  //       cash_amount: paidAmount,
-  //       discount: discount,
-  //       credit_amount: creditedValue,
-  //       bank_name: bankName,
-  //       cheque_number: chequeNumber,
-  //       cheque_value: chequeValue,
-  //       addedItems: addedItems, // Array of added items
-  //       payment_status: payment_status,
-  //     };
-
-  //     console.log(invoiceData);
-
-  //     axios
-  //       .post("http://localhost:3001/addsale", invoiceData)
-  //       .then((response) => {
-  //         console.log("Invoice created successfully:", response.data);
-
-  //         if (printBill) {
-  //           generatePDF(invoiceData, addedItems);
-  //         }
-
-  //         Swal.fire({
-  //           icon: "success",
-  //           title: "Invoice Created Successfully!",
-  //           customClass: {
-  //             popup: "z-50",
-  //           },
-  //           didOpen: () => {
-  //             document.querySelector(".swal2-container").style.zIndex = "9999";
-  //           },
-  //         }).then(() => {
-  //           window.location.reload();
-  //         });
-  //       })
-  //       .catch((error) => {
-  //         console.error("Error creating invoice:", error);
-  //         alert("Error creating invoice. Please try again.");
-  //       });
-  //   };
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -479,8 +475,6 @@ const CreateLoading = ({ userID }) => {
     }
     setOpen(false);
   };
-
-
 
   useEffect(() => {
     axios
@@ -514,6 +508,10 @@ const CreateLoading = ({ userID }) => {
     //console.log("Temporarily selected shop name:", event.target.value);
   };
 
+  const handleVehicleChange = (event) => {
+    setSelectedVehicleInfo(event.target.value);
+  };
+
   const handleExistingCustomerDialogClose = () => {
     // Display SweetAlert confirmation dialog
     Swal.fire({
@@ -534,6 +532,11 @@ const CreateLoading = ({ userID }) => {
     const rep = existingRep.find((rep) => rep.firstname === selectedRepInfo);
     setSelectedRep(rep);
     console.log("Selected Customer after button click:", rep);
+
+    const vehi = vehicle.find((vehi) => vehi.vehicle_number === selectedVehicleInfo);
+    setselectedVehicle(vehi);
+    console.log("Selected Vehicle after button click:", vehi);
+
   };
 
   const handleChange = (event, newAlignment) => {
@@ -551,6 +554,19 @@ const CreateLoading = ({ userID }) => {
         console.error("Error fetching existing customers:", error);
       });
   };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getvehicle")
+      .then((response) => {
+        const vehicleData = response.data;
+
+        setVehicle(vehicleData);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
 
   useEffect(() => {
     if (openExistingCustomerDialog) {
@@ -694,10 +710,11 @@ const CreateLoading = ({ userID }) => {
         open={openExistingCustomerDialog}
         onClose={handleExistingCustomerDialogClose}
       >
-        <DialogTitle>Select Sales Representative</DialogTitle>
+        <DialogTitle>Select Sales Representative and Vehicle</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Please select an Sales Representative from the list.
+            Please select an Sales Representative and the Vehicle from the
+            lists.
           </DialogContentText>
           <FormControl fullWidth margin="normal">
             <InputLabel id="existing-rep-label">
@@ -713,6 +730,26 @@ const CreateLoading = ({ userID }) => {
               {existingRep.map((rep) => (
                 <MenuItem key={rep.userID} value={rep.firstname}>
                   {rep.firstname}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="vehicle-label">Select Vehicle</InputLabel>
+            <Select
+              required
+              labelId="vehicle-label"
+              value={selectedVehicleInfo}
+              onChange={handleVehicleChange}
+              label="Select Vehicle"
+              
+            >
+              {vehicle.map((data) => (
+                <MenuItem
+                  key={data.vehicleID}
+                  value={data.vehicle_number}
+                >
+                  {data.vehicle_number}
                 </MenuItem>
               ))}
             </Select>
@@ -832,6 +869,11 @@ const CreateLoading = ({ userID }) => {
                   Sales Representative Name: {selectedRep.firstname}
                 </h1>
               )}
+              {selectedVehicle.vehicle_number && (
+                <h1 className="text-sm font-PoppinsL">
+                  Vehicle Name: {selectedVehicle.vehicle_number}
+                </h1>
+              )}
               <h1 className="text-sm font-PoppinsL">
                 Loaded Date: {formattedDate}
               </h1>
@@ -871,7 +913,7 @@ const CreateLoading = ({ userID }) => {
               <Button
                 variant="contained"
                 sx={{ paddingY: 1, width: "100%", borderRadius: 2 }}
-                onClick={handleProceedToCheckout}
+                onClick={handleCreateLoading}
               >
                 Create a Loading
               </Button>

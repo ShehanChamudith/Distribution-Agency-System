@@ -146,24 +146,24 @@ const getItem = (req, res) => {
   
   }
 
-  const getSalesRep = (req,res) => {
-    DBconnect.query('SELECT * FROM user WHERE usertypeID = 3', (err, results) => {
-      if (err) {
-          console.error('Error querying MySQL database:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
-  
-      if (results.length === 0) {
-          console.warn('No data found in user table');
-          res.status(404).send('No data found');
-          return;
-      }
-  
-      res.json(results);
-  });
-  
-  }
+  const getSalesRep = (req, res) => {
+    DBconnect.query('SELECT * FROM salesrep INNER JOIN user ON salesrep.userID = user.userID', (err, results) => {
+        if (err) {
+            console.error('Error querying MySQL database:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
+        if (results.length === 0) {
+            console.warn('No data found in salesrep table');
+            res.status(404).send('No data found');
+            return;
+        }
+
+        res.json(results);
+    });
+};
+
 
   const getSale = (req, res) => {
     DBconnect.query('SELECT saleID FROM sale ORDER BY saleID DESC LIMIT 1', (err, results) => {
@@ -178,6 +178,23 @@ const getItem = (req, res) => {
     });
   };
   
+  const getVehicle = (req, res) => {
+    DBconnect.query('SELECT * FROM vehicle', (err, results) => {
+      if (err) {
+          console.error('Error querying MySQL database:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+  
+      if (results.length === 0) {
+          console.warn('No data found in user table');
+          res.status(404).send('No data found');
+          return;
+      }
+  
+      res.json(results);
+  });
+  };
 
   const getLoading = (req, res) => {
     DBconnect.query('SELECT loadingID FROM loading ORDER BY loadingID DESC LIMIT 1', (err, results) => {
@@ -205,6 +222,7 @@ module.exports = {
     getCustomer,
     getSale,
     getSalesRep,
-    getLoading
+    getLoading,
+    getVehicle,
 };
 

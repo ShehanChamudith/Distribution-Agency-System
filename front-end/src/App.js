@@ -81,7 +81,7 @@ function App() {
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />
-              <Route path="/create-loading" element={<CreateLoading />} />
+              <Route path="/create-loading" element={<CreateLoading userID={userID} />} />
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
