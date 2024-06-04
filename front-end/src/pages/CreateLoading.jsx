@@ -434,6 +434,7 @@ const CreateLoading = ({ userID }) => {
             addedItems: addedItems,
             vehicleID: selectedVehicle.vehicleID,
             userID: userID,
+            loading_status: "pending"
           };
       
           console.log(loadingData);
@@ -516,8 +517,8 @@ const CreateLoading = ({ userID }) => {
     // Display SweetAlert confirmation dialog
     Swal.fire({
       icon: "warning",
-      title: "Please select a Sale Representative",
-      text: "You need to select a Sale Representative to proceed.",
+      title: "Please select a Sale Representative and a Vehicle",
+      text: "You need to select a Sale Representative and a vehicle to proceed.",
       customClass: {
         popup: "z-50",
       },
@@ -760,11 +761,11 @@ const CreateLoading = ({ userID }) => {
             onClick={() => {
               handleExistingCustomerSubmit();
             }}
-            disabled={!selectedRep}
+            disabled={!selectedRepInfo || !selectedVehicleInfo}
             variant="contained"
             color="primary"
           >
-            Select Sales Representative
+            Select
           </Button>
         </DialogActions>
       </Dialog>

@@ -197,18 +197,47 @@ const getItem = (req, res) => {
   };
 
   const getLoading = (req, res) => {
-    DBconnect.query('SELECT loadingID FROM loading ORDER BY loadingID DESC LIMIT 1', (err, results) => {
-      if (err) {
-        console.error('Error querying MySQL database:', err);
-        res.status(500).send('Internal Server Error');
-        return;
-      }
-  
-      const loadingID = results.length === 0 ? 0 : results[0].loadingID;
-      res.json({ loadingID });
+    // Fetch all rows from the loading table with joined data from loading_products and product tables
+    const selectAllQuery = `
+        SELECT 
+            l.loadingID, l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
+            lp.productID, lp.quantity,
+            p.product_name
+        FROM loading l
+        JOIN loading_products lp ON l.loadingID = lp.loadingID
+        JOIN product p ON lp.productID = p.productID
+        ORDER BY l.loadingID DESC
+    `;
+
+    DBconnect.query(selectAllQuery, (err, loadingResults) => {
+        if (err) {
+            console.error('Error querying MySQL database for loading table:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
+        // Fetch the latest loadingID
+        const latestLoadingIDQuery = 'SELECT loadingID FROM loading ORDER BY loadingID DESC LIMIT 1';
+        DBconnect.query(latestLoadingIDQuery, (err, latestLoadingIDResult) => {
+            if (err) {
+                console.error('Error querying MySQL database for latest loadingID:', err);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+
+            const uniqueloadingID = latestLoadingIDResult.length === 0 ? 0 : latestLoadingIDResult[0].loadingID;
+
+            res.json({ uniqueloadingID, loadingResults });
+        });
     });
-  };
-  
+};
+
+
+module.exports = {
+    getLoading,
+};
+
+
 
 
 

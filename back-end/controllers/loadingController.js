@@ -1,7 +1,7 @@
 const DBconnect = require('../config/DBconnect');
 
 const addLoading = (req, res) => {
-    const { total_value, repID, addedItems, vehicleID, userID } = req.body;
+    const { total_value, repID, addedItems, vehicleID, userID, loading_status } = req.body;
     const date = new Date().toISOString().slice(0, 19).replace("T", " ");
 
     // Start a transaction
@@ -21,8 +21,8 @@ const addLoading = (req, res) => {
             }
 
             // Insert into loading table
-            const insertLoadingQuery = 'INSERT INTO loading (total_value, repID, vehicleID, date, userID) VALUES (?, ?, ?, ?, ?)';
-            connection.query(insertLoadingQuery, [total_value, repID, vehicleID, date, userID], (err, loadingResult) => {
+            const insertLoadingQuery = 'INSERT INTO loading (total_value, repID, vehicleID, date, userID, loading_status) VALUES (?, ?, ?, ?, ?, ?)';
+            connection.query(insertLoadingQuery, [total_value, repID, vehicleID, date, userID, loading_status], (err, loadingResult) => {
                 if (err) {
                     console.error('Error inserting item into loading table:', err);
                     connection.rollback(() => {

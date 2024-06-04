@@ -32,6 +32,20 @@ export const SideBarData = [
   },
 
   {
+    title: "Loadings",
+    icon: <LoadIcon />,
+    link: "/get-loading",
+    roles: [1,2,3],
+  },
+
+  {
+    title: "Bill-Delivary",
+    icon: <ShoppingCartIcon />,
+    link: "/delivary-bill",
+    roles: [1,3,4],
+  },
+
+  {
     title: "Bill",
     icon: <ShoppingCartIcon />,
     link: "/bill",
