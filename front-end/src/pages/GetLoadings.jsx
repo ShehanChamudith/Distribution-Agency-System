@@ -25,9 +25,27 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   color: "white", // Text color
 }));
 
+const FilterBox = styled(Box)({
+    display: "flex",
+    gap: "10px",
+    alignItems: "center",
+    padding: "5px", // Adjust padding as needed
+    backgroundColor: "#f5f5f5",
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
+    borderBottom: "1px solid #ddd",
+  });
+  
+
+const ScrollableTableContainer = styled(TableContainer)({
+  maxHeight: "75vh", // Adjust height as needed
+  overflowY: "auto",
+});
+
 function GetLoadings() {
   const [loadings, setLoadings] = useState([]);
-  const [open, setOpen] = useState({});
+  const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
 
@@ -60,10 +78,7 @@ function GetLoadings() {
   }, {});
 
   const handleClick = (loadingID) => {
-    setOpen((prevOpen) => ({
-      ...prevOpen,
-      [loadingID]: !prevOpen[loadingID],
-    }));
+    setOpenRow((prevOpenRow) => (prevOpenRow === loadingID ? null : loadingID));
   };
 
   const handleFilterChange = (event) => {
@@ -89,12 +104,12 @@ function GetLoadings() {
 
   return (
     <div>
-      <div className="w-screen border border-red-400 px-20 py-10">
+      <div className="w-screen px-20 py-5 h-[87vh]">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <TableContainer component={Paper}>
-            <Box sx={{ p: 2, display: "flex", gap: 2, alignItems: "center" }}>
+          <Paper>
+            <FilterBox>
               <TextField
-                label="Filter by Loading ID "
+                label="Filter by Loading ID"
                 variant="outlined"
                 value={filter}
                 onChange={handleFilterChange}
@@ -105,86 +120,87 @@ function GetLoadings() {
                 onChange={handleDateFilterChange}
                 renderInput={(params) => <TextField {...params} />}
               />
-            </Box>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell>Date</StyledTableCell>
-                  <StyledTableCell>Loading ID</StyledTableCell>
-                  <StyledTableCell>Actions</StyledTableCell>
-                  <StyledTableCell />
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredLoadings.map((loading) => (
-                  <React.Fragment key={loading.loadingID}>
-                    <TableRow>
-                      <TableCell>
-                        {new Date(loading.date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>{loading.loadingID}</TableCell>
-                      <TableCell align="right">
-                        <Box display="flex" gap={1}>
-                          <Button variant="outlined" color="error">
-                            Reject
-                          </Button>
-                          <Button variant="contained" color="success">
-                            Accept
-                          </Button>
-                        </Box>
-                      </TableCell>
-
-                      <TableCell align="right">
-                        <Button
-                          aria-label="expand row"
-                          size="small"
-                          onClick={() => handleClick(loading.loadingID)}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px",
-                          }} // Added styles for alignment
-                        >
-                          {open[loading.loadingID] ? (
-                            <ExpandLessIcon />
-                          ) : (
-                            <ExpandMoreIcon />
-                          )}
-                          <span>Loading Details</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell
-                        style={{ paddingBottom: 0, paddingTop: 0 }}
-                        colSpan={4}
-                      >
-                        <Collapse
-                          in={open[loading.loadingID]}
-                          timeout="auto"
-                          unmountOnExit
-                        >
-                          <Box margin={1}>
-                            <h3>Products:</h3>
-                            <ul>
-                              {loadingProductsMap[loading.loadingID].map(
-                                (product) => (
-                                  <li key={product.productID}>
-                                    {product.product_name} - Quantity:{" "}
-                                    {product.quantity}
-                                  </li>
-                                )
-                              )}
-                            </ul>
+            </FilterBox>
+            <ScrollableTableContainer>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <StyledTableCell>Date</StyledTableCell>
+                    <StyledTableCell>Loading ID</StyledTableCell>
+                    <StyledTableCell>Actions</StyledTableCell>
+                    <StyledTableCell />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredLoadings.map((loading) => (
+                    <React.Fragment key={loading.loadingID}>
+                      <TableRow>
+                        <TableCell>
+                          {new Date(loading.date).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>{loading.loadingID}</TableCell>
+                        <TableCell align="right">
+                          <Box display="flex" gap={1}>
+                            <Button variant="outlined" color="error">
+                              Reject
+                            </Button>
+                            <Button variant="contained" color="success">
+                              Accept
+                            </Button>
                           </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Button
+                            aria-label="expand row"
+                            size="small"
+                            onClick={() => handleClick(loading.loadingID)}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
+                            }} // Added styles for alignment
+                          >
+                            {openRow === loading.loadingID ? (
+                              <ExpandLessIcon />
+                            ) : (
+                              <ExpandMoreIcon />
+                            )}
+                            <span>Loading Details</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          style={{ paddingBottom: 0, paddingTop: 0 }}
+                          colSpan={4}
+                        >
+                          <Collapse
+                            in={openRow === loading.loadingID}
+                            timeout="auto"
+                            unmountOnExit
+                          >
+                            <Box margin={1}>
+                              <h3>Products:</h3>
+                              <ul>
+                                {loadingProductsMap[loading.loadingID].map(
+                                  (product) => (
+                                    <li key={product.productID}>
+                                      {product.product_name} - Quantity:{" "}
+                                      {product.quantity}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollableTableContainer>
+          </Paper>
         </LocalizationProvider>
       </div>
     </div>
