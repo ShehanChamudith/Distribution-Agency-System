@@ -85,11 +85,14 @@ function App() {
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />
               <Route path="/create-loading" element={<CreateLoading userID={userID} />} />
-              <Route path="/get-loading" element={<GetLoadings/>} />
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
               <Route path="/admin-dashboard" element={<Admin />} />
+            </Route>
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
+            <Route path="/get-loading" element={<GetLoadings/>} />
             </Route>
           </Routes>
         </div>

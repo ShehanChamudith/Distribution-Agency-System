@@ -236,7 +236,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     severity: "",
     message: "",
   });
-  const [stock, setStock] = useState(item.stock_total);
+  const [stock, setStock] = useState(item.quantity);
 
   const handleOpen = () => {
     setOpen(true);
@@ -456,6 +456,7 @@ const DeliveryBill = ({ userID }) => {
   const [creditedValue, setCreditedValue] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
+  const [loadingId, setLoadingId] = useState(null);
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -623,7 +624,7 @@ const DeliveryBill = ({ userID }) => {
     console.log(invoiceData);
 
     axios
-      .post("http://localhost:3001/addsale", invoiceData)
+      .post("http://localhost:3001/addsaledelivery", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
 
@@ -663,7 +664,7 @@ const DeliveryBill = ({ userID }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/inventory")
+      .get("http://localhost:3001/getloadingproducts")
       .then((response) => {
         let filteredData = response.data;
 
@@ -682,6 +683,10 @@ const DeliveryBill = ({ userID }) => {
         }
 
         setData(filteredData); // Set the filtered data to the state
+
+        // Find the loading ID from the data
+        const loadingIdFromData = filteredData.length > 0 ? filteredData[0].loadingID : null;
+        setLoadingId(loadingIdFromData); // Set the loading ID to state
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -992,6 +997,14 @@ const DeliveryBill = ({ userID }) => {
       });
   }, []);
 
+  // Assuming 'data' is an array of objects representing the query result
+data.forEach(row => {
+  const loadingID = row.loadingID;
+  console.log(loadingID);
+});
+
+  
+
   return (
     <div className="flex w-screen gap-4">
       {/* Dialog for customer selection */}
@@ -1212,6 +1225,7 @@ const DeliveryBill = ({ userID }) => {
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
           <div>
+            
             <Button
               variant="contained"
               className="h-12"
@@ -1222,7 +1236,7 @@ const DeliveryBill = ({ userID }) => {
                 color: "white",
               }}
             >
-              Filter by Category
+              Loading ID:{loadingId}
             </Button>
           </div>
 

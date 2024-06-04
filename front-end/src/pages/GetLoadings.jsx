@@ -5,7 +5,6 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import IconButton from "@mui/material/IconButton";
 import Collapse from "@mui/material/Collapse";
 import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
@@ -26,17 +25,16 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const FilterBox = styled(Box)({
-    display: "flex",
-    gap: "10px",
-    alignItems: "center",
-    padding: "5px", // Adjust padding as needed
-    backgroundColor: "#f5f5f5",
-    position: "sticky",
-    top: 0,
-    zIndex: 1,
-    borderBottom: "1px solid #ddd",
-  });
-  
+  display: "flex",
+  gap: "10px",
+  alignItems: "center",
+  padding: "5px", // Adjust padding as needed
+  backgroundColor: "#f5f5f5",
+  position: "sticky",
+  top: 0,
+  zIndex: 1,
+  borderBottom: "1px solid #ddd",
+});
 
 const ScrollableTableContainer = styled(TableContainer)({
   maxHeight: "75vh", // Adjust height as needed
@@ -92,7 +90,10 @@ function GetLoadings() {
   // Filter unique loadings based on the filter
   const filteredLoadings = uniqueLoadings.filter((loading) => {
     const loadingID = loading.loadingID.toString().toLowerCase();
-    const matchesTextFilter = loadingID.includes(filter.toLowerCase());
+    const rep_firstname = loading.rep_firstname.toString().toLowerCase();
+    const matchesTextFilter =
+      loadingID.includes(filter.toLowerCase()) ||
+      rep_firstname.includes(filter.toLowerCase());
 
     if (dateFilter) {
       const selectedDate = dayjs(dateFilter).startOf("day");
@@ -102,6 +103,19 @@ function GetLoadings() {
     return matchesTextFilter;
   });
 
+  const handleCompleteLoading = (loadingID) => {
+    axios
+      .put("http://localhost:3001/update-loading-status", { loadingID })
+      .then((response) => {
+        console.log("Loading status updated successfully:", response.data);
+        // Handle success, such as updating UI or showing a confirmation message
+      })
+      .catch((error) => {
+        console.error("Error updating loading status:", error);
+        // Handle error
+      });
+  };
+
   return (
     <div>
       <div className="w-screen px-20 py-5 h-[87vh]">
@@ -109,7 +123,8 @@ function GetLoadings() {
           <Paper>
             <FilterBox>
               <TextField
-                label="Filter by Loading ID"
+                className="w-72"
+                label="Filter by Loading ID or Rep Name"
                 variant="outlined"
                 value={filter}
                 onChange={handleFilterChange}
@@ -127,6 +142,7 @@ function GetLoadings() {
                   <TableRow>
                     <StyledTableCell>Date</StyledTableCell>
                     <StyledTableCell>Loading ID</StyledTableCell>
+                    <StyledTableCell>Sales Representative</StyledTableCell>
                     <StyledTableCell>Actions</StyledTableCell>
                     <StyledTableCell />
                   </TableRow>
@@ -139,13 +155,20 @@ function GetLoadings() {
                           {new Date(loading.date).toLocaleDateString()}
                         </TableCell>
                         <TableCell>{loading.loadingID}</TableCell>
+                        <TableCell>{loading.rep_firstname}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={1}>
-                            <Button variant="outlined" color="error">
-                              Reject
-                            </Button>
-                            <Button variant="contained" color="success">
-                              Accept
+                            <Button
+                              variant="contained"
+                              color="success"
+                              onClick={() =>
+                                handleCompleteLoading(loading.loadingID)
+                              } // Pass loadingID as argument
+                              disabled={loading.loading_status === "completed"}
+                            >
+                              {loading.loading_status === "completed"
+                                ? "Completed"
+                                : "Complete Loading"}
                             </Button>
                           </Box>
                         </TableCell>
@@ -180,17 +203,34 @@ function GetLoadings() {
                             unmountOnExit
                           >
                             <Box margin={1}>
-                              <h3>Products:</h3>
-                              <ul>
-                                {loadingProductsMap[loading.loadingID].map(
-                                  (product) => (
-                                    <li key={product.productID}>
-                                      {product.product_name} - Quantity:{" "}
-                                      {product.quantity}
-                                    </li>
-                                  )
-                                )}
-                              </ul>
+                              <TableContainer component={Paper}>
+                                <Table
+                                  sx={{ minWidth: 200 }}
+                                  size="small"
+                                  aria-label="product table"
+                                >
+                                  <TableHead>
+                                    <TableRow>
+                                      <TableCell>Product</TableCell>
+                                      <TableCell>Quantity</TableCell>
+                                    </TableRow>
+                                  </TableHead>
+                                  <TableBody>
+                                    {loadingProductsMap[loading.loadingID].map(
+                                      (product) => (
+                                        <TableRow key={product.productID}>
+                                          <TableCell component="th" scope="row">
+                                            {product.product_name}
+                                          </TableCell>
+                                          <TableCell>
+                                            {product.quantity}
+                                          </TableCell>
+                                        </TableRow>
+                                      )
+                                    )}
+                                  </TableBody>
+                                </Table>
+                              </TableContainer>
                             </Box>
                           </Collapse>
                         </TableCell>

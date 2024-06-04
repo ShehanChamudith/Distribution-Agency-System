@@ -3,6 +3,7 @@ const DBconnect = require('../config/DBconnect');
 const addLoading = (req, res) => {
     const { total_value, repID, addedItems, vehicleID, userID, loading_status } = req.body;
     const date = new Date().toISOString().slice(0, 19).replace("T", " ");
+    
 
     // Start a transaction
     DBconnect.getConnection((err, connection) => {
@@ -95,6 +96,50 @@ const addLoading = (req, res) => {
     });
 };
 
+
+// Backend API to check if there is any pending loading for the selected salesRep
+const checkPendingLoading = (req, res) => {
+    const repID = req.body.repID;
+    console.log(repID);
+  
+    const checkPendingLoadingQuery = "SELECT * FROM loading WHERE repID = ? AND loading_status = 'pending'";
+  
+    DBconnect.query(checkPendingLoadingQuery, [repID], (error, results) => {
+      if (error) {
+        console.error("Error checking pending loading:", error);
+        res.status(500).json({ error: "Error checking pending loading" });
+      } else {
+        if (results.length > 0) {
+          // If there is a pending loading for the selected salesRep
+          res.json({ hasPendingLoading: true });
+        } else {
+          // If there is no pending loading for the selected salesRep
+          res.json({ hasPendingLoading: false });
+        }
+      }
+    });
+  };
+
+
+  const updateLoadingStatus = (req, res) => {
+    const loadingID = req.body.loadingID; // Assuming loadingID is provided in the request body
+    const updateLoadingStatusQuery = "UPDATE loading SET loading_status = 'completed' WHERE loadingID = ?";
+    
+    DBconnect.query(updateLoadingStatusQuery, [loadingID], (error, results) => {
+      if (error) {
+        console.error("Error updating loading status:", error);
+        res.status(500).json({ error: "Error updating loading status" });
+      } else {
+        res.json({ message: "Loading status updated successfully" });
+      }
+    });
+  };
+  
+  
+  
+
 module.exports = {
     addLoading,
+    checkPendingLoading,
+    updateLoadingStatus,
 };

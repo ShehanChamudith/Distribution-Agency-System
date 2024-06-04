@@ -28,7 +28,7 @@ export const SideBarData = [
     title: "Create Loading",
     icon: <LoadIcon />,
     link: "/create-loading",
-    roles: [1,2,3,4],
+    roles: [1,2,4],
   },
 
   {

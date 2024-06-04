@@ -288,7 +288,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       severity: "success",
       message: "Item added to the bill",
     });
-
+    
     console.log(`Added ${enteredQuantity} ${item.product_name} to bill!`);
     setQuantity("");
     handleClose();
@@ -422,53 +422,86 @@ const CreateLoading = ({ userID }) => {
   const [preOrderID, setpreOrderID] = useState("");
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
+  const [pending, setPending] = useState(null);
+ 
+
+  const checkPendingLoading = () => {
+    // Assuming selectedRep contains the repID of the selected salesRep
+    const repID = selectedRep.repID;
+    console.log(repID);
+
+    axios
+      .post("http://localhost:3001/check-pending-loading", {repID} )
+      .then((response) => {
+        setPending(response.data.hasPendingLoading);
+        console.log(response.data.hasPendingLoading)
+      })
+      .catch((error) => {
+        console.error("Error checking pending loading:", error);
+        // Handle error
+      });
+  };
+
+  useEffect(() => {
+    if (selectedRep) {
+      checkPendingLoading(); 
+    }
+  }, [selectedRep]); 
 
   const handleCreateLoading = () => {
-    if (addedItems.length === 0) {
+    checkPendingLoading(); // Check for pending loading first
+
+    console.log(pending);
+    
+    // Proceed only after the checkPendingLoading completes
+    if (pending) {
+      // Show a message or take any action when there is a pending loading
+      alert("There is a pending loading for the selected salesRep.");
+      return;
+    } else if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
-    }else{
-        const loadingData = {
-            total_value: subtotal,
-            repID: selectedRep.repID,
-            addedItems: addedItems,
-            vehicleID: selectedVehicle.vehicleID,
-            userID: userID,
-            loading_status: "pending"
-          };
-      
-          console.log(loadingData);
-      
-          axios
-            .post("http://localhost:3001/addloading", loadingData)
-            .then((response) => {
-              console.log("Invoice created successfully:", response.data);
-      
-              // if (printBill) {
-              //   generatePDF(invoiceData, addedItems);
-              // }
-      
-              Swal.fire({
-                icon: "success",
-                title: "Loading Invoice Created Successfully!",
-                customClass: {
-                  popup: "z-50",
-                },
-                didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
-                },
-              }).then(() => {
-                window.location.reload();
-              });
-            })
-            .catch((error) => {
-              console.error("Error creating invoice:", error);
-              alert("Error creating invoice. Please try again.");
-            });
+    } else {
+      const loadingData = {
+        total_value: subtotal,
+        repID: selectedRep.repID,
+        addedItems: addedItems,
+        vehicleID: selectedVehicle.vehicleID,
+        userID: userID,
+        loading_status: "pending",
+      };
+  
+      console.log(loadingData);
+  
+      axios
+        .post("http://localhost:3001/addloading", loadingData)
+        .then((response) => {
+          console.log("Invoice created successfully:", response.data);
+  
+          // if (printBill) {
+          //   generatePDF(invoiceData, addedItems);
+          // }
+  
+          Swal.fire({
+            icon: "success",
+            title: "Loading Invoice Created Successfully!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          }).then(() => {
+            window.location.reload();
+          });
+        })
+        .catch((error) => {
+          console.error("Error creating invoice:", error);
+          alert("Error creating invoice. Please try again.");
+        });
     }
-
-    
   };
+  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -505,8 +538,7 @@ const CreateLoading = ({ userID }) => {
   }, [category, searchQuery]);
 
   const handleExistingRepChange = (event) => {
-    setSelectedRepInfo(event.target.value); // Update temporary state
-    //console.log("Temporarily selected shop name:", event.target.value);
+    setSelectedRepInfo(event.target.value); // Update selected rep info
   };
 
   const handleVehicleChange = (event) => {
@@ -534,10 +566,11 @@ const CreateLoading = ({ userID }) => {
     setSelectedRep(rep);
     console.log("Selected Customer after button click:", rep);
 
-    const vehi = vehicle.find((vehi) => vehi.vehicle_number === selectedVehicleInfo);
+    const vehi = vehicle.find(
+      (vehi) => vehi.vehicle_number === selectedVehicleInfo
+    );
     setselectedVehicle(vehi);
     console.log("Selected Vehicle after button click:", vehi);
-
   };
 
   const handleChange = (event, newAlignment) => {
@@ -691,7 +724,7 @@ const CreateLoading = ({ userID }) => {
     axios
       .get("http://localhost:3001/getloading")
       .then((response) => {
-        const preloadID = response.data.loadingID;
+        const preloadID = response.data.uniqueloadingID;
         console.log(preloadID);
         if (preloadID === 0) {
           setpreOrderID(1);
@@ -729,7 +762,7 @@ const CreateLoading = ({ userID }) => {
               label="Sales Representative"
             >
               {existingRep.map((rep) => (
-                <MenuItem key={rep.userID} value={rep.firstname}>
+                <MenuItem key={rep.repID} value={rep.firstname}>
                   {rep.firstname}
                 </MenuItem>
               ))}
@@ -743,13 +776,9 @@ const CreateLoading = ({ userID }) => {
               value={selectedVehicleInfo}
               onChange={handleVehicleChange}
               label="Select Vehicle"
-              
             >
               {vehicle.map((data) => (
-                <MenuItem
-                  key={data.vehicleID}
-                  value={data.vehicle_number}
-                >
+                <MenuItem key={data.vehicleID} value={data.vehicle_number}>
                   {data.vehicle_number}
                 </MenuItem>
               ))}
