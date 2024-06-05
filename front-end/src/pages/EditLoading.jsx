@@ -425,25 +425,43 @@ const EditLoading = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
+  const [editloadingID, seteditloadingID] = useState("");
   const navigate = useNavigate();
 
   const location = useLocation();
   const loadingData = location.state?.loadingData?.loadingData || {};
 
-  console.log(loadingData.addedItems);
+  //console.log(loadingData.repID);
 
   useEffect(() => {
     console.log("loadingData:", loadingData); // Log loadingData for debugging
+  
+    if (loadingData) {
+      // Update selectedRep state
+      setSelectedRep({
+        repID: loadingData.repID,
+        firstname: loadingData.rep_firstname
+      });
+  
+      // Update selectedVehicle state
+      setselectedVehicle({
+        vehicleID: loadingData.vehicleID,
+        vehicle_number: loadingData.vehicle_number
+      });
 
-    if (loadingData.addedItems) {
-      setAddedItems(loadingData.addedItems);
-      console.log("Setting addedItems:", loadingData.addedItems); // Log addedItems being set
+      seteditloadingID(
+        loadingData.loadingID
+      );
+  
+      // Update addedItems state
+      if (loadingData.addedItems) {
+        setAddedItems(loadingData.addedItems);
+        //console.log("Setting addedItems:", loadingData.addedItems); // Log addedItems being set
+      }
     }
   }, [loadingData]);
+  
 
-  useEffect(() => {
-    console.log("addedItems state:", addedItems); // Log addedItems state
-  }, [addedItems]);
 
   const checkPendingLoading = () => {
     // Assuming selectedRep contains the repID of the selected salesRep
@@ -469,33 +487,8 @@ const EditLoading = ({ userID }) => {
   }, [selectedRep]);
 
   const handleCreateLoading = () => {
-    checkPendingLoading(); // Check for pending loading first
-
-    // Proceed only after the checkPendingLoading completes
-    if (pending) {
-      // Show a message or take any action when there is a pending loading
-      Swal.fire({
-        icon: "warning",
-        title: "Please Complete the previous loading first !",
-        text: "There is a pending loading for the selected salesRep. Complete it to create another loading for this sales representative",
-        showCancelButton: true, // Show cancel button
-        confirmButtonText: "Change Sales Rep", // Button for changing sales rep
-        cancelButtonText: "Complete Previous Loading", // Button for completing previous loading
-        customClass: {
-          popup: "z-50",
-        },
-        didOpen: () => {
-          document.querySelector(".swal2-container").style.zIndex = "9999";
-        },
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setOpenExistingCustomerDialog(true);
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          navigate("/get-loading");
-        }
-      });
-      return;
-    } else if (addedItems.length === 0) {
+    
+     if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
     } else {
@@ -507,12 +500,13 @@ const EditLoading = ({ userID }) => {
         userID: userID,
         loading_status: "pending",
         availability: "no",
+        loadingID: editloadingID,
       };
 
       console.log(loadingData);
 
       axios
-        .post("http://localhost:3001/addloading", loadingData)
+        .post("http://localhost:3001/edit-loading", loadingData)
         .then((response) => {
           console.log("Invoice created successfully:", response.data);
 
@@ -764,7 +758,7 @@ const EditLoading = ({ userID }) => {
       .get("http://localhost:3001/getloading")
       .then((response) => {
         const preloadID = response.data.uniqueloadingID;
-        console.log(preloadID);
+        //console.log(preloadID);
         if (preloadID === 0) {
           setpreOrderID(1);
         } else {

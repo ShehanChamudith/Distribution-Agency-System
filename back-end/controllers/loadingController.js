@@ -163,7 +163,7 @@ const checkPendingLoading = (req, res) => {
 
     const getLoadingQuery = `
     SELECT 
-    l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
+    l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,l.loadingID,
     lp.productID, lp.quantity,
     p.product_name, p.selling_price, p.image_path,
     u.firstname as rep_firstname,
@@ -185,6 +185,7 @@ WHERE l.loadingID = ?;
         } else {
             if (results.length > 0) {
                 const loadingData = {
+                    loadingID: results[0].loadingID,
                     total_value: results[0].total_value,
                     repID: results[0].repID,
                     vehicleID: results[0].vehicleID,
@@ -209,7 +210,159 @@ WHERE l.loadingID = ?;
     });
 };
 
-  
+const editLoading = (req, res) => {
+    const { loadingID, total_value, repID, addedItems, vehicleID, userID, loading_status } = req.body;
+    const date = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+    console.log(req.body);
+
+    // Start a transaction
+    DBconnect.getConnection((err, connection) => {
+        if (err) {
+            console.error('Error getting database connection:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
+        connection.beginTransaction((err) => {
+            if (err) {
+                console.error('Error starting database transaction:', err);
+                connection.release();
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+
+            // Retrieve existing products and quantities associated with the loadingID
+            const selectExistingProductsQuery = 'SELECT productID, quantity FROM loading_products WHERE loadingID = ?';
+            connection.query(selectExistingProductsQuery, [loadingID], (err, existingProductsResult) => {
+                if (err) {
+                    console.error('Error retrieving existing products:', err);
+                    connection.rollback(() => {
+                        connection.release();
+                        res.status(500).send('Internal Server Error');
+                    });
+                    return;
+                }
+
+                // Delete existing products associated with the loadingID
+                const deleteProductsQuery = 'DELETE FROM loading_products WHERE loadingID = ?';
+                connection.query(deleteProductsQuery, [loadingID], (err, deleteResult) => {
+                    if (err) {
+                        console.error('Error deleting existing products:', err);
+                        connection.rollback(() => {
+                            connection.release();
+                            res.status(500).send('Internal Server Error');
+                        });
+                        return;
+                    }
+
+                    // Add removed quantities back to the stock_total of corresponding products
+                    const addStockPromises = existingProductsResult.map((existingProduct) => {
+                        return new Promise((resolve, reject) => {
+                            const updateStockQuery = 'UPDATE product SET stock_total = stock_total + ? WHERE productID = ?';
+                            connection.query(updateStockQuery, [existingProduct.quantity, existingProduct.productID], (err, result) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            });
+                        });
+                    });
+
+                    // Retrieve new products added
+                    const productSaleValues = addedItems.map((item) => [
+                        loadingID,
+                        item.productID,
+                        item.quantity,
+                    ]);
+
+                    // Deduct newly added product quantities from stock_total
+                    const deductStockPromises = addedItems.map((item) => {
+                        return new Promise((resolve, reject) => {
+                            const updateStockQuery = 'UPDATE product SET stock_total = stock_total - ? WHERE productID = ?';
+                            connection.query(updateStockQuery, [item.quantity, item.productID], (err, result) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            });
+                        });
+                    });
+
+                    // Combine the promises for both deducting and adding stock
+                    const allStockPromises = addStockPromises.concat(deductStockPromises);
+
+                    Promise.all(allStockPromises)
+                        .then(() => {
+                            // Insert new products into loading_products table
+                            const insertLoadingProductsQuery = 'INSERT INTO loading_products (loadingID, productID, quantity) VALUES ?';
+                            connection.query(insertLoadingProductsQuery, [productSaleValues], (err, productsResult) => {
+                                if (err) {
+                                    console.error('Error inserting new products:', err);
+                                    connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).send('Internal Server Error');
+                                    });
+                                    return;
+                                }
+
+                                // Update loading details
+                                const updateLoadingQuery = 'UPDATE loading SET total_value = ?, repID = ?, vehicleID = ?, date = ?, userID = ?, loading_status = ? WHERE loadingID = ?';
+                                connection.query(updateLoadingQuery, [total_value, repID, vehicleID, date, userID, loading_status, loadingID], (err, loadingResult) => {
+                                    if (err) {
+                                        console.error('Error updating loading details:', err);
+                                        connection.rollback(() => {
+                                            connection.release();
+                                            res.status(500).send('Internal Server Error');
+                                        });
+                                        return;
+                                    }
+
+                                    // Update availability of the vehicle
+                                    const updateVehicleAvailabilityQuery = 'UPDATE vehicle SET availability = "no" WHERE vehicleID = ?';
+                                    connection.query(updateVehicleAvailabilityQuery, [vehicleID], (err, updateVehicleResult) => {
+                                        if (err) {
+                                            console.error('Error updating vehicle availability:', err);
+                                            connection.rollback(() => {
+                                                connection.release();
+                                                res.status(500).send('Internal Server Error');
+                                            });
+                                            return;
+                                        }
+
+                                        // Commit transaction
+                                        connection.commit((err) => {
+                                            if (err) {
+                                                console.error('Error committing database transaction:', err);
+                                                connection.rollback(() => {
+                                                    connection.release();
+                                                    res.status(500).send('Internal Server Error');
+                                                });
+                                                return;
+                                            }
+                                            res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
+                                            connection.release();
+                                        });
+                                    });
+                                });
+                            });
+                        })
+                        .catch((err) => {
+                            console.error('Error updating stock:', err);
+                            connection.rollback(() => {
+                                connection.release();
+                                res.status(500).send('Internal Server Error');
+                            });
+                        });
+                });
+            });
+        });
+    });
+};
+
+
   
 
 module.exports = {
@@ -217,4 +370,5 @@ module.exports = {
     checkPendingLoading,
     updateLoadingStatus,
     getLoadingById,
+    editLoading,
 };
