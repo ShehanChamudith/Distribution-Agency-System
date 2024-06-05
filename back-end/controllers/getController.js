@@ -254,6 +254,8 @@ ORDER BY l.loadingID DESC;
   });
 };
 
+
+
 const getLoadingProducts = (req, res) => {
   const loadingID = req.params.loadingID;
 

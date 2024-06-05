@@ -33,6 +33,7 @@ import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -424,8 +425,25 @@ const EditLoading = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
-
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const loadingData = location.state?.loadingData?.loadingData || {};
+
+  console.log(loadingData.addedItems);
+
+  useEffect(() => {
+    console.log("loadingData:", loadingData); // Log loadingData for debugging
+
+    if (loadingData.addedItems) {
+      setAddedItems(loadingData.addedItems);
+      console.log("Setting addedItems:", loadingData.addedItems); // Log addedItems being set
+    }
+  }, [loadingData]);
+
+  useEffect(() => {
+    console.log("addedItems state:", addedItems); // Log addedItems state
+  }, [addedItems]);
 
   const checkPendingLoading = () => {
     // Assuming selectedRep contains the repID of the selected salesRep
@@ -651,7 +669,9 @@ const EditLoading = ({ userID }) => {
           <div className="ml-2">
             <h1 className="text-sm font-medium">{item.product_name}</h1>
             <h1 className="text-xs text-gray-500">
-              {item.selling_price.toFixed(2)} LKR
+              {item.selling_price
+                ? `${item.selling_price.toFixed(2)} LKR`
+                : "Price not available"}
             </h1>
           </div>
         </div>
@@ -695,9 +715,9 @@ const EditLoading = ({ userID }) => {
     );
   };
 
-  useEffect(() => {
-    console.log("Updated addedItems:", addedItems);
-  }, [addedItems]);
+  // useEffect(() => {
+  //   console.log("Updated addedItems:", addedItems);
+  // }, [addedItems]);
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString();

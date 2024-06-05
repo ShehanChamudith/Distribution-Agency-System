@@ -157,7 +157,58 @@ const checkPendingLoading = (req, res) => {
     });
   };
   
-  
+  const getLoadingById = (req, res) => {
+    const loadingID = req.params.loadingID;
+    console.log(loadingID);
+
+    const getLoadingQuery = `
+    SELECT 
+    l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
+    lp.productID, lp.quantity,
+    p.product_name, p.selling_price, p.image_path,
+    u.firstname as rep_firstname,
+    v.vehicle_number
+FROM loading l
+JOIN loading_products lp ON l.loadingID = lp.loadingID
+JOIN product p ON lp.productID = p.productID
+JOIN salesrep s ON l.repID = s.repID
+JOIN user u ON s.userID = u.userID
+JOIN vehicle v ON l.vehicleID = v.vehicleID
+WHERE l.loadingID = ?;
+
+    `;
+
+    DBconnect.query(getLoadingQuery, [loadingID], (error, results) => {
+        if (error) {
+            console.error("Error fetching loading data:", error);
+            res.status(500).json({ error: "Error fetching loading data" });
+        } else {
+            if (results.length > 0) {
+                const loadingData = {
+                    total_value: results[0].total_value,
+                    repID: results[0].repID,
+                    vehicleID: results[0].vehicleID,
+                    date: results[0].date,
+                    userID: results[0].userID,
+                    loading_status: results[0].loading_status,
+                    rep_firstname: results[0].rep_firstname,
+                    vehicle_number: results[0].vehicle_number,
+                    addedItems: results.map((row) => ({
+                        productID: row.productID,
+                        product_name: row.product_name,
+                        quantity: row.quantity,
+                        selling_price: row.selling_price,
+                        image_path: row.image_path,
+                    })),
+                };
+                res.json({ loadingData });
+            } else {
+                res.status(404).json({ error: "Loading data not found" });
+            }
+        }
+    });
+};
+
   
   
 
@@ -165,4 +216,5 @@ module.exports = {
     addLoading,
     checkPendingLoading,
     updateLoadingStatus,
+    getLoadingById,
 };

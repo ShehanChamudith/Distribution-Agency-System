@@ -123,17 +123,19 @@ function GetLoadings() {
   const handleEditLoading = (loadingID) => {
     // Fetch the previously created loading information using the loadingID
     axios
-      .get(`http://localhost:3001/get-loading/${loadingID}`)
+      .get(`http://localhost:3001/getloadingID/${loadingID}`)
       .then((response) => {
         const loadingData = response.data; // Assuming the response contains the loading data
-        // Navigate to the create-loading page and pass the loadingData as props
-        navigate('/create-loading', { state: { loadingData } });
+        console.log(loadingData);
+
+        // Navigate to "/edit-loading" and pass the data as state
+        navigate('/edit-loading', { state: { loadingData } });
       })
       .catch((error) => {
         console.error("Error fetching loading information:", error);
         // Handle error
       });
-};
+  };
 
   return (
     <div>
@@ -182,7 +184,7 @@ function GetLoadings() {
                             <Button 
                             variant="contained" 
                             disabled={loading.loading_status === "completed"}
-                            onClick={handleEditLoading}
+                            onClick={() => handleEditLoading(loading.loadingID)}
                             >
                                 Edit Loading
                             </Button>
