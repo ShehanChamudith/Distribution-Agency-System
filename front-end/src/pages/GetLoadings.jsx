@@ -114,6 +114,8 @@ function GetLoadings() {
         console.error("Error updating loading status:", error);
         // Handle error
       });
+
+      window.location.reload();
   };
 
   return (
@@ -143,6 +145,7 @@ function GetLoadings() {
                     <StyledTableCell>Date</StyledTableCell>
                     <StyledTableCell>Loading ID</StyledTableCell>
                     <StyledTableCell>Sales Representative</StyledTableCell>
+                    <StyledTableCell>Vehicle Number</StyledTableCell>
                     <StyledTableCell>Actions</StyledTableCell>
                     <StyledTableCell />
                   </TableRow>
@@ -156,6 +159,7 @@ function GetLoadings() {
                         </TableCell>
                         <TableCell>{loading.loadingID}</TableCell>
                         <TableCell>{loading.rep_firstname}</TableCell>
+                        <TableCell>{loading.vehicle_number}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={1}>
                             <Button

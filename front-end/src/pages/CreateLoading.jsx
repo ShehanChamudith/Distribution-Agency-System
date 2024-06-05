@@ -32,6 +32,7 @@ import sausageIcon from "../assets/icons/sausages.ico";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useNavigate } from "react-router-dom";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -288,7 +289,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       severity: "success",
       message: "Item added to the bill",
     });
-    
+
     console.log(`Added ${enteredQuantity} ${item.product_name} to bill!`);
     setQuantity("");
     handleClose();
@@ -423,7 +424,8 @@ const CreateLoading = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
- 
+
+  const navigate = useNavigate();
 
   const checkPendingLoading = () => {
     // Assuming selectedRep contains the repID of the selected salesRep
@@ -431,10 +433,10 @@ const CreateLoading = ({ userID }) => {
     console.log(repID);
 
     axios
-      .post("http://localhost:3001/check-pending-loading", {repID} )
+      .post("http://localhost:3001/check-pending-loading", { repID })
       .then((response) => {
         setPending(response.data.hasPendingLoading);
-        console.log(response.data.hasPendingLoading)
+        console.log(response.data.hasPendingLoading);
       })
       .catch((error) => {
         console.error("Error checking pending loading:", error);
@@ -444,19 +446,36 @@ const CreateLoading = ({ userID }) => {
 
   useEffect(() => {
     if (selectedRep) {
-      checkPendingLoading(); 
+      checkPendingLoading();
     }
-  }, [selectedRep]); 
+  }, [selectedRep]);
 
   const handleCreateLoading = () => {
     checkPendingLoading(); // Check for pending loading first
 
-    console.log(pending);
-    
     // Proceed only after the checkPendingLoading completes
     if (pending) {
       // Show a message or take any action when there is a pending loading
-      alert("There is a pending loading for the selected salesRep.");
+      Swal.fire({
+        icon: "warning",
+        title: "Please Complete the previous loading first !",
+        text: "There is a pending loading for the selected salesRep. Complete it to create another loading for this sales representative",
+        showCancelButton: true, // Show cancel button
+        confirmButtonText: "Change Sales Rep", // Button for changing sales rep
+        cancelButtonText: "Complete Previous Loading", // Button for completing previous loading
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setOpenExistingCustomerDialog(true);
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          navigate("/get-loading");
+        }
+      });
       return;
     } else if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
@@ -469,19 +488,20 @@ const CreateLoading = ({ userID }) => {
         vehicleID: selectedVehicle.vehicleID,
         userID: userID,
         loading_status: "pending",
+        availability: "no",
       };
-  
+
       console.log(loadingData);
-  
+
       axios
         .post("http://localhost:3001/addloading", loadingData)
         .then((response) => {
           console.log("Invoice created successfully:", response.data);
-  
+
           // if (printBill) {
           //   generatePDF(invoiceData, addedItems);
           // }
-  
+
           Swal.fire({
             icon: "success",
             title: "Loading Invoice Created Successfully!",
@@ -501,7 +521,6 @@ const CreateLoading = ({ userID }) => {
         });
     }
   };
-  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -778,8 +797,14 @@ const CreateLoading = ({ userID }) => {
               label="Select Vehicle"
             >
               {vehicle.map((data) => (
-                <MenuItem key={data.vehicleID} value={data.vehicle_number}>
+                <MenuItem
+                  key={data.vehicleID}
+                  value={data.vehicle_number}
+                  disabled={data.availability === "no"} // Disable if availability is "no"
+                >
                   {data.vehicle_number}
+                  {data.availability === "no" && " - Not Available"}{" "}
+                  {/* Append "Not Available" */}
                 </MenuItem>
               ))}
             </Select>

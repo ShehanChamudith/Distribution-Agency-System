@@ -208,17 +208,20 @@ const getVehicle = (req, res) => {
 const getLoading = (req, res) => {
   // Fetch all rows from the loading table with joined data from loading_products and product tables
   const selectAllQuery = `
-    SELECT 
-        l.loadingID, l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
-        lp.productID, lp.quantity,
-        p.product_name,
-        u.firstname as rep_firstname
-    FROM loading l
-    JOIN loading_products lp ON l.loadingID = lp.loadingID
-    JOIN product p ON lp.productID = p.productID
-    JOIN salesrep s ON l.repID = s.repID
-    JOIN user u ON s.userID = u.userID
-    ORDER BY l.loadingID DESC
+  SELECT 
+  l.loadingID, l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
+  lp.productID, lp.quantity,
+  p.product_name,
+  u.firstname as rep_firstname,
+  v.vehicle_number  -- Select vehicle_number from the vehicle table
+FROM loading l
+JOIN loading_products lp ON l.loadingID = lp.loadingID
+JOIN product p ON lp.productID = p.productID
+JOIN salesrep s ON l.repID = s.repID
+JOIN user u ON s.userID = u.userID
+JOIN vehicle v ON l.vehicleID = v.vehicleID -- Join with the vehicle table
+ORDER BY l.loadingID DESC;
+
 `;
 
   DBconnect.query(selectAllQuery, (err, loadingResults) => {
