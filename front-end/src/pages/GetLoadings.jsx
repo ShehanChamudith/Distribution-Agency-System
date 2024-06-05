@@ -42,12 +42,26 @@ const ScrollableTableContainer = styled(TableContainer)({
   overflowY: "auto",
 });
 
-function GetLoadings() {
+function GetLoadings({ userID, userInfo }) {
   const [loadings, setLoadings] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
   const navigate = useNavigate();
+  const [rrepID, setrepID] = useState("");
+  
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:3001/getrepID/${userID}`)
+      .then((response) => {
+        const repData = response.data;
+        setrepID(repData.repID);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, [userID]);
 
   useEffect(() => {
     axios
@@ -93,17 +107,21 @@ function GetLoadings() {
   const filteredLoadings = uniqueLoadings.filter((loading) => {
     const loadingID = loading.loadingID.toString().toLowerCase();
     const rep_firstname = loading.rep_firstname.toString().toLowerCase();
+    const repID = loading.repID; // Assuming repID is a property of the loading object
     const matchesTextFilter =
       loadingID.includes(filter.toLowerCase()) ||
       rep_firstname.includes(filter.toLowerCase());
-
+  
     if (dateFilter) {
       const selectedDate = dayjs(dateFilter).startOf("day");
       const loadingDate = dayjs(new Date(loading.date)).startOf("day");
-      return matchesTextFilter && selectedDate.isSame(loadingDate);
+      return matchesTextFilter && selectedDate.isSame(loadingDate) && repID === rrepID;
+      // Replace yourRepID with the actual repID you want to filter by
     }
-    return matchesTextFilter;
+  
+    return matchesTextFilter && repID === rrepID; // Replace yourRepID
   });
+  
 
   const handleCompleteLoading = (loadingID) => {
     axios

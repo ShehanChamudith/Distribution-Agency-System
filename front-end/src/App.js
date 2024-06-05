@@ -94,7 +94,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-            <Route path="/get-loading" element={<GetLoadings/>} />
+            <Route path="/get-loading" element={<GetLoadings userID={userID} userInfo={userInfo} />} />
             </Route>
           </Routes>
         </div>
