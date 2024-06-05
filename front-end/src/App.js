@@ -19,6 +19,7 @@ import Unauthorized from "./pages/Unauthorized";
 import CreateLoading from "./pages/CreateLoading";
 import GetLoadings from "./pages/GetLoadings";
 import DeliveryBill from "./pages/DeliveryBill";
+import EditLoading from "./pages/EditLoading";
 
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/pre-orders" element={<PreOrders />} />
               <Route path="/create-loading" element={<CreateLoading userID={userID} />} />
+              <Route path="/edit-loading" element={<EditLoading userID={userID} />} />
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>

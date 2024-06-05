@@ -191,7 +191,6 @@ const generatePDF = (invoiceData, addedItems) => {
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
-  
 
   return (
     <div
@@ -396,11 +395,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   );
 }
 
-const CreateLoading = ({ userID }) => {
+const EditLoading = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [category, setCategory] = useState("All");
   const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
-    useState(true);
+    useState(false);
   const [selectedRep, setSelectedRep] = useState({
     repID: "",
     firstname: "",
@@ -995,4 +994,4 @@ const CreateLoading = ({ userID }) => {
   );
 };
 
-export default CreateLoading;
+export default EditLoading;

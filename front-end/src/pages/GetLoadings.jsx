@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -46,6 +47,7 @@ function GetLoadings() {
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -118,6 +120,21 @@ function GetLoadings() {
       window.location.reload();
   };
 
+  const handleEditLoading = (loadingID) => {
+    // Fetch the previously created loading information using the loadingID
+    axios
+      .get(`http://localhost:3001/get-loading/${loadingID}`)
+      .then((response) => {
+        const loadingData = response.data; // Assuming the response contains the loading data
+        // Navigate to the create-loading page and pass the loadingData as props
+        navigate('/create-loading', { state: { loadingData } });
+      })
+      .catch((error) => {
+        console.error("Error fetching loading information:", error);
+        // Handle error
+      });
+};
+
   return (
     <div>
       <div className="w-screen px-20 py-5 h-[87vh]">
@@ -161,7 +178,14 @@ function GetLoadings() {
                         <TableCell>{loading.rep_firstname}</TableCell>
                         <TableCell>{loading.vehicle_number}</TableCell>
                         <TableCell align="right">
-                          <Box display="flex" gap={1}>
+                          <Box display="flex" gap={2}>
+                            <Button 
+                            variant="contained" 
+                            disabled={loading.loading_status === "completed"}
+                            onClick={handleEditLoading}
+                            >
+                                Edit Loading
+                            </Button>
                             <Button
                               variant="contained"
                               color="success"
