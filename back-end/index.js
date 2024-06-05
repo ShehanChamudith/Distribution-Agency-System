@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const app = express();
+//const { validateToken, checkRole } = require('./middleware/authMiddleware');
 
 app.use(cors());
 app.use(express.json())
@@ -20,6 +21,12 @@ app.use('/', itemRoute);
 
 const inventoryRoute = require('./routes/inventoryRoute');
 app.use('/', inventoryRoute);
+
+const saleRoute = require('./routes/saleRoute');
+app.use('/', saleRoute);
+
+const loadingRoute = require('./routes/loadingRoute');
+app.use('/', loadingRoute);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

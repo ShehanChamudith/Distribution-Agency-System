@@ -3,8 +3,9 @@ import BasicButton from "../components/BasicButton";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import {jwtDecode} from 'jwt-decode';
 
-function Login({ setIsAuthenticated }) {
+function Login({ setIsAuthenticated,setUserInfo }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -44,10 +45,25 @@ function Login({ setIsAuthenticated }) {
         } else {
           
           const accessToken = response.data.accessToken;
-          sessionStorage.setItem("accessToken", accessToken);
+          sessionStorage.setItem("accessToken",accessToken );
           setIsAuthenticated(true);
-          navigate("/my-dashboard");
-
+          const values=jwtDecode(accessToken);
+          setUserInfo(values.usertypeID);
+          //console.log(values);
+          if (values.usertype_name === 'Admin') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Office') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'SalesRep') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Warehouse') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Supplier') {
+            navigate('/admin-dashboard');
+          } else if (values.usertype_name === 'Customer') {
+            navigate('/admin-dashboard');
+          }else
+            navigate('/unauthorized')
         }
       })
       .catch((error) => {

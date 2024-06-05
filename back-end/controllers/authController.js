@@ -1,12 +1,11 @@
 const DBconnect = require('../config/DBconnect');
 const jwt = require('jsonwebtoken');
 
-//Login Function
-const login = (req,res) => { 
-
+// Login Function
+const login = (req, res) => {
     const { username, password } = req.body;
     
-    DBconnect.query('SELECT * FROM user WHERE username = ? AND password = ?', [username, password], (err, rows) => {
+    DBconnect.query('SELECT user.*, usertype.usertype_name FROM user JOIN usertype ON user.usertypeID = usertype.usertypeID WHERE user.username = ? AND user.password = ?', [username, password], (err, rows) => {
         if (err) {
             console.error('Error querying MySQL database:', err);
             res.status(500).send('Internal Server Error');
@@ -14,25 +13,17 @@ const login = (req,res) => {
         }
 
         if (rows.length === 1) {
+            const { username, userID, usertypeID, firstname, lastname , usertype_name } = rows[0];
+            const accessToken = jwt.sign({ username, userID, usertypeID, firstname, lastname, usertype_name }, "jwtSecretToken");
 
-            const accessToken = jwt.sign({username: rows[0].username, userID: rows[0].userID }, "jwtSecretToken")
-
-            const { usertype } = rows[0];
-            res.json({ accessToken, usertype }); // Send user role if login is successful
+            res.json({ accessToken }); // Send user role if login is successful
         } else {
-            res.json({ error: 'Invalid username or password' }); // Send error if login fails
+            res.json({ error: 'Invalid username or password' });
         }
     });
+};
 
-}
-
-//Logout Function
-const logout = (req,res) => {
-
-}
 
 module.exports = {
-    login,
-    logout
-   
+    login, 
 };

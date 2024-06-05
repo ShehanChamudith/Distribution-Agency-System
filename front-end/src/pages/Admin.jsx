@@ -58,21 +58,21 @@ export const Admin = () => {
           >
             <Tab label="Overview" {...a11yProps(0)} />
             <Tab label="Users" {...a11yProps(1)} />
-            <Tab label="Item Three" {...a11yProps(2)} />
+            {/* <Tab label="Item Three" {...a11yProps(2)} /> */}
           </Tabs>
         </Box>
         <CustomTabPanel value={value} index={0}>
           <div className="flex w-full ">
             <div className="flex w-full -300 gap-4">
               <div className="flex flex-col w-4/6 p-2 border rounded-xl ml-6 mt-5">
-                <p className=" font-PoppinsM text-xl pl-2"> Sales </p>
+                <h1 className=" font-PoppinsM text-xl pl-2"> Sales </h1>
                 <div>
                   <LineGraph />
                 </div>
               </div>
 
               <div className="flex flex-col w-2/6 p-2 border rounded-xl mr-6 mt-5">
-                <p className=" font-PoppinsM text-xl pl-2"> Inventory </p>
+                <h1 className=" font-PoppinsM text-xl pl-2"> Inventory </h1>
                 <div>
                   <DoughnutGraph />
                 </div>
@@ -83,9 +83,9 @@ export const Admin = () => {
         <CustomTabPanel value={value} index={1}>
           Item Two
         </CustomTabPanel>
-        <CustomTabPanel value={value} index={2}>
+        {/* <CustomTabPanel value={value} index={2}>
           Item Three
-        </CustomTabPanel>
+        </CustomTabPanel> */}
       </Box>
     </div>
   );

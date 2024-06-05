@@ -1,19 +1,32 @@
-const { verify } = require("jsonwebtoken");
+const { verify } = require('jsonwebtoken');
 
 const validateToken = (req, res, next) => {
-  const accessToken = req.header("accessToken");
+    const accessToken = req.header('accessToken');
 
-  if (!accessToken) return res.json({ error: "User not logged in!" });
+    if (!accessToken) return res.json({ error: 'User not logged in!' });
 
-  try {
-    const validToken = verify(accessToken, "jwtSecretToken");
+    try {
+        const validToken = verify(accessToken, 'jwtSecretToken');
 
-    if (validToken) {
-      return next();
+        if (validToken) {
+            req.user = validToken;
+            return next();
+        }
+    } catch (err) {
+        return res.json({ error: 'Invalid Token' });
     }
-  } catch (err) {
-    return res.json({ error: err });
-  }
 };
 
-module.exports = { validateToken };
+const checkRole = (roles) => {
+    return (req, res, next) => {
+        const user = req.user;
+
+        if (roles.includes(user.usertype)) {
+            next();
+        } else {
+            res.status(403).json({ error: 'Access denied: Insufficient permissions' });
+        }
+    };
+};
+
+module.exports = { validateToken, checkRole };
