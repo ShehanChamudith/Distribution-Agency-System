@@ -18,7 +18,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 
 // Custom styles for the table headers
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -52,19 +52,18 @@ function GetLoadings() {
   const [rrepID, setrepID] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const [userID, setUserID] = useState(null);
-  
 
   const decodeTokenFromLocalStorage = () => {
-    const token = sessionStorage.getItem('accessToken');
+    const token = sessionStorage.getItem("accessToken");
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken.usertypeID);
         setUserID(decodedToken.userID);
       } catch (error) {
-        console.error('Error decoding token:', error);
+        console.error("Error decoding token:", error);
       }
-    } 
+    }
   };
 
   useEffect(() => {
@@ -72,10 +71,8 @@ function GetLoadings() {
     decodeTokenFromLocalStorage();
   }, []);
 
-
-
   useEffect(() => {
-    console.log("userID in useEffect:", userID); 
+    //console.log("userID in useEffect:", userID);
     if (userID) {
       axios
         .get(`http://localhost:3001/getrepID/${userID}`)
@@ -129,9 +126,6 @@ function GetLoadings() {
     setDateFilter(newValue);
   };
 
-
-  
-
   // Filter unique loadings based on the filter
   const filteredLoadings = uniqueLoadings.filter((loading) => {
     const loadingID = loading.loadingID.toString().toLowerCase();
@@ -145,7 +139,11 @@ function GetLoadings() {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
         const loadingDate = dayjs(new Date(loading.date)).startOf("day");
-        return matchesTextFilter && selectedDate.isSame(loadingDate) && repID === rrepID;
+        return (
+          matchesTextFilter &&
+          selectedDate.isSame(loadingDate) &&
+          repID === rrepID
+        );
       }
       return matchesTextFilter && repID === rrepID;
     } else {
@@ -170,7 +168,7 @@ function GetLoadings() {
         // Handle error
       });
 
-      window.location.reload();
+    window.location.reload();
   };
 
   const handleEditLoading = (loadingID) => {
@@ -182,7 +180,7 @@ function GetLoadings() {
         console.log(loadingData);
 
         // Navigate to "/edit-loading" and pass the data as state
-        navigate('/edit-loading', { state: { loadingData } });
+        navigate("/edit-loading", { state: { loadingData } });
       })
       .catch((error) => {
         console.error("Error fetching loading information:", error);
@@ -207,7 +205,7 @@ function GetLoadings() {
                 label="Filter by Date"
                 value={dateFilter}
                 onChange={handleDateFilterChange}
-                renderInput={(params) => <TextField {...params} />}
+                textField={(params) => <TextField {...params} />}
               />
             </FilterBox>
             <ScrollableTableContainer>
@@ -234,12 +232,14 @@ function GetLoadings() {
                         <TableCell>{loading.vehicle_number}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={2}>
-                            <Button 
-                            variant="contained" 
-                            disabled={loading.loading_status === "completed"}
-                            onClick={() => handleEditLoading(loading.loadingID)}
+                            <Button
+                              variant="contained"
+                              disabled={loading.loading_status === "completed"}
+                              onClick={() =>
+                                handleEditLoading(loading.loadingID)
+                              }
                             >
-                                Edit Loading
+                              Edit Loading
                             </Button>
                             <Button
                               variant="contained"

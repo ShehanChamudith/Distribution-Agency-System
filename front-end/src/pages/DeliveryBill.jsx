@@ -662,13 +662,13 @@ const DeliveryBill = ({ userID }) => {
   };
 
   useEffect(() => {
-    console.log("userID in useEffect:", userID);
+    //console.log("userID in useEffect:", userID);
     if (userID) {
       axios
         .get(`http://localhost:3001/getrepID/${userID}`)
         .then((response) => {
           const repData = response.data;
-          console.log(repData);
+          //console.log(repData);
           setrepID(repData);
         })
         .catch((error) => {
@@ -680,7 +680,7 @@ const DeliveryBill = ({ userID }) => {
   useEffect(() => {
     if (repID) {
       // Ensure repID is available before fetching loading products
-      console.log("repID in useEffect:", repID);
+      //console.log("repID in useEffect:", repID);
       axios
         .get(`http://localhost:3001/getloadingproducts/${repID}`)
         .then((response) => {
