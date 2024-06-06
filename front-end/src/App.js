@@ -31,7 +31,7 @@ function App() {
   useEffect(() => {
     // Decode token when component mounts
     decodeTokenFromLocalStorage();
-  }, []);
+  }, [isAuthenticated]);
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem('accessToken');

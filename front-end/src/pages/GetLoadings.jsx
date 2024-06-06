@@ -72,8 +72,7 @@ function GetLoadings() {
   }, []);
 
   useEffect(() => {
-    //console.log("userID in useEffect:", userID);
-    if (userID) {
+    if (userID && userInfo === 3) {
       axios
         .get(`http://localhost:3001/getrepID/${userID}`)
         .then((response) => {
@@ -84,7 +83,7 @@ function GetLoadings() {
           console.error("Error fetching data:", error);
         });
     }
-  }, [userID]);
+  }, [userID, userInfo]);
 
   useEffect(() => {
     axios
@@ -124,6 +123,11 @@ function GetLoadings() {
 
   const handleDateFilterChange = (newValue) => {
     setDateFilter(newValue);
+  };
+
+  const handleClearFilters = () => {
+    setFilter("");
+    setDateFilter(null);
   };
 
   // Filter unique loadings based on the filter
@@ -205,8 +209,13 @@ function GetLoadings() {
                 label="Filter by Date"
                 value={dateFilter}
                 onChange={handleDateFilterChange}
-                textField={(params) => <TextField {...params} />}
+                slotProps={{
+                  textField: { style: { width: "200px" } },
+                }}
               />
+              <Button className="h-14" variant="outlined" onClick={handleClearFilters}>
+                Clear Filters
+              </Button>
             </FilterBox>
             <ScrollableTableContainer>
               <Table stickyHeader>
