@@ -65,6 +65,8 @@ function App() {
     return <div>Loading...</div>; // Render loading indicator until authentication status is determined
   }
 
+  console.log("userID App.js:",userID);
+
 
   return (
     
@@ -94,7 +96,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-            <Route path="/get-loading" element={<GetLoadings userID={userID} userInfo={userInfo} />} />
+            <Route path="/get-loading" element={<GetLoadings/>} />
             </Route>
           </Routes>
         </div>
