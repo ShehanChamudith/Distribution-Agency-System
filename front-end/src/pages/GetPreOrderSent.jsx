@@ -44,7 +44,7 @@ const ScrollableTableContainer = styled(TableContainer)({
 });
 
 function GetPreOrderSent() {
-  const [loadings, setLoadings] = useState([]);
+  const [preorders, setLoadings] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
@@ -99,18 +99,18 @@ function GetPreOrderSent() {
   }, []);
 
   // Extract unique loading IDs
-  const uniqueLoadings = Array.from(
-    new Set(loadings.map((loading) => loading.preorderID))
+  const uniquePreOrders = Array.from(
+    new Set(preorders.map((pre) => pre.preorderID))
   ).map((preorderID) => {
-    return loadings.find((loading) => loading.preorderID === preorderID);
+    return preorders.find((pre) => pre.preorderID === preorderID);
   });
 
   // Group products under each loading ID
-  const loadingProductsMap = loadings.reduce((acc, loading) => {
-    if (!acc[loading.preorderID]) {
-      acc[loading.preorderID] = [];
+  const PreOrderProductsMap = preorders.reduce((acc, pre) => {
+    if (!acc[pre.preorderID]) {
+      acc[pre.preorderID] = [];
     }
-    acc[loading.preorderID].push(loading);
+    acc[pre.preorderID].push(pre);
     return acc;
   }, {});
 
@@ -132,10 +132,10 @@ function GetPreOrderSent() {
   };
 
   // Filter unique loadings based on the filter
-  const filteredLoadings = uniqueLoadings.filter((loading) => {
-    const preorderID = loading.preorderID.toString().toLowerCase();
-    const cus_firstname = loading.customer_firstname.toString().toLowerCase();
-    const customerID = loading.customerID;
+  const filteredPreOrders = uniquePreOrders.filter((pre) => {
+    const preorderID = pre.preorderID.toString().toLowerCase();
+    const cus_firstname = pre.customer_firstname.toString().toLowerCase();
+    const customerID = pre.customerID;
     const matchesTextFilter =
     preorderID.includes(filter.toLowerCase()) ||
     cus_firstname.includes(filter.toLowerCase());
@@ -143,7 +143,7 @@ function GetPreOrderSent() {
     if (userInfo === 6) {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
-        const loadingDate = dayjs(new Date(loading.date)).startOf("day");
+        const loadingDate = dayjs(new Date(pre.date)).startOf("day");
         return (
           matchesTextFilter &&
           selectedDate.isSame(loadingDate) &&
@@ -154,8 +154,8 @@ function GetPreOrderSent() {
     } else {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
-        const loadingDate = dayjs(new Date(loading.date)).startOf("day");
-        return matchesTextFilter && selectedDate.isSame(loadingDate);
+        const preorderDate = dayjs(new Date(pre.date)).startOf("day");
+        return matchesTextFilter && selectedDate.isSame(preorderDate);
       }
       return matchesTextFilter;
     }
@@ -230,17 +230,17 @@ function GetPreOrderSent() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredLoadings.map((loading) => (
-                    <React.Fragment key={loading.preorderID}>
+                  {filteredPreOrders.map((pre) => (
+                    <React.Fragment key={pre.preorderID}>
                       <TableRow>
                         <TableCell>
-                          {new Date(loading.date).toLocaleDateString()}
+                          {new Date(pre.date).toLocaleDateString()}
                         </TableCell>
-                        <TableCell>{loading.preorderID}</TableCell>
-                        <TableCell>{loading.customer_firstname}</TableCell>
+                        <TableCell>{pre.preorderID}</TableCell>
+                        <TableCell>{pre.customer_firstname}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={2}>
-                            {loading.pre_order_status}
+                            {pre.pre_order_status}
                             {/* <Button
                               variant="contained"
                               disabled={loading.loading_status === "completed"}
@@ -268,14 +268,14 @@ function GetPreOrderSent() {
                           <Button
                             aria-label="expand row"
                             size="small"
-                            onClick={() => handleClick(loading.preorderID)}
+                            onClick={() => handleClick(pre.preorderID)}
                             sx={{
                               display: "flex",
                               alignItems: "center",
                               gap: "5px",
                             }} // Added styles for alignment
                           >
-                            {openRow === loading.preorderID ? (
+                            {openRow === pre.preorderID ? (
                               <ExpandLessIcon />
                             ) : (
                               <ExpandMoreIcon />
@@ -290,7 +290,7 @@ function GetPreOrderSent() {
                           colSpan={4}
                         >
                           <Collapse
-                            in={openRow === loading.preorderID}
+                            in={openRow === pre.preorderID}
                             timeout="auto"
                             unmountOnExit
                           >
@@ -308,7 +308,7 @@ function GetPreOrderSent() {
                                     </TableRow>
                                   </TableHead>
                                   <TableBody>
-                                    {loadingProductsMap[loading.preorderID].map(
+                                    {PreOrderProductsMap[pre.preorderID].map(
                                       (product) => (
                                         <TableRow key={product.productID}>
                                           <TableCell component="th" scope="row">
