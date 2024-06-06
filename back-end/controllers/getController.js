@@ -255,32 +255,34 @@ ORDER BY l.loadingID DESC;
 };
 
 const getLoadingProducts = (req, res) => {
-  const loadingID = req.params.loadingID;
+  const repID = req.params.repID;
+  console.log(repID);
 
   const selectAllQuery = `
   SELECT 
-    p.productID, 
-    p.product_name, 
-    p.image_path, 
-    p.selling_price, 
-    lp.quantity, 
-    c.category, 
-    lp.loadingID,
-    l.loading_status
+  p.productID, 
+  p.product_name, 
+  p.image_path, 
+  p.selling_price, 
+  lp.quantity, 
+  c.category, 
+  lp.loadingID,
+  l.loading_status
 FROM 
-    product p
+  product p
 INNER JOIN 
-    loading_products lp ON p.productID = lp.productID
+  loading_products lp ON p.productID = lp.productID
 INNER JOIN 
-    category c ON p.categoryID = c.categoryID
+  category c ON p.categoryID = c.categoryID
 INNER JOIN 
-    loading l ON lp.loadingID = l.loadingID
+  loading l ON lp.loadingID = l.loadingID
 WHERE 
-    l.loading_status = 'pending';
+  l.loading_status = 'pending'
+  AND l.repID = ?;
 
   `;
 
-  DBconnect.query(selectAllQuery, [loadingID], (err, results) => {
+  DBconnect.query(selectAllQuery, [repID], (err, results) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
       res.status(500).send("Internal Server Error");
@@ -316,7 +318,32 @@ const getRepID = (req, res) => {
 
       // Assuming there's only one repID per userID, you might want to send just the repID
       const repID = results[0].repID;
-      res.json({ repID: repID });
+      console.log(repID);
+      res.json(repID);
+  });
+};
+
+const getRepIDBill = (req, res) => {
+  const userID = req.params.uuserID;
+  console.log(userID);
+
+  DBconnect.query("SELECT repID FROM salesrep WHERE userID = ?", [userID], (err, results) => {
+      if (err) {
+          console.error("Error querying MySQL database:", err);
+          res.status(500).send("Internal Server Error");
+          return;
+      }
+
+      if (results.length === 0) {
+          console.warn("No data found in salesrep table for the provided userID:", userID);
+          res.status(404).send("No data found");
+          return;
+      }
+
+      // Assuming there's only one repID per userID, you might want to send just the repID
+      const repID = results[0].repID;
+      console.log(repID);
+      res.json(repID);
   });
 };
 
@@ -335,4 +362,5 @@ module.exports = {
   getVehicle,
   getLoadingProducts,
   getRepID,
+  getRepIDBill,
 };

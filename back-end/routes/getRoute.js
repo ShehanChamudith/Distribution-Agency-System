@@ -13,6 +13,7 @@ const {getLoading} = require('../controllers/getController');
 const {getVehicle} = require('../controllers/getController');
 const {getLoadingProducts} = require('../controllers/getController');
 const {getRepID} = require('../controllers/getController');
+const {getRepIDBill} = require('../controllers/getController');
 
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
@@ -25,8 +26,9 @@ router.get('/getsale', getSale);
 router.get('/getsalerep', getSalesRep);
 router.get('/getloading', getLoading);
 router.get('/getvehicle', getVehicle);
-router.get('/getloadingproducts', getLoadingProducts);
+router.get('/getloadingproducts/:repID', getLoadingProducts);
 router.get('/getrepID/:userID', getRepID);
+router.get('/getrepIDBill/:uuserID', getRepIDBill);
 
 
 module.exports = router;

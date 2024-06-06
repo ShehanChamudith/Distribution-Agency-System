@@ -81,7 +81,7 @@ function GetLoadings() {
         .get(`http://localhost:3001/getrepID/${userID}`)
         .then((response) => {
           const repData = response.data;
-          setrepID(repData.repID);
+          setrepID(repData);
         })
         .catch((error) => {
           console.error("Error fetching data:", error);

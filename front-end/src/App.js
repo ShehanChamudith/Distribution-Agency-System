@@ -66,6 +66,7 @@ function App() {
   }
 
   console.log("userID App.js:",userID);
+  console.log("userType App.js:",userInfo);
 
 
   return (
@@ -82,7 +83,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
-              <Route path="/bill" element={<Bill userID={userID} />} />
+              <Route path="/bill" element={<Bill userID= {userID} />} />
               <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
@@ -96,7 +97,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-            <Route path="/get-loading" element={<GetLoadings/>} />
+            <Route path="/get-loading" element={<GetLoadings userID={userID}/>} />
             </Route>
           </Routes>
         </div>

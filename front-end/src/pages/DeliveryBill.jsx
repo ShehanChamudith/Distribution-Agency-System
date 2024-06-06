@@ -38,6 +38,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { jwtDecode } from "jwt-decode";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -228,7 +229,6 @@ function a11yProps(index) {
 }
 
 function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
-
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -242,19 +242,17 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     setOpen(true);
   };
 
-
   useEffect(() => {
-    if (restore.productID !== ''){
-      if(item.productID === restore.productID) {
-      setStock((prevStock) => prevStock + restore.amount);
-      setRestore(({
-        productID: '',
-        amount: '',
-      })); // Update restore state to null using setRestore
+    if (restore.productID !== "") {
+      if (item.productID === restore.productID) {
+        setStock((prevStock) => prevStock + restore.amount);
+        setRestore({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
     }
-  }
   }, [restore]);
-  
 
   const handleClose = () => {
     setOpen(false);
@@ -440,8 +438,8 @@ const DeliveryBill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
-    productID: '',
-    amount: '',
+    productID: "",
+    amount: "",
   });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
@@ -457,6 +455,7 @@ const DeliveryBill = ({ userID }) => {
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
   const [loadingId, setLoadingId] = useState(null);
+  const [repID, setrepID] = useState("");
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -553,7 +552,9 @@ const DeliveryBill = ({ userID }) => {
     if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
       createInvoice(subtotal, "cash", "fully paid");
     } else if (
-      paymentType === "cheque" && chequeValueFormatted === subtotalNumber) {
+      paymentType === "cheque" &&
+      chequeValueFormatted === subtotalNumber
+    ) {
       createInvoice(subtotal, "cheque", "fully paid");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
@@ -581,18 +582,17 @@ const DeliveryBill = ({ userID }) => {
       }).then((result) => {
         if (result.isConfirmed) {
           setCreditedValue(creditValue);
-          if(paymentType==="cash"){
+          if (paymentType === "cash") {
             createInvoice(subtotal, "cash", "partially paid");
-          }else if (paymentType==="cheque"){
+          } else if (paymentType === "cheque") {
             createInvoice(subtotal, "cheque", "partially paid");
           }
-          
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit","not paid");
+      createInvoice(subtotal, "credit", "not paid");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -601,7 +601,6 @@ const DeliveryBill = ({ userID }) => {
       );
     }
   };
-
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -663,35 +662,58 @@ const DeliveryBill = ({ userID }) => {
   };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/getloadingproducts")
-      .then((response) => {
-        let filteredData = response.data;
+    console.log("userID in useEffect:", userID);
+    if (userID) {
+      axios
+        .get(`http://localhost:3001/getrepID/${userID}`)
+        .then((response) => {
+          const repData = response.data;
+          console.log(repData);
+          setrepID(repData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [userID]);
 
-        // Filter items based on category
-        if (category && category !== "All") {
-          filteredData = filteredData.filter(
-            (item) => item.category === category
-          );
-        }
+  useEffect(() => {
+    if (repID) {
+      // Ensure repID is available before fetching loading products
+      console.log("repID in useEffect:", repID);
+      axios
+        .get(`http://localhost:3001/getloadingproducts/${repID}`)
+        .then((response) => {
+          let filteredData = response.data;
 
-        // Filter items based on search query
-        if (searchQuery) {
-          filteredData = filteredData.filter((item) =>
-            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
+          // Filter items based on category
+          if (category && category !== "All") {
+            filteredData = filteredData.filter(
+              (item) => item.category === category
+            );
+          }
 
-        setData(filteredData); // Set the filtered data to the state
+          // Filter items based on search query
+          if (searchQuery) {
+            filteredData = filteredData.filter((item) =>
+              item.product_name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+            );
+          }
 
-        // Find the loading ID from the data
-        const loadingIdFromData = filteredData.length > 0 ? filteredData[0].loadingID : null;
-        setLoadingId(loadingIdFromData); // Set the loading ID to state
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, [category, searchQuery]);
+          setData(filteredData); // Set the filtered data to the state
+
+          // Find the loading ID from the data
+          const loadingIdFromData =
+            filteredData.length > 0 ? filteredData[0].loadingID : null;
+          setLoadingId(loadingIdFromData); // Set the loading ID to state
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [repID, category, searchQuery]); // Only fetch loading products when repID, category, or searchQuery changes
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -912,7 +934,7 @@ const DeliveryBill = ({ userID }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => onRemoveItem(item.productID,quantity)}
+              onClick={() => onRemoveItem(item.productID, quantity)}
               sx={{
                 ml: 1,
                 minWidth: "auto",
@@ -973,12 +995,11 @@ const DeliveryBill = ({ userID }) => {
     setSubtotal(calculatedSubtotal);
   }, [addedItems]);
 
-  const handleRemoveItem = (productId,amount) => {
+  const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
-    setStock({productID: productId, amount:amount});
-
+    setStock({ productID: productId, amount: amount });
   };
 
   useEffect(() => {
@@ -998,12 +1019,10 @@ const DeliveryBill = ({ userID }) => {
   }, []);
 
   // Assuming 'data' is an array of objects representing the query result
-data.forEach(row => {
-  const loadingID = row.loadingID;
-  console.log(loadingID);
-});
-
-  
+  data.forEach((row) => {
+    const loadingID = row.loadingID;
+    // console.log(loadingID);
+  });
 
   return (
     <div className="flex w-screen gap-4">
@@ -1225,7 +1244,6 @@ data.forEach(row => {
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
           <div>
-            
             <Button
               variant="contained"
               className="h-12"
