@@ -40,7 +40,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { jwtDecode } from "jwt-decode";
 
-const generatePDF = (invoiceData, addedItems) => {
+const generatePDF = (invoiceData, addedItems, saleID) => {
   const doc = new jsPDF();
 
   console.log(invoiceData);
@@ -94,7 +94,8 @@ const generatePDF = (invoiceData, addedItems) => {
   doc.setFontSize(13);
   let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
 
-  doc.text(`Order Number: #0001`, 15, startY);
+  const formattedSaleID = saleID.toString().padStart(3, '0');
+  doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);      
   doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
   doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
   doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
@@ -627,8 +628,10 @@ const DeliveryBill = ({ userID }) => {
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
 
+        console.log(saleID);
+
         if (printBill) {
-          generatePDF(invoiceData, addedItems);
+          generatePDF(invoiceData, addedItems, saleID);
         }
 
         Swal.fire({
