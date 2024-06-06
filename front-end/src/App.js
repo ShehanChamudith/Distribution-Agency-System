@@ -13,13 +13,13 @@ import ProductCatalog from "./pages/ProductCatalog";
 import Inventory from "./pages/Inventory";
 import TemporaryDrawer from "./components/Drawer";
 import ProtectedRoute from "./utils/ProtectedRoute";
-import PreOrders from "./pages/PreOrders";
 import { jwtDecode } from 'jwt-decode';
 import Unauthorized from "./pages/Unauthorized";
 import CreateLoading from "./pages/CreateLoading";
 import GetLoadings from "./pages/GetLoadings";
 import DeliveryBill from "./pages/DeliveryBill";
 import EditLoading from "./pages/EditLoading";
+import CreatePreOrder from "./pages/CreatePreOrder";
 
 
 function App() {
@@ -36,7 +36,7 @@ function App() {
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem('accessToken');
     if (token) {
-      try {
+      try { 
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken.usertypeID);
         setUserID(decodedToken.userID);
@@ -84,20 +84,37 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
               <Route path="/bill" element={<Bill userID= {userID} />} />
-              <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
-              <Route path="/pre-orders" element={<PreOrders />} />
+            </Route>
+
+            {/* Warehouse */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
               <Route path="/create-loading" element={<CreateLoading userID={userID} />} />
               <Route path="/edit-loading" element={<EditLoading userID={userID} />} />
             </Route>
+
+            {/* Admin Dashboard */}
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
               <Route path="/admin-dashboard" element={<Admin />} />
             </Route>
 
+            {/* Pre Orders */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,6]} />}>
+              <Route path="/create-preorder" element={<CreatePreOrder userID={userID} />} />
+            </Route>
+
+            {/* Loadings Delivary Bill */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,2,3]} />}>
+              <Route path="/get-loading" element={<GetLoadings userID={userID}/>} />
+            </Route>
+
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-            <Route path="/get-loading" element={<GetLoadings userID={userID}/>} />
+              <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
             </Route>
           </Routes>
         </div>

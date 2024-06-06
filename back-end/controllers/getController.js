@@ -318,16 +318,16 @@ const getRepID = (req, res) => {
 
       // Assuming there's only one repID per userID, you might want to send just the repID
       const repID = results[0].repID;
-      console.log(repID);
+      //console.log(repID);
       res.json(repID);
   });
 };
 
-const getRepIDBill = (req, res) => {
-  const userID = req.params.uuserID;
+const getCustomerID = (req, res) => {
+  const userID = req.params.userID;
   console.log(userID);
 
-  DBconnect.query("SELECT repID FROM salesrep WHERE userID = ?", [userID], (err, results) => {
+  DBconnect.query("SELECT customerID FROM customer WHERE userID = ?", [userID], (err, results) => {
       if (err) {
           console.error("Error querying MySQL database:", err);
           res.status(500).send("Internal Server Error");
@@ -341,11 +341,13 @@ const getRepIDBill = (req, res) => {
       }
 
       // Assuming there's only one repID per userID, you might want to send just the repID
-      const repID = results[0].repID;
-      console.log(repID);
-      res.json(repID);
+      const customerID = results[0].customerID;
+      console.log(customerID);
+      res.json(customerID);
   });
 };
+
+
 
 
 module.exports = {
@@ -362,5 +364,5 @@ module.exports = {
   getVehicle,
   getLoadingProducts,
   getRepID,
-  getRepIDBill,
+  getCustomerID,
 };

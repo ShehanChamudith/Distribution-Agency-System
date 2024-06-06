@@ -42,7 +42,7 @@ export const SideBarData = [
     title: "Bill-Delivary",
     icon: <ShoppingCartIcon />,
     link: "/delivary-bill",
-    roles: [1,3,4],
+    roles: [1,3],
   },
 
   {
@@ -53,10 +53,10 @@ export const SideBarData = [
   },
 
   {
-    title: "Pre Orders",
+    title: "Create Pre Order",
     icon: <RotateRightIcon />,
-    link: "/pre-orders",
-    roles: [1,2,3,4,6],
+    link: "/create-preorder",
+    roles: [1,6],
   },
 
   {

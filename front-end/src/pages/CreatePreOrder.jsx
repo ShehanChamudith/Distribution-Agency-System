@@ -6,15 +6,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Card,
   Modal,
   CardContent,
@@ -22,7 +13,6 @@ import {
   Typography,
   Alert,
   Snackbar,
-  Checkbox,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import porkIcon from "../assets/icons/pork.ico";
@@ -32,7 +22,7 @@ import sausageIcon from "../assets/icons/sausages.ico";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -187,7 +177,7 @@ const generatePDF = (invoiceData, addedItems) => {
 
   // Save the PDF
   doc.save(`invoice_${new Date().toISOString()}.pdf`);
-};
+}; 
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -396,21 +386,9 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   );
 }
 
-const CreateLoading = ({ userID }) => {
+const CreatePreOrder = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
-  const [category, setCategory] = useState("All");
-  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
-    useState(true);
-  const [selectedRep, setSelectedRep] = useState({
-    repID: "",
-    firstname: "",
-  });
-  const [selectedVehicle, setselectedVehicle] = useState({
-    vehicleID: "",
-    vehicle_number: "",
-  });
-  const [selectedRepInfo, setSelectedRepInfo] = useState("");
-  const [selectedVehicleInfo, setSelectedVehicleInfo] = useState("");
+  const [category, setCategory] = useState("All");  
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -422,82 +400,48 @@ const CreateLoading = ({ userID }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
   const [preOrderID, setpreOrderID] = useState("");
-  const [vehicle, setVehicle] = useState([]);
-  const [existingRep, setExistingRep] = useState([]);
-  const [pending, setPending] = useState(null);
-
-  const navigate = useNavigate();
-
-  const checkPendingLoading = () => {
-    // Assuming selectedRep contains the repID of the selected salesRep
-    const repID = selectedRep.repID;
-    console.log(repID);
-
-    axios
-      .post("http://localhost:3001/check-pending-loading", { repID })
-      .then((response) => {
-        setPending(response.data.hasPendingLoading);
-        console.log(response.data.hasPendingLoading);
-      })
-      .catch((error) => {
-        console.error("Error checking pending loading:", error);
-        // Handle error
-      });
-  };
+  const [fName, setFName] = useState('');
+  const [lName, setLName] = useState('');
+  const [customerID, setcustomerID] = useState("");
 
   useEffect(() => {
-    if (selectedRep) {
-      checkPendingLoading();
+    console.log("userID in useEffect:", userID);
+    if (userID) {
+      axios
+        .get(`http://localhost:3001/getcustomerID/${userID}`)
+        .then((response) => {
+          const cusData = response.data;
+          //console.log(repData);
+          setcustomerID(cusData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
     }
-  }, [selectedRep]);
+  }, [userID]);
 
+  
   const handleCreateLoading = () => {
-    checkPendingLoading(); // Check for pending loading first
 
-    // Proceed only after the checkPendingLoading completes
-    if (pending) {
-      // Show a message or take any action when there is a pending loading
-      Swal.fire({
-        icon: "warning",
-        title: "Please Complete the previous loading first !",
-        text: "There is a pending loading for the selected salesRep. Complete it to create another loading for this sales representative",
-        showCancelButton: true, // Show cancel button
-        confirmButtonText: "Change Sales Rep", // Button for changing sales rep
-        cancelButtonText: "Complete Previous Loading", // Button for completing previous loading
-        customClass: {
-          popup: "z-50",
-        },
-        didOpen: () => {
-          document.querySelector(".swal2-container").style.zIndex = "9999";
-        },
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setOpenExistingCustomerDialog(true);
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          navigate("/get-loading");
-        }
-      });
-      return;
-    } else if (addedItems.length === 0) {
+    console.log(customerID);
+  
+     if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
     } else {
-      const loadingData = {
+      const preOrderData = {
         total_value: subtotal,
-        repID: selectedRep.repID,
         addedItems: addedItems,
-        vehicleID: selectedVehicle.vehicleID,
-        userID: userID,
-        loading_status: "pending",
-        availability: "no",
+        pre_order_status: "pending",
+        customerID: customerID,
       };
 
-      console.log(loadingData);
+      console.log(preOrderData);
 
       axios
-        .post("http://localhost:3001/addloading", loadingData)
+        .post("http://localhost:3001/addpreorder", preOrderData)
         .then((response) => {
-          console.log("Invoice created successfully:", response.data);
+          console.log("Pre Order Invoice created successfully:", response.data);
 
           // if (printBill) {
           //   generatePDF(invoiceData, addedItems);
@@ -557,76 +501,12 @@ const CreateLoading = ({ userID }) => {
       });
   }, [category, searchQuery]);
 
-  const handleExistingRepChange = (event) => {
-    setSelectedRepInfo(event.target.value); // Update selected rep info
-  };
-
-  const handleVehicleChange = (event) => {
-    setSelectedVehicleInfo(event.target.value);
-  };
-
-  const handleExistingCustomerDialogClose = () => {
-    // Display SweetAlert confirmation dialog
-    Swal.fire({
-      icon: "warning",
-      title: "Please select a Sale Representative and a Vehicle",
-      text: "You need to select a Sale Representative and a vehicle to proceed.",
-      customClass: {
-        popup: "z-50",
-      },
-      didOpen: () => {
-        document.querySelector(".swal2-container").style.zIndex = "9999";
-      },
-    });
-  };
-
-  const handleExistingCustomerSubmit = () => {
-    setOpenExistingCustomerDialog(false);
-    const rep = existingRep.find((rep) => rep.firstname === selectedRepInfo);
-    setSelectedRep(rep);
-    console.log("Selected Customer after button click:", rep);
-
-    const vehi = vehicle.find(
-      (vehi) => vehi.vehicle_number === selectedVehicleInfo
-    );
-    setselectedVehicle(vehi);
-    console.log("Selected Vehicle after button click:", vehi);
-  };
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
     setCategory(newAlignment);
   };
 
-  const fetchsaleRep = () => {
-    axios
-      .get("http://localhost:3001/getsalerep")
-      .then((response) => {
-        setExistingRep(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching existing customers:", error);
-      });
-  };
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getvehicle")
-      .then((response) => {
-        const vehicleData = response.data;
-
-        setVehicle(vehicleData);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (openExistingCustomerDialog) {
-      fetchsaleRep();
-    }
-  }, [openExistingCustomerDialog]);
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
@@ -757,73 +637,18 @@ const CreateLoading = ({ userID }) => {
       });
   }, []);
 
+  // Decode the token to get user role
+  useEffect(() => {
+    const token = sessionStorage.getItem("accessToken");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setFName(decodedToken.firstname);
+      setLName(decodedToken.lastname);
+    }
+  }, []);
+
   return (
     <div className="flex w-screen gap-4">
-      {/* Select Existing Rep  */}
-      <Dialog
-        open={openExistingCustomerDialog}
-        onClose={handleExistingCustomerDialogClose}
-      >
-        <DialogTitle>Select Sales Representative and Vehicle</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please select an Sales Representative and the Vehicle from the
-            lists.
-          </DialogContentText>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="existing-rep-label">
-              Sales Representative
-            </InputLabel>
-            <Select
-              required
-              labelId="existing-rep-label"
-              value={selectedRepInfo}
-              onChange={handleExistingRepChange}
-              label="Sales Representative"
-            >
-              {existingRep.map((rep) => (
-                <MenuItem key={rep.repID} value={rep.firstname}>
-                  {rep.firstname}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="vehicle-label">Select Vehicle</InputLabel>
-            <Select
-              required
-              labelId="vehicle-label"
-              value={selectedVehicleInfo}
-              onChange={handleVehicleChange}
-              label="Select Vehicle"
-            >
-              {vehicle.map((data) => (
-                <MenuItem
-                  key={data.vehicleID}
-                  value={data.vehicle_number}
-                  disabled={data.availability === "no"} // Disable if availability is "no"
-                >
-                  {data.vehicle_number}
-                  {data.availability === "no" && " - Not Available"}{" "}
-                  {/* Append "Not Available" */}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              handleExistingCustomerSubmit();
-            }}
-            disabled={!selectedRepInfo || !selectedVehicleInfo}
-            variant="contained"
-            color="primary"
-          >
-            Select
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
@@ -914,22 +739,15 @@ const CreateLoading = ({ userID }) => {
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-6 justify-between font-PoppinsM text-2xl rounded-lg p-2">
             <div className="flex justify-between mt-8  border-b-4 ">
-              <div className="">Loading Details</div>
+              <div className="">Pre Order Details</div>
               <div className="">
                 <h1>#00{preOrderID}</h1>
               </div>
             </div>
             <div className="">
-              {selectedRep.firstname && (
                 <h1 className="text-sm font-PoppinsL">
-                  Sales Representative Name: {selectedRep.firstname}
+                  Customer Name: {fName} {lName}
                 </h1>
-              )}
-              {selectedVehicle.vehicle_number && (
-                <h1 className="text-sm font-PoppinsL">
-                  Vehicle Number: {selectedVehicle.vehicle_number}
-                </h1>
-              )}
               <h1 className="text-sm font-PoppinsL">
                 Loaded Date: {formattedDate}
               </h1>
@@ -971,7 +789,7 @@ const CreateLoading = ({ userID }) => {
                 sx={{ paddingY: 1, width: "100%", borderRadius: 2 }}
                 onClick={handleCreateLoading}
               >
-                Create a Loading
+                Create a Pre Order
               </Button>
               <Snackbar
                 open={open}
@@ -995,4 +813,4 @@ const CreateLoading = ({ userID }) => {
   );
 };
 
-export default CreateLoading;
+export default CreatePreOrder;

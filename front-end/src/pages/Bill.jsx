@@ -228,7 +228,6 @@ function a11yProps(index) {
 }
 
 function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
-
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -242,19 +241,17 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     setOpen(true);
   };
 
-
   useEffect(() => {
-    if (restore.productID !== ''){
-      if(item.productID === restore.productID) {
-      setStock((prevStock) => prevStock + restore.amount);
-      setRestore(({
-        productID: '',
-        amount: '',
-      })); // Update restore state to null using setRestore
+    if (restore.productID !== "") {
+      if (item.productID === restore.productID) {
+        setStock((prevStock) => prevStock + restore.amount);
+        setRestore({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
     }
-  }
   }, [restore]);
-  
 
   const handleClose = () => {
     setOpen(false);
@@ -312,7 +309,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    const value = event.target.value;
+    // Ensure the input is not negative
+    if (value >= 0) {
+      setQuantity(value);
+    }
   };
 
   useEffect(() => {
@@ -400,6 +401,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
             value={quantity}
             onChange={handleChange}
             sx={{ mt: 2, mb: 2, display: "block" }}
+            inputProps={{ min: 0 }} // Prevents negative input via arrow keys
           />
           <Button onClick={handleAddToBill} variant="contained">
             Add
@@ -440,8 +442,8 @@ const Bill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
-    productID: '',
-    amount: '',
+    productID: "",
+    amount: "",
   });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
@@ -552,7 +554,9 @@ const Bill = ({ userID }) => {
     if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
       createInvoice(subtotal, "cash", "fully paid");
     } else if (
-      paymentType === "cheque" && chequeValueFormatted === subtotalNumber) {
+      paymentType === "cheque" &&
+      chequeValueFormatted === subtotalNumber
+    ) {
       createInvoice(subtotal, "cheque", "fully paid");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
@@ -580,18 +584,17 @@ const Bill = ({ userID }) => {
       }).then((result) => {
         if (result.isConfirmed) {
           setCreditedValue(creditValue);
-          if(paymentType==="cash"){
+          if (paymentType === "cash") {
             createInvoice(subtotal, "cash", "partially paid");
-          }else if (paymentType==="cheque"){
+          } else if (paymentType === "cheque") {
             createInvoice(subtotal, "cheque", "partially paid");
           }
-          
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit","not paid");
+      createInvoice(subtotal, "credit", "not paid");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -600,7 +603,6 @@ const Bill = ({ userID }) => {
       );
     }
   };
-
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -907,7 +909,7 @@ const Bill = ({ userID }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => onRemoveItem(item.productID,quantity)}
+              onClick={() => onRemoveItem(item.productID, quantity)}
               sx={{
                 ml: 1,
                 minWidth: "auto",
@@ -968,12 +970,11 @@ const Bill = ({ userID }) => {
     setSubtotal(calculatedSubtotal);
   }, [addedItems]);
 
-  const handleRemoveItem = (productId,amount) => {
+  const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
-    setStock({productID: productId, amount:amount});
-
+    setStock({ productID: productId, amount: amount });
   };
 
   useEffect(() => {

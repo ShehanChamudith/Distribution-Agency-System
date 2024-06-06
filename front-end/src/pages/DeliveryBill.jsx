@@ -38,7 +38,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { jwtDecode } from "jwt-decode";
+
 
 const generatePDF = (invoiceData, addedItems, saleID) => {
   const doc = new jsPDF();
@@ -94,8 +94,8 @@ const generatePDF = (invoiceData, addedItems, saleID) => {
   doc.setFontSize(13);
   let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
 
-  const formattedSaleID = saleID.toString().padStart(3, '0');
-  doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);      
+  const formattedSaleID = saleID.toString().padStart(3, "0");
+  doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);
   doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
   doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
   doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
@@ -311,7 +311,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    const value = event.target.value;
+    // Ensure the input is not negative
+    if (value >= 0) {
+      setQuantity(value);
+    }
   };
 
   useEffect(() => {
@@ -399,6 +403,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
             value={quantity}
             onChange={handleChange}
             sx={{ mt: 2, mb: 2, display: "block" }}
+            inputProps={{ min: 0 }} // Prevents negative input via arrow keys
           />
           <Button onClick={handleAddToBill} variant="contained">
             Add
@@ -1021,11 +1026,6 @@ const DeliveryBill = ({ userID }) => {
       });
   }, []);
 
-  // Assuming 'data' is an array of objects representing the query result
-  data.forEach((row) => {
-    const loadingID = row.loadingID;
-    // console.log(loadingID);
-  });
 
   return (
     <div className="flex w-screen gap-4">
