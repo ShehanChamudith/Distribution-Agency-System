@@ -347,6 +347,56 @@ const getCustomerID = (req, res) => {
   });
 };
 
+const getPreOrder = (req, res) => {
+  // Fetch all rows from the loading table with joined data from loading_products and product tables
+  const selectAllQuery = `
+  SELECT 
+  po.preorderID, po.total_value, po.customerID, po.date, po.pre_order_status,
+  pop.productID, pop.quantity,
+  p.product_name,
+  c.userID,
+  u.firstname as customer_firstname,
+  c.area,
+  c.shop_name
+FROM pre_order po
+JOIN pre_order_products pop ON po.preorderID = pop.preorderID
+JOIN product p ON pop.productID = p.productID
+JOIN customer c ON po.customerID = c.customerID
+JOIN user u ON c.userID = u.userID
+ORDER BY po.preorderID DESC;
+
+`;
+
+  DBconnect.query(selectAllQuery, (err, loadingResults) => {
+    if (err) {
+      console.error("Error querying MySQL database for pre order table:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    // Fetch the latest loadingID
+    const latestLoadingIDQuery =
+      "SELECT preorderID FROM pre_order ORDER BY preorderID DESC LIMIT 1";
+    DBconnect.query(latestLoadingIDQuery, (err, latestLoadingIDResult) => {
+      if (err) {
+        console.error(
+          "Error querying MySQL database for latest preorderID:",
+          err
+        );
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      const uniqueloadingID =
+        latestLoadingIDResult.length === 0
+          ? 0
+          : latestLoadingIDResult[0].preorderID;
+
+      res.json({ uniqueloadingID, loadingResults });
+    });
+  });
+};
+
 
 
 
@@ -365,4 +415,5 @@ module.exports = {
   getLoadingProducts,
   getRepID,
   getCustomerID,
+  getPreOrder,
 };

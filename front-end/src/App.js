@@ -20,6 +20,8 @@ import GetLoadings from "./pages/GetLoadings";
 import DeliveryBill from "./pages/DeliveryBill";
 import EditLoading from "./pages/EditLoading";
 import CreatePreOrder from "./pages/CreatePreOrder";
+import GetPreOrderReceived from "./pages/GetPreOrderReceived";
+import GetPreOrderSent from "./pages/GetPreOrderSent";
 
 
 function App() {
@@ -103,8 +105,16 @@ function App() {
 
             {/* Pre Orders */}
 
-            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,6]} />}>
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[3,6]} />}>
               <Route path="/create-preorder" element={<CreatePreOrder userID={userID} />} />
+            </Route>
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
+              <Route path="/get-received-preorder" element={<GetPreOrderReceived userID={userID}/>} />
+            </Route>
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[6]} />}>
+              <Route path="/get-sent-preorder" element={<GetPreOrderSent userID={userID}/>} />
             </Route>
 
             {/* Loadings Delivary Bill */}

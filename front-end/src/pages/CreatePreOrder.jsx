@@ -622,7 +622,7 @@ const CreatePreOrder = ({ userID }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/getloading")
+      .get("http://localhost:3001/getpreorder")
       .then((response) => {
         const preloadID = response.data.uniqueloadingID;
         console.log(preloadID);
