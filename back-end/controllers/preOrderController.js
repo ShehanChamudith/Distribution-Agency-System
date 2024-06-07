@@ -77,7 +77,7 @@ const getPreOrderTotalToLoad = (req, res) => {
       pop.productID,
       p.product_name, p.selling_price, p.image_path,
       ROUND(SUM(pop.quantity), 3) AS total_quantity,
-      s.supplier_company
+      po.preorderID
     FROM pre_order_products pop
     JOIN product p ON pop.productID = p.productID
     JOIN supplier s ON p.supplierID = s.supplierID
@@ -101,6 +101,7 @@ const getPreOrderTotalToLoad = (req, res) => {
           quantity: row.total_quantity,
           selling_price: row.selling_price,
           image_path: row.image_path,
+          preorderID: row.preorderID,
         }));
   
         res.json({ addedItems });

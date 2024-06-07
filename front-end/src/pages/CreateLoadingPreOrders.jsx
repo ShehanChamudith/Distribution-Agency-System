@@ -512,7 +512,7 @@ const CreateLoadingPreOrders = ({ userID }) => {
       console.log(loadingData);
 
       axios
-        .post("http://localhost:3001/addloading", loadingData)
+        .post("http://localhost:3001/addloading-pre-orders", loadingData)
         .then((response) => {
           console.log("Invoice created successfully:", response.data);
 
