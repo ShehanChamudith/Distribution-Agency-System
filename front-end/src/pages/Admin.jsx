@@ -270,16 +270,15 @@ export const Admin = () => {
       }
     }
   }, [customerData.usertypeID]);
-  
 
   const handleEditUser = (event) => {
     event.preventDefault();
-  
+
     axios
       .get(`http://localhost:3001/getuser/${editUserID}`)
       .then((response) => {
         const userData = response.data[0]; // Assuming response.data is an array
-  
+
         // Map the fetched data to the state structure
         setcustomerData({
           userID: userData.userID,
@@ -290,11 +289,11 @@ export const Admin = () => {
           email: userData.email,
           phone: userData.phone,
           address: userData.address,
-          area: userData.area || '',
-          shop_name: userData.shop_name || '',
-          supplier_company: userData.supplier_company || '',
+          area: userData.area || "",
+          shop_name: userData.shop_name || "",
+          supplier_company: userData.supplier_company || "",
         });
-  
+
         console.log(userData);
         setOpenEditUserDialog(false);
         setOpenNewCustomerDialog(true);
@@ -303,7 +302,6 @@ export const Admin = () => {
         console.error("Error fetching user data:", error);
       });
   };
-  
 
   return (
     <div>
@@ -793,94 +791,6 @@ export const Admin = () => {
                   : "To add a new user, please enter the details here."}
               </DialogContentText>
 
-              <TextField
-                required
-                label="Username"
-                name="username"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={customerData.username}
-                onChange={handleChangeForm}
-              />
-              <FormControl fullWidth margin="normal">
-                <InputLabel id="usertype-label">Select User Type</InputLabel>
-                <Select
-                  required
-                  labelId="usertype-label"
-                  value={selectedUserType}
-                  onChange={handleUserTypeChange}
-                  label="Select User Type"
-                >
-                  <MenuItem value={"Sales Representative"}>
-                    Sales Representative
-                  </MenuItem>
-                  <MenuItem value={"Warehouse Staff"}>Warehouse Staff</MenuItem>
-                  <MenuItem value={"Office Staff"}>Office Staff</MenuItem>
-                  <MenuItem value={"Customer"}>Customer</MenuItem>
-                  <MenuItem value={"Supplier"}>Supplier</MenuItem>
-                </Select>
-              </FormControl>
-              {selectedUserType === "Customer" && (
-                <TextField
-                  required
-                  label="Area"
-                  name="area"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={customerData.area}
-                  onChange={handleChangeForm}
-                />
-              )}
-              {selectedUserType === "Customer" && (
-                <TextField
-                  required
-                  label="Shop Name"
-                  name="shop_name"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={customerData.shop_name}
-                  onChange={handleChangeForm}
-                />
-              )}
-              {selectedUserType === "Supplier" && (
-                <TextField
-                  required
-                  label="Company Name"
-                  name="supplier_company"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={customerData.supplier_company}
-                  onChange={handleChangeForm}
-                />
-              )}
-              <div className="flex gap-5">
-                <TextField
-                  required
-                  label="Password"
-                  name="password"
-                  type="password"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={customerData.password}
-                  onChange={handleChangeForm}
-                />
-                <TextField
-                  required
-                  label="Confirm Password"
-                  name="confirmPassword"
-                  type="password"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={confirmPassword}
-                  onChange={handleChangeForm}
-                />
-              </div>
               <div className="flex gap-5">
                 <TextField
                   required
@@ -903,6 +813,7 @@ export const Admin = () => {
                   onChange={handleChangeForm}
                 />
               </div>
+
               <TextField
                 required
                 label="Email"
@@ -914,6 +825,108 @@ export const Admin = () => {
                 value={customerData.email}
                 onChange={handleChangeForm}
               />
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="usertype-label">Select User Type</InputLabel>
+                <Select
+                  required
+                  labelId="usertype-label"
+                  value={selectedUserType}
+                  onChange={handleUserTypeChange}
+                  label="Select User Type"
+                >
+                  <MenuItem value={"Sales Representative"}>
+                    Sales Representative
+                  </MenuItem>
+                  <MenuItem value={"Warehouse Staff"}>Warehouse Staff</MenuItem>
+                  <MenuItem value={"Office Staff"}>Office Staff</MenuItem>
+                  <MenuItem value={"Customer"}>Customer</MenuItem>
+                  <MenuItem value={"Supplier"}>Supplier</MenuItem>
+                </Select>
+              </FormControl>
+
+              {selectedUserType !== "Supplier" && (
+                <>
+                  <TextField
+                    required
+                    label="Username"
+                    name="username"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={customerData.username}
+                    onChange={handleChangeForm}
+                  />
+                </>
+              )}
+
+              
+
+              {selectedUserType === "Customer" && (
+                <TextField
+                  required
+                  label="Area"
+                  name="area"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={customerData.area}
+                  onChange={handleChangeForm}
+                />
+              )}
+
+              {selectedUserType === "Customer" && (
+                <TextField
+                  required
+                  label="Shop Name"
+                  name="shop_name"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={customerData.shop_name}
+                  onChange={handleChangeForm}
+                />
+              )}
+
+              {selectedUserType === "Supplier" && (
+                <TextField
+                  required
+                  label="Company Name"
+                  name="supplier_company"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={customerData.supplier_company}
+                  onChange={handleChangeForm}
+                />
+              )}
+
+              {selectedUserType !== "Supplier" && (
+                <div className="flex gap-5">
+                  <TextField
+                    required
+                    label="Password"
+                    name="password"
+                    type="password"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={customerData.password}
+                    onChange={handleChangeForm}
+                  />
+                  <TextField
+                    required
+                    label="Confirm Password"
+                    name="confirmPassword"
+                    type="password"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={confirmPassword}
+                    onChange={handleChangeForm}
+                  />
+                </div>
+              )}
+
               <TextField
                 required
                 label="Phone"
