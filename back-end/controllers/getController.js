@@ -425,6 +425,43 @@ DBconnect.query(query, (err, results) => {
 });
 };
 
+const getUser = (req, res) => {
+    const query = 'SELECT * FROM user';
+
+    DBconnect.query(query, (err, results) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            res.status(500).send('Internal Server Error');
+            return;
+        }
+
+        if (results.length === 0) {
+            res.status(200).send('No data in user table');
+        } else {
+            res.json(results);
+        }
+    });
+}
+
+const getUserbyID = (req, res) => {
+  userID=req.params.editUserID;
+  const query = 'SELECT * FROM user WHERE userID = ?';
+
+  DBconnect.query(query,[userID], (err, results) => {
+      if (err) {
+          console.error('Error executing query:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+
+      if (results.length === 0) {
+          res.status(200).send('No data in user table');
+      } else {
+          res.json(results);
+      }
+  });
+}
+
 
 
 
@@ -445,4 +482,6 @@ module.exports = {
   getCustomerID,
   getPreOrder,
   getPreOrderTotal,
+  getUser,
+  getUserbyID,
 };

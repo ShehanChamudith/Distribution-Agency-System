@@ -56,11 +56,11 @@ export default function TemporaryDrawer({ setIsAuthenticated, setUserInfo  }) {
             <li key={key} className="">
               <Link
                 to={val.link}
-                className="flex items-center h-12 space-x-2  hover:bg-[#d4e0ff] font-PoppinsM text-black justify-center no-underline hover:rounded-xl"
+                className="flex items-center h-12  hover:bg-[#d4e0ff] font-PoppinsM text-black justify-center no-underline hover:rounded-xl"
                 onClick={() => handleLinkClick(val.title)}
               >
-                <div className="flex-[30%] grid justify-center">{val.icon}</div>
-                <div className="flex-[70%]">{val.title}</div>
+                <div className="flex-[25%] grid justify-center">{val.icon}</div>
+                <div className="flex-[75%]">{val.title}</div>
               </Link>
             </li>
           ))}

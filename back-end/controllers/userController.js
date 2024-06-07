@@ -2,7 +2,7 @@ const DBconnect = require('../config/DBconnect');
 const bcrypt = require('bcrypt');
 
 const addUser = (req, res) => {
-    const { usertypeID, username, password, firstname, lastname, email, phone, address, area, shop_name } = req.body;
+    const { usertypeID, username, password, firstname, lastname, email, phone, address, area, shop_name, supplier_company } = req.body;
 
     // Generate a salt with 10 rounds
     bcrypt.genSalt(10, (saltErr, salt) => {
@@ -47,6 +47,20 @@ const addUser = (req, res) => {
 
                         res.json({ message: 'User and customer added successfully' });
                     });
+                } 
+                // If usertype is 5, insert into the supplier table
+                else if (usertypeID === 5) {
+                    const insertSupplierQuery = 'INSERT INTO supplier (userID, supplier_company) VALUES (?, ?)';
+                    
+                    DBconnect.query(insertSupplierQuery, [userID, supplier_company], (supplierErr, supplierResult) => {
+                        if (supplierErr) {
+                            console.error('Error inserting supplier into database:', supplierErr);
+                            res.status(500).send('Internal Server Error');
+                            return;
+                        }
+
+                        res.json({ message: 'User and supplier added successfully' });
+                    });
                 } else {
                     res.json({ message: 'User added successfully' });
                 }
@@ -54,6 +68,7 @@ const addUser = (req, res) => {
         });
     });
 }
+
 
 module.exports = {
     addUser

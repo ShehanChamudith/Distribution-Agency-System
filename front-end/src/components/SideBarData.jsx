@@ -31,15 +31,15 @@ export const SideBarData = [
     roles: [1,2,4],
   },
 
-  {
-    title: "Create Loading Pre",
-    icon: <LoadIcon />,
-    link: "/create-loading-pre-orders",
-    roles: [1,2,4],
-  },
+  // {
+  //   title: "Create Loading Pre",
+  //   icon: <LoadIcon />,
+  //   link: "/create-loading-pre-orders",
+  //   roles: [1,2,4],
+  // },
 
   {
-    title: "Loadings",
+    title: "Past Loadings",
     icon: <LoadIcon />,
     link: "/get-loading",
     roles: [1,2,3,4],
