@@ -58,8 +58,8 @@ function TabPanel(props) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+        <Box sx={{ paddingY: 3 }}>
+          <div>{children}</div>
         </Box>
       )}
     </div>
@@ -257,7 +257,7 @@ function GetPreOrderReceived() {
 
   return (
     <div>
-      <div className="w-screen px-20 py-5 h-[87vh]">
+      <div className="w-screen px-20 py-5 h-[85vh]">
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Pre Orders" />
           <Tab label="Totals of Pending Pre Orders" />
@@ -289,7 +289,7 @@ function GetPreOrderReceived() {
                   Clear Filters
                 </Button>
               </FilterBox>
-              <ScrollableTableContainer>
+              <ScrollableTableContainer style={{ maxHeight: "calc(80vh - 160px)" }}>
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
@@ -412,8 +412,9 @@ function GetPreOrderReceived() {
           </LocalizationProvider>
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <Box className="w-full">
-          <FilterBox className="w-full p-3 justify-end">
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Paper>
+            <FilterBox className="w-full p-3 justify-end">
               <TextField
                 className="w-72"
                 label="Filter by Product Name or Supplier"
@@ -421,49 +422,54 @@ function GetPreOrderReceived() {
                 value={filter}
                 onChange={handleFilterChange}
               />
-              <Button className="h-14" variant="outlined" onClick={handleClearFilters}>
+              <Button
+                className="h-14"
+                variant="outlined"
+                onClick={handleClearFilters}
+              >
                 Clear Filters
               </Button>
             </FilterBox>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 700 }} aria-label="customized table">
+              <ScrollableTableContainer style={{ maxHeight: "calc(80vh - 160px)" }}>
+                <Table stickyHeader>
                 <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Product Name</StyledTableCell>
-                    <StyledTableCell align="right">
-                      Total Quantity
-                    </StyledTableCell>
-                    <StyledTableCell align="right">Supplier</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {totals
-                    .filter((row) => {
-                      const productName = row.product_name.toLowerCase();
-                      const supplierCompany =
-                        row.supplier_company.toLowerCase();
-                      const matchesFilter =
-                        productName.includes(filter.toLowerCase()) ||
-                        supplierCompany.includes(filter.toLowerCase());
-                      return matchesFilter;
-                    })
-                    .map((row) => (
-                      <StyledTableRow key={row.product_name}>
-                        <StyledTableCell component="th" scope="row">
-                          {row.product_name}
-                        </StyledTableCell>
-                        <StyledTableCell align="right">
-                          {row.total_quantity}
-                        </StyledTableCell>
-                        <StyledTableCell align="right">
-                          {row.supplier_company}
-                        </StyledTableCell>
-                      </StyledTableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+                    <TableRow>
+                      <StyledTableCell>Product Name</StyledTableCell>
+                      <StyledTableCell align="center">
+                        Total Quantity ( kg )
+                      </StyledTableCell>
+                      <StyledTableCell align="right">Supplier</StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {totals
+                      .filter((row) => {
+                        const productName = row.product_name.toLowerCase();
+                        const supplierCompany =
+                          row.supplier_company.toLowerCase();
+                        const matchesFilter =
+                          productName.includes(filter.toLowerCase()) ||
+                          supplierCompany.includes(filter.toLowerCase());
+                        return matchesFilter;
+                      })
+                      .map((row) => (
+                        <StyledTableRow key={row.product_name}>
+                          <StyledTableCell component="th" scope="row">
+                            {row.product_name}
+                          </StyledTableCell>
+                          <StyledTableCell align="center">
+                            {row.total_quantity}
+                          </StyledTableCell>
+                          <StyledTableCell align="right">
+                            {row.supplier_company}
+                          </StyledTableCell>
+                        </StyledTableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </ScrollableTableContainer>
+            </Paper>
+          </LocalizationProvider>
         </TabPanel>
       </div>
     </div>

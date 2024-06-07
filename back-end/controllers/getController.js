@@ -402,7 +402,7 @@ const getPreOrderTotal = (req, res) => {
   SELECT 
   pop.productID,
   p.product_name,
-  SUM(pop.quantity) AS total_quantity,
+  ROUND(SUM(pop.quantity), 3) AS total_quantity,
   s.supplier_company
 FROM pre_order_products pop
 JOIN product p ON pop.productID = p.productID
@@ -411,6 +411,7 @@ JOIN pre_order po ON pop.preorderID = po.preorderID
 WHERE po.pre_order_status = 'pending'
 GROUP BY pop.productID, p.product_name, s.supplier_company
 ORDER BY total_quantity DESC;
+
 
 `;
 
