@@ -71,6 +71,49 @@ const addPreOrder = (req, res) => {
     });
 };
 
+const getPreOrderTotalToLoad = (req, res) => {
+    const query = `
+    SELECT 
+      pop.productID,
+      p.product_name, p.selling_price, p.image_path,
+      ROUND(SUM(pop.quantity), 3) AS total_quantity,
+      s.supplier_company
+    FROM pre_order_products pop
+    JOIN product p ON pop.productID = p.productID
+    JOIN supplier s ON p.supplierID = s.supplierID
+    JOIN pre_order po ON pop.preorderID = po.preorderID
+    WHERE po.pre_order_status = 'pending'
+    GROUP BY pop.productID, p.product_name, s.supplier_company
+    ORDER BY total_quantity DESC;
+    `;
+  
+    DBconnect.query(query, (err, results) => {
+      if (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+  
+      if (results.length > 0) {
+        const addedItems = results.map(row => ({
+          productID: row.productID,
+          product_name: row.product_name,
+          quantity: row.total_quantity,
+          selling_price: row.selling_price,
+          image_path: row.image_path,
+        }));
+  
+        res.json({ addedItems });
+      } else {
+        res.status(404).json({ error: "No pending pre-order products found" });
+      }
+    });
+  };
+  
+
+
+
 module.exports = {
     addPreOrder,
+    getPreOrderTotalToLoad,
 };

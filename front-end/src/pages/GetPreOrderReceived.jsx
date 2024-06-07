@@ -255,6 +255,25 @@ function GetPreOrderReceived() {
     },
   }));
 
+  const handleProcessPreOrders = () =>{
+
+    // Fetch the previously created pre order information using the preorderID
+    axios
+      .get(`http://localhost:3001/getloadingID/${loadingID}`)
+      .then((response) => {
+        const loadingData = response.data; // Assuming the response contains the loading data
+        console.log(loadingData);
+
+        // Navigate to "/edit-loading" and pass the data as state
+        navigate("/edit-loading", { state: { loadingData } });
+      })
+      .catch((error) => {
+        console.error("Error fetching loading information:", error);
+        // Handle error
+      });
+
+  }
+
   return (
     <div>
       <div className="w-screen px-20 py-5 h-[85vh]">
@@ -412,65 +431,74 @@ function GetPreOrderReceived() {
           </LocalizationProvider>
         </TabPanel>
         <TabPanel value={tabValue} index={1}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Paper>
-            <FilterBox className="w-full p-3 justify-end">
-              <TextField
-                className="w-72"
-                label="Filter by Product Name or Supplier"
-                variant="outlined"
-                value={filter}
-                onChange={handleFilterChange}
-              />
-              <Button
-                className="h-14"
-                variant="outlined"
-                onClick={handleClearFilters}
-              >
-                Clear Filters
-              </Button>
-            </FilterBox>
-              <ScrollableTableContainer style={{ maxHeight: "calc(80vh - 160px)" }}>
-                <Table stickyHeader>
-                <TableHead>
-                    <TableRow>
-                      <StyledTableCell>Product Name</StyledTableCell>
-                      <StyledTableCell align="center">
-                        Total Quantity ( kg )
-                      </StyledTableCell>
-                      <StyledTableCell align="right">Supplier</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {totals
-                      .filter((row) => {
-                        const productName = row.product_name.toLowerCase();
-                        const supplierCompany =
-                          row.supplier_company.toLowerCase();
-                        const matchesFilter =
-                          productName.includes(filter.toLowerCase()) ||
-                          supplierCompany.includes(filter.toLowerCase());
-                        return matchesFilter;
-                      })
-                      .map((row) => (
-                        <StyledTableRow key={row.product_name}>
-                          <StyledTableCell component="th" scope="row">
-                            {row.product_name}
-                          </StyledTableCell>
-                          <StyledTableCell align="center">
-                            {row.total_quantity}
-                          </StyledTableCell>
-                          <StyledTableCell align="right">
-                            {row.supplier_company}
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </ScrollableTableContainer>
-            </Paper>
-          </LocalizationProvider>
-        </TabPanel>
+  <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <Paper>
+      <FilterBox className="w-full p-3 justify-between">
+        <Box>
+          <Button
+            className="h-14"
+            variant="contained"
+            onClick={handleProcessPreOrders}
+          >
+            Create a Loading of Pre Orders
+          </Button>
+        </Box>
+        <Box className="flex gap-4">
+          <TextField
+            className="w-72"
+            label="Filter by Product Name or Supplier"
+            variant="outlined"
+            value={filter}
+            onChange={handleFilterChange}
+          />
+          <Button
+            className="h-14"
+            variant="outlined"
+            onClick={handleClearFilters}
+          >
+            Clear Filters
+          </Button>
+        </Box>
+      </FilterBox>
+      <ScrollableTableContainer style={{ maxHeight: "calc(80vh - 160px)" }}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <StyledTableCell>Product Name</StyledTableCell>
+              <StyledTableCell align="center">Total Quantity ( kg )</StyledTableCell>
+              <StyledTableCell align="right">Supplier</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {totals
+              .filter((row) => {
+                const productName = row.product_name.toLowerCase();
+                const supplierCompany = row.supplier_company.toLowerCase();
+                const matchesFilter =
+                  productName.includes(filter.toLowerCase()) ||
+                  supplierCompany.includes(filter.toLowerCase());
+                return matchesFilter;
+              })
+              .map((row) => (
+                <StyledTableRow key={row.product_name}>
+                  <StyledTableCell component="th" scope="row">
+                    {row.product_name}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    {row.total_quantity}
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    {row.supplier_company}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </ScrollableTableContainer>
+    </Paper>
+  </LocalizationProvider>
+</TabPanel>
+
       </div>
     </div>
   );
