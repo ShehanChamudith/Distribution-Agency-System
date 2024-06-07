@@ -259,16 +259,16 @@ function GetPreOrderReceived() {
 
     // Fetch the previously created pre order information using the preorderID
     axios
-      .get(`http://localhost:3001/getloadingID/${loadingID}`)
+      .get(`http://localhost:3001/load-preorders`)
       .then((response) => {
-        const loadingData = response.data; // Assuming the response contains the loading data
-        console.log(loadingData);
+        const preOrderData = response.data; // Assuming the response contains the loading data
+        console.log(preOrderData);
 
         // Navigate to "/edit-loading" and pass the data as state
-        navigate("/edit-loading", { state: { loadingData } });
+        navigate("/create-loading-pre-orders", { state: { preOrderData } });
       })
       .catch((error) => {
-        console.error("Error fetching loading information:", error);
+        console.error("Error fetching pre order information:", error);
         // Handle error
       });
 

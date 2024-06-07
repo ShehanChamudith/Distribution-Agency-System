@@ -22,6 +22,7 @@ import EditLoading from "./pages/EditLoading";
 import CreatePreOrder from "./pages/CreatePreOrder";
 import GetPreOrderReceived from "./pages/GetPreOrderReceived";
 import GetPreOrderSent from "./pages/GetPreOrderSent";
+import CreateLoadingPreOrders from "./pages/CreateLoadingPreOrders";
 
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
               <Route path="/create-loading" element={<CreateLoading userID={userID} />} />
+              <Route path="/create-loading-pre-orders" element={<CreateLoadingPreOrders userID={userID} />} />
               <Route path="/edit-loading" element={<EditLoading userID={userID} />} />
             </Route>
 
