@@ -397,6 +397,33 @@ ORDER BY po.preorderID DESC;
   });
 };
 
+const getPreOrderTotal = (req, res) => {
+  const query = `
+  SELECT 
+  pop.productID,
+  p.product_name,
+  SUM(pop.quantity) AS total_quantity,
+  s.supplier_company
+FROM pre_order_products pop
+JOIN product p ON pop.productID = p.productID
+JOIN supplier s ON p.supplierID = s.supplierID
+JOIN pre_order po ON pop.preorderID = po.preorderID
+WHERE po.pre_order_status = 'pending'
+GROUP BY pop.productID, p.product_name, s.supplier_company
+ORDER BY total_quantity DESC;
+
+`;
+
+DBconnect.query(query, (err, results) => {
+  if (err) {
+    console.error('Error executing query:', err);
+    res.status(500).send('Internal Server Error');
+    return;
+  }
+  res.json(results);
+});
+};
+
 
 
 
@@ -416,4 +443,5 @@ module.exports = {
   getRepID,
   getCustomerID,
   getPreOrder,
+  getPreOrderTotal,
 };

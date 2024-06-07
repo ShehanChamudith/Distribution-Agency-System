@@ -225,6 +225,7 @@ function GetPreOrderSent() {
                     <StyledTableCell>Date</StyledTableCell>
                     <StyledTableCell>Pre Order ID</StyledTableCell>
                     <StyledTableCell>Customer</StyledTableCell>
+                    <StyledTableCell>Area</StyledTableCell>
                     <StyledTableCell>Pre Order Status</StyledTableCell>
                     <StyledTableCell />
                   </TableRow>
@@ -238,6 +239,7 @@ function GetPreOrderSent() {
                         </TableCell>
                         <TableCell>{pre.preorderID}</TableCell>
                         <TableCell>{pre.customer_firstname}</TableCell>
+                        <TableCell>{pre.area}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={2}>
                             {pre.pre_order_status}

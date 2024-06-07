@@ -15,6 +15,7 @@ const {getLoadingProducts} = require('../controllers/getController');
 const {getRepID} = require('../controllers/getController');
 const {getCustomerID} = require('../controllers/getController');
 const {getPreOrder} = require('../controllers/getController');
+const {getPreOrderTotal} = require('../controllers/getController');
 
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
@@ -31,6 +32,7 @@ router.get('/getloadingproducts/:repID', getLoadingProducts);
 router.get('/getrepID/:userID', getRepID);
 router.get('/getcustomerID/:userID', getCustomerID);
 router.get('/getpreorder', getPreOrder);
+router.get('/getpreordertotal', getPreOrderTotal);
 
 module.exports = router;
 

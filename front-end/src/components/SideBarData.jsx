@@ -35,7 +35,7 @@ export const SideBarData = [
     title: "Loadings",
     icon: <LoadIcon />,
     link: "/get-loading",
-    roles: [1,2,3],
+    roles: [1,2,3,4],
   },
 
   {
@@ -63,7 +63,7 @@ export const SideBarData = [
     title: "Received Pre Orders",
     icon: <RotateRightIcon />,
     link: "/get-received-preorder",
-    roles: [1,3],
+    roles: [1,3,4],
   },
 
   {

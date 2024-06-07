@@ -19,6 +19,7 @@ import axios from "axios";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
+import Typography from '@mui/material/Typography';
 
 // Custom styles for the table headers
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -296,6 +297,7 @@ function GetLoadings() {
                           >
                             <Box margin={1}>
                               <TableContainer component={Paper}>
+                                <Typography variant="h6" gutterBottom component="div">Loading Details:</Typography>
                                 <Table
                                   sx={{ minWidth: 200 }}
                                   size="small"
