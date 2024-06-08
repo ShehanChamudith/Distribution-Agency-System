@@ -504,12 +504,29 @@ ORDER BY s.saleID DESC;
 const getCreditSales = (req, res) => {
   const query = `
   
-SELECT cs.credit_saleID, cs.paymentID, cs.credit_amount, s.*, u.firstname, u.lastname, c.shop_name, c.area
-FROM credit_sale cs
-INNER JOIN payment p ON cs.paymentID = p.paymentID
-INNER JOIN sale s ON p.saleID = s.saleID
-INNER JOIN user u ON s.userID = u.userID
-INNER JOIN customer c ON s.customerID = c.customerID;
+SELECT 
+    cs.credit_saleID, 
+    cs.paymentID, 
+    cs.credit_amount, 
+    s.*, 
+    u.firstname, 
+    u.lastname, 
+    c.shop_name, 
+    c.area, 
+    p.payment_status
+FROM 
+    credit_sale cs
+INNER JOIN 
+    payment p ON cs.paymentID = p.paymentID
+INNER JOIN 
+    sale s ON p.saleID = s.saleID
+INNER JOIN 
+    user u ON s.userID = u.userID
+INNER JOIN 
+    customer c ON s.customerID = c.customerID
+WHERE 
+    p.payment_status != 'fully paid';
+
 
 
 
@@ -533,6 +550,7 @@ INNER JOIN customer c ON s.customerID = c.customerID;
 
 const getUserbyID = (req, res) => {
   userID = req.params.editUserID;
+  console.log(userID);
   const query = "SELECT * FROM user WHERE userID = ?";
 
   DBconnect.query(query, [userID], (err, results) => {
@@ -549,6 +567,38 @@ const getUserbyID = (req, res) => {
     }
   });
 };
+
+const getPaymentStatus = (req, res) => {
+  const paymentID = req.params.paymentID;
+  console.log(paymentID);
+  
+  const query = `
+    SELECT p.payment_status, p.saleID, p.customerID, cs.credit_amount
+    FROM payment p
+    JOIN credit_sale cs ON p.paymentID = cs.paymentID
+    WHERE p.paymentID = ?
+  `;
+
+  DBconnect.query(query, [paymentID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).send("No data found");
+    } else {
+      res.json(results[0]); // Return the first result as an object
+    }
+  });
+};
+
+module.exports = {
+  getPaymentStatus,
+};
+
+
 
 module.exports = {
   inventoryGet,
@@ -571,4 +621,5 @@ module.exports = {
   getUserbyID,
   getSales,
   getCreditSales,
+  getPaymentStatus,
 };

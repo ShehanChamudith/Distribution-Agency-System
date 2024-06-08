@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
@@ -21,6 +20,10 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 
 const FilterBox = styled(Box)({
   display: "flex",
@@ -64,13 +67,81 @@ function SaleHistory() {
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
-  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [uuserID, setUserID] = useState(null);
-  const [ccustomerID, setcustomerID] = useState("");
   const [tabValue, setTabValue] = useState(0);
-  const [totals, setTotals] = useState([]);
   const [creditSales, setCreditSales] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [selectedPaymentID, setSelectedPaymentID] = useState(null);
+
+  const handleOpenDialog = (paymentID) => {
+    setSelectedPaymentID(paymentID);
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handlePaymentAmountChange = (event) => {
+    const value = event.target.value;
+    if (value >= 0) {
+      setPaymentAmount(value);
+    }
+  };
+
+  const handleSettleUp = () => {
+    if (selectedPaymentID && paymentAmount > 0) {
+      axios.get(`http://localhost:3001/getpaymentstatus/${selectedPaymentID}`)
+        .then(response => {
+          const paymentStatus = response.data.payment_status;
+          const creditAmount = response.data.credit_amount; // Ensure this matches the column name from your database
+  
+          console.log("Payment Status:", paymentStatus);
+          console.log("Credit Amount:", creditAmount);
+          console.log("Entered Payment Amount:", paymentAmount);
+  
+          if (paymentStatus !== "fully paid") {
+            if (Number(paymentAmount) === Number(creditAmount)) {
+              // Add a new row to the payment table
+              axios.post(`http://localhost:3001/updatepayment/${selectedPaymentID}`)
+                .then(() => {
+                  alert("Payment settled successfully.");
+                  setOpenDialog(false);
+                  fetchCreditSales(); // Fetch credit sales after full payment
+                })
+                .catch(error => {
+                  console.error("Error adding payment:", error);
+                });
+            } else if (Number(paymentAmount) < Number(creditAmount)) {
+              // Deduct paymentAmount from credit_amount in credit_sale table
+              axios.post(`http://localhost:3001/deductcreditamount/${selectedPaymentID}`, { paymentAmount })
+                .then(() => {
+                  alert("Payment partially settled.");
+                  setOpenDialog(false);
+                  fetchCreditSales(); // Fetch credit sales after partial payment
+                })
+                .catch(error => {
+                  console.error("Error deducting credit amount:", error);
+                });
+            } else {
+              alert("Invalid payment amount or payment status.");
+            }
+          } else {
+            alert("Payment is already fully settled.");
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching payment status:", error);
+        });
+    } else {
+      alert("Please enter a valid payment amount.");
+    }
+  };
+  
+  
+  
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
@@ -96,7 +167,7 @@ function SaleHistory() {
       .then((response) => {
         const salesData = response.data;
         setLoadings(salesData);
-        console.log(response.data);
+        //console.log(response.data);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -156,7 +227,9 @@ function SaleHistory() {
       paymentType.includes(filter.toLowerCase()) ||
       userName.includes(filter.toLowerCase());
 
-    
+    if (paymentType === "credit") {
+      return false;
+    }
 
     if (userInfo === 3) {
       if (dateFilter) {
@@ -179,17 +252,6 @@ function SaleHistory() {
     }
   });
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getpreordertotal")
-      .then((response) => {
-        setTotals(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching pre-order totals:", error);
-      });
-  }, []);
-
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -200,49 +262,19 @@ function SaleHistory() {
     },
   }));
 
-  const StyledTableRow = styled(TableRow)(({ theme }) => ({
-    "&:nth-of-type(odd)": {
-      backgroundColor: theme.palette.action.hover,
-    },
-    // hide last border
-    "&:last-child td, &:last-child th": {
-      border: 0,
-    },
-  }));
-
-  const handleProcessPreOrders = () => {
-    // Fetch the previously created pre order information using the preorderID
-    axios
-      .get(`http://localhost:3001/load-preorders`)
+  const fetchCreditSales = () => {
+    return axios.get("http://localhost:3001/getcreditsales")
       .then((response) => {
-        const preOrderData = response.data; // Assuming the response contains the loading data
-        console.log(preOrderData);
-
-        // Navigate to "/edit-loading" and pass the data as state
-        navigate("/create-loading-pre-orders", { state: { preOrderData } });
-      })
-      .catch((error) => {
-        console.error("Error fetching pre order information:", error);
-        // Handle error
-      });
-  };
-
-  const filteredCreditSales = filteredPreOrders.filter(
-    (pre) => pre.payment_type === "credit"
-  );
-
-  const filteredCashAndChequeSales = filteredPreOrders.filter(
-    (pre) => pre.payment_type === "cash" || pre.payment_type === "cheque"
-  );
-
-  useEffect(() => {
-    axios.get('http://localhost:3001/getcreditsales')
-      .then(response => {
         setCreditSales(response.data);
       })
-      .catch(error => {
-        console.error('Error fetching credit sales:', error);
+      .catch((error) => {
+        console.error("Error fetching credit sales:", error);
+        return [];
       });
+  };
+  
+  useEffect(() => {
+    fetchCreditSales()
   }, []);
   
 
@@ -299,7 +331,7 @@ function SaleHistory() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredCashAndChequeSales.map((pre) => (
+                    {filteredPreOrders?.map((pre) => (
                       <React.Fragment key={pre.saleID}>
                         <TableRow>
                           <TableCell>
@@ -363,7 +395,7 @@ function SaleHistory() {
                                       </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                      {PreOrderProductsMap[pre.saleID].map(
+                                      {PreOrderProductsMap[pre.saleID]?.map(
                                         (product) => (
                                           <TableRow key={product.productID}>
                                             <TableCell
@@ -433,13 +465,13 @@ function SaleHistory() {
                       <StyledTableCell>Area</StyledTableCell>
                       <StyledTableCell>Billed by</StyledTableCell>
                       <StyledTableCell>Sale Amount ( LKR )</StyledTableCell>
-                      <StyledTableCell>Payment Type</StyledTableCell>
                       <StyledTableCell>Credited Amount</StyledTableCell>
+                      <StyledTableCell>Actions</StyledTableCell>
                       <StyledTableCell />
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {creditSales.map((pre) => (
+                    {creditSales?.map((pre) => (
                       <React.Fragment key={pre.saleID}>
                         <TableRow>
                           <TableCell>
@@ -452,8 +484,18 @@ function SaleHistory() {
                             {pre.firstname} {pre.lastname}
                           </TableCell>
                           <TableCell>{pre.sale_amount}</TableCell>
-                          <TableCell>{pre.payment_type}</TableCell>
                           <TableCell>{pre.credit_amount}</TableCell>
+                          <TableCell>
+                            <Box>
+                              <Button
+                                onClick={() => handleOpenDialog(pre.paymentID)}
+                                color="primary"
+                                variant="contained"
+                              >
+                                Settle Up
+                              </Button>
+                            </Box>
+                          </TableCell>
                           <TableCell align="right">
                             <Button
                               aria-label="expand row"
@@ -498,7 +540,7 @@ function SaleHistory() {
                                       </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                      {PreOrderProductsMap[pre.saleID].map(
+                                      {PreOrderProductsMap[pre.saleID]?.map(
                                         (product) => (
                                           <TableRow key={product.productID}>
                                             <TableCell
@@ -523,6 +565,29 @@ function SaleHistory() {
                       </React.Fragment>
                     ))}
                   </TableBody>
+
+                  <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogTitle>Settle Up</DialogTitle>
+                    <DialogContent>
+                      <div className="py-3">
+                        <TextField
+                          label="Payment Amount"
+                          type="number"
+                          value={paymentAmount}
+                          onChange={handlePaymentAmountChange}
+                          fullWidth
+                        />
+                      </div>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={handleCloseDialog} color="primary">
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSettleUp} color="primary">
+                        Settle Up
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
                 </Table>
               </ScrollableTableContainer>
             </Paper>
