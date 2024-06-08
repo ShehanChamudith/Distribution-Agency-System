@@ -23,6 +23,7 @@ import CreatePreOrder from "./pages/CreatePreOrder";
 import GetPreOrderReceived from "./pages/GetPreOrderReceived";
 import GetPreOrderSent from "./pages/GetPreOrderSent";
 import CreateLoadingPreOrders from "./pages/CreateLoadingPreOrders";
+import SaleHistory from "./pages/SaleHistory";
 
 
 function App() {
@@ -86,9 +87,21 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
-              <Route path="/bill" element={<Bill userID= {userID} />} />
+              
               <Route path="/product-catalog" element={<ProductCatalog />} />
               <Route path="/inventory" element={<Inventory />} />
+            </Route>
+
+            {/* Billing */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3,4]} />}>
+              <Route path="/bill" element={<Bill userID= {userID} />} />
+            </Route>
+
+            {/* Sales History */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,2,3,4]} />}>
+              <Route path="/sales" element={<SaleHistory userID= {userID} />} />
             </Route>
 
             {/* Warehouse */}

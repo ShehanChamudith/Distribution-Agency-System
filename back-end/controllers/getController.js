@@ -443,6 +443,40 @@ const getUser = (req, res) => {
     });
 }
 
+const getSales = (req, res) => {
+  const query = `SELECT 
+  s.*, 
+  ps.productID, 
+  ps.quantity, ps.quantity,
+  p.product_name, 
+  u.firstname AS user_firstname, 
+  u.lastname AS user_lastname, 
+  c.shop_name, c.area
+FROM sale s
+JOIN productsale ps ON s.saleID = ps.saleID
+JOIN product p ON ps.productID = p.productID
+JOIN user u ON s.userID = u.userID
+JOIN customer c ON s.customerID = c.customerID
+ORDER BY s.saleID DESC;
+`;
+
+  DBconnect.query(query, (err, results) => {
+      if (err) {
+          console.error('Error executing query:', err);
+          res.status(500).send('Internal Server Error');
+          return;
+      }
+
+      if (results.length === 0) {
+          res.status(200).send('No data in sale table');
+      } else {
+          res.json(results);
+      }
+  });
+}
+
+
+
 const getUserbyID = (req, res) => {
   userID=req.params.editUserID;
   const query = 'SELECT * FROM user WHERE userID = ?';
@@ -461,6 +495,7 @@ const getUserbyID = (req, res) => {
       }
   });
 }
+
 
 
 
@@ -484,4 +519,5 @@ module.exports = {
   getPreOrderTotal,
   getUser,
   getUserbyID,
+  getSales,
 };

@@ -108,9 +108,31 @@ const addUser = (req, res) => {
       }
     });
   };
+
+  const checkUserExistance = (req, res) => {
+    const { username, phone } = req.body;
+  
+    // Query to check if username or phone number already exists
+    const checkUserQuery = 'SELECT COUNT(*) AS count FROM user WHERE username = ? OR phone = ?';
+    DBconnect.query(checkUserQuery, [username, phone], (err, result) => {
+      if (err) {
+        console.error('Error checking user existence:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+  
+      // If count > 0, username or phone number already exists
+      if (result[0].count > 0) {
+        res.json({ exists: true });
+      } else {
+        res.json({ exists: false });
+      }
+    });
+  }
   
 
 
 module.exports = {
-    addUser
+    addUser,
+    checkUserExistance,
 };

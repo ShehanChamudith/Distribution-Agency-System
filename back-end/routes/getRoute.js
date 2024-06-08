@@ -18,6 +18,8 @@ const {getPreOrder} = require('../controllers/getController');
 const {getPreOrderTotal} = require('../controllers/getController');
 const {getUser} = require('../controllers/getController');
 const {getUserbyID} = require('../controllers/getController');
+const {getSales} = require('../controllers/getController');
+
 
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
@@ -37,6 +39,7 @@ router.get('/getpreorder', getPreOrder);
 router.get('/getpreordertotal', getPreOrderTotal);
 router.get('/getuser', getUser);
 router.get('/getuser/:editUserID', getUserbyID);
+router.get('/getsales', getSales);
 
 module.exports = router;
 

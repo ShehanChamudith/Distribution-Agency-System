@@ -787,52 +787,79 @@ const Bill = ({ userID }) => {
     });
   };
 
+  const checkUserExistence = () => {
+    // Check if the username or phone number already exists
+    return axios.post("http://localhost:3001/checkUserExistence", { username: customerData.username, phone: customerData.phone });
+  };
+  
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
-    // Handle form submission, e.g., send data to the server
-    axios
-      .post("http://localhost:3001/adduser", customerData)
+  
+    checkUserExistence()
       .then((response) => {
-        console.log("Customer added successfully:", response.data);
-        setOpenNewCustomerDialog(false);
-        // Clear form fields
-        setcustomerData({
-          username: "",
-          password: "",
-          firstname: "",
-          lastname: "",
-          email: "",
-          phone: "",
-          address: "",
-          area: "",
-          shop_name: "",
-          usertypeID: 6,
-        });
-        setConfirmPassword("");
-
-        Swal.fire({
-          icon: "success",
-          title: "Customer Added Successfully!",
-          customClass: {
-            popup: "z-50",
-          },
-          didOpen: () => {
-            document.querySelector(".swal2-container").style.zIndex = "9999";
-          },
-        }).then(() => {
-          fetchCustomer();
-          setOpenExistingCustomerDialog(true);
-        });
+        if (response.data.exists) {
+          // If username or phone already exists, show an alert using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Username or phone number already exists!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // If username and phone are unique, proceed with adding the user
+          //Handle form submission, e.g., send data to the server
+          axios
+            .post("http://localhost:3001/adduser", customerData)
+            .then((response) => {
+              console.log("Customer added successfully:", response.data);
+              setOpenNewCustomerDialog(false);
+              // Clear form fields
+              setcustomerData({
+                username: "",
+                password: "",
+                firstname: "",
+                lastname: "",
+                email: "",
+                phone: "",
+                address: "",
+                area: "",
+                shop_name: "",
+                usertypeID: 6,
+              });
+              setConfirmPassword("");
+  
+              Swal.fire({
+                icon: "success",
+                title: "Customer Added Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              }).then(() => {
+                fetchCustomer();
+                setOpenExistingCustomerDialog(true);
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding customer:", error);
+            });
+        }
       })
       .catch((error) => {
-        console.error("Error adding customer:", error);
+        console.error("Error checking user existence:", error);
       });
   };
+  
 
   const handleExistingCustomerSubmit = () => {
     setOpenExistingCustomerDialog(false);

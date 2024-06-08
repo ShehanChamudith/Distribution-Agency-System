@@ -60,6 +60,13 @@ export const SideBarData = [
   },
 
   {
+    title: "Sales History",
+    icon: <ShoppingCartIcon />,
+    link: "/sales",
+    roles: [1,2,3,4],
+  },
+
+  {
     title: "Create Pre Order",
     icon: <RotateRightIcon />,
     link: "/create-preorder",

@@ -140,6 +140,7 @@ function Inventory() {
   //   }
   // };
 
+
   return (
     <div className=" w-screen">
       <div className="flex w-screen py-10 ">
@@ -172,7 +173,6 @@ function Inventory() {
         </div>
 
         <div className="flex w-1/2 pr-10 justify-end ">
-          
           <div className="">
             <React.Fragment>
               <Button
@@ -197,6 +197,7 @@ function Inventory() {
                   </DialogContentText>
 
                   <div className="flex mt-3 mb-1 gap-4">
+                    {/* Product Select */}
                     <div>
                       <FormControl sx={{ minWidth: 200 }}>
                         <InputLabel id="demo-simple-select-label">
@@ -222,6 +223,7 @@ function Inventory() {
                       </FormControl>
                     </div>
 
+                    {/* Supplier Select */}
                     <div>
                       <FormControl sx={{ minWidth: 200 }}>
                         <InputLabel id="demo-simple-select-label">
@@ -247,6 +249,8 @@ function Inventory() {
                       </FormControl>
                     </div>
                   </div>
+
+                  {/* Stock Arrival Input */}
                   <div className="mt-5">
                     <TextField
                       autoFocus
@@ -264,6 +268,7 @@ function Inventory() {
                     />
                   </div>
 
+                  {/* Received Date */}
                   <div className="mt-3">
                     <InputLabel id="demo-simple-select-label">
                       Received Date
@@ -281,8 +286,14 @@ function Inventory() {
                       size="small"
                       value={formData.date}
                       onChange={handleChangeForm}
+                      // Set min attribute to current date
+                      inputProps={{
+                        min: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+                      }}
                     />
                   </div>
+
+                  {/* Expire Date */}
                   <div className="mt-3">
                     <InputLabel id="demo-simple-select-label">
                       Expire Date
@@ -300,8 +311,14 @@ function Inventory() {
                       size="small"
                       value={formData.date}
                       onChange={handleChangeForm}
+                      // Set min attribute to current date
+                      inputProps={{
+                        min: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+                      }}
                     />
                   </div>
+
+                  {/* Batch Number Input */}
                   <div className="mt-4">
                     <TextField
                       autoFocus
