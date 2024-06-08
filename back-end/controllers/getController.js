@@ -303,48 +303,62 @@ const getRepID = (req, res) => {
   const userID = req.params.userID;
   console.log(userID);
 
-  DBconnect.query("SELECT repID FROM salesrep WHERE userID = ?", [userID], (err, results) => {
+  DBconnect.query(
+    "SELECT repID FROM salesrep WHERE userID = ?",
+    [userID],
+    (err, results) => {
       if (err) {
-          console.error("Error querying MySQL database:", err);
-          res.status(500).send("Internal Server Error");
-          return;
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
       }
 
       if (results.length === 0) {
-          console.warn("No data found in salesrep table for the provided userID:", userID);
-          res.status(404).send("No data found");
-          return;
+        console.warn(
+          "No data found in salesrep table for the provided userID:",
+          userID
+        );
+        res.status(404).send("No data found");
+        return;
       }
 
       // Assuming there's only one repID per userID, you might want to send just the repID
       const repID = results[0].repID;
       //console.log(repID);
       res.json(repID);
-  });
+    }
+  );
 };
 
 const getCustomerID = (req, res) => {
   const userID = req.params.userID;
   console.log(userID);
 
-  DBconnect.query("SELECT customerID FROM customer WHERE userID = ?", [userID], (err, results) => {
+  DBconnect.query(
+    "SELECT customerID FROM customer WHERE userID = ?",
+    [userID],
+    (err, results) => {
       if (err) {
-          console.error("Error querying MySQL database:", err);
-          res.status(500).send("Internal Server Error");
-          return;
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
       }
 
       if (results.length === 0) {
-          console.warn("No data found in salesrep table for the provided userID:", userID);
-          res.status(404).send("No data found");
-          return;
+        console.warn(
+          "No data found in salesrep table for the provided userID:",
+          userID
+        );
+        res.status(404).send("No data found");
+        return;
       }
 
       // Assuming there's only one repID per userID, you might want to send just the repID
       const customerID = results[0].customerID;
       console.log(customerID);
       res.json(customerID);
-  });
+    }
+  );
 };
 
 const getPreOrder = (req, res) => {
@@ -415,90 +429,126 @@ ORDER BY total_quantity DESC;
 
 `;
 
-DBconnect.query(query, (err, results) => {
-  if (err) {
-    console.error('Error executing query:', err);
-    res.status(500).send('Internal Server Error');
-    return;
-  }
-  res.json(results);
-});
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+    res.json(results);
+  });
 };
 
 const getUser = (req, res) => {
-    const query = 'SELECT * FROM user';
+  const query = "SELECT * FROM user";
 
-    DBconnect.query(query, (err, results) => {
-        if (err) {
-            console.error('Error executing query:', err);
-            res.status(500).send('Internal Server Error');
-            return;
-        }
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
 
-        if (results.length === 0) {
-            res.status(200).send('No data in user table');
-        } else {
-            res.json(results);
-        }
-    });
-}
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      res.json(results);
+    }
+  });
+};
 
 const getSales = (req, res) => {
   const query = `SELECT 
   s.*, 
   ps.productID, 
-  ps.quantity, ps.quantity,
+  ps.quantity, 
   p.product_name, 
   u.firstname AS user_firstname, 
   u.lastname AS user_lastname, 
-  c.shop_name, c.area
+  c.shop_name, 
+  c.area,
+  cs.cash_amount, 
+  cs.balance AS cash_balance,
+  chs.cheque_value,
+  crs.credit_amount
 FROM sale s
 JOIN productsale ps ON s.saleID = ps.saleID
 JOIN product p ON ps.productID = p.productID
 JOIN user u ON s.userID = u.userID
 JOIN customer c ON s.customerID = c.customerID
+LEFT JOIN payment pm ON s.saleID = pm.saleID
+LEFT JOIN cash_sale cs ON pm.paymentID = cs.paymentID
+LEFT JOIN cheque_sale chs ON pm.paymentID = chs.paymentID
+LEFT JOIN credit_sale crs ON pm.paymentID = crs.paymentID
 ORDER BY s.saleID DESC;
+
+
+
 `;
 
   DBconnect.query(query, (err, results) => {
-      if (err) {
-          console.error('Error executing query:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
 
-      if (results.length === 0) {
-          res.status(200).send('No data in sale table');
-      } else {
-          res.json(results);
-      }
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
   });
-}
+};
+
+const getCreditSales = (req, res) => {
+  const query = `
+  
+SELECT cs.credit_saleID, cs.paymentID, cs.credit_amount, s.*, u.firstname, u.lastname, c.shop_name, c.area
+FROM credit_sale cs
+INNER JOIN payment p ON cs.paymentID = p.paymentID
+INNER JOIN sale s ON p.saleID = s.saleID
+INNER JOIN user u ON s.userID = u.userID
+INNER JOIN customer c ON s.customerID = c.customerID;
 
 
+
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
 
 const getUserbyID = (req, res) => {
-  userID=req.params.editUserID;
-  const query = 'SELECT * FROM user WHERE userID = ?';
+  userID = req.params.editUserID;
+  const query = "SELECT * FROM user WHERE userID = ?";
 
-  DBconnect.query(query,[userID], (err, results) => {
-      if (err) {
-          console.error('Error executing query:', err);
-          res.status(500).send('Internal Server Error');
-          return;
-      }
+  DBconnect.query(query, [userID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
 
-      if (results.length === 0) {
-          res.status(200).send('No data in user table');
-      } else {
-          res.json(results);
-      }
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      res.json(results);
+    }
   });
-}
-
-
-
-
+};
 
 module.exports = {
   inventoryGet,
@@ -520,4 +570,5 @@ module.exports = {
   getUser,
   getUserbyID,
   getSales,
+  getCreditSales,
 };

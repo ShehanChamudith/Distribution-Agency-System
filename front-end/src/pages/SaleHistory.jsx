@@ -22,7 +22,6 @@ import { jwtDecode } from "jwt-decode";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 
-
 const FilterBox = styled(Box)({
   display: "flex",
   gap: "10px",
@@ -71,6 +70,7 @@ function SaleHistory() {
   const [ccustomerID, setcustomerID] = useState("");
   const [tabValue, setTabValue] = useState(0);
   const [totals, setTotals] = useState([]);
+  const [creditSales, setCreditSales] = useState([]);
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
@@ -89,8 +89,6 @@ function SaleHistory() {
     // Decode token when component mounts
     decodeTokenFromLocalStorage();
   }, []);
-
-
 
   useEffect(() => {
     axios
@@ -122,9 +120,7 @@ function SaleHistory() {
   }, {});
 
   const handleClick = (saleID) => {
-    setOpenRow((prevOpenRow) =>
-      prevOpenRow === saleID ? null : saleID
-    );
+    setOpenRow((prevOpenRow) => (prevOpenRow === saleID ? null : saleID));
   };
 
   const handleFilterChange = (event) => {
@@ -148,12 +144,21 @@ function SaleHistory() {
   const filteredPreOrders = uniquePreOrders.filter((pre) => {
     const saleID = pre.saleID.toString().toLowerCase();
     const shop_name = pre.shop_name.toString().toLowerCase();
+    const area = pre.area.toLowerCase();
+    const paymentType = pre.payment_type.toLowerCase();
+    const userName = `${pre.user_firstname} ${pre.user_lastname}`.toLowerCase();
     const userID = pre.userID;
+
     const matchesTextFilter =
       saleID.includes(filter.toLowerCase()) ||
-      shop_name.includes(filter.toLowerCase());
+      shop_name.includes(filter.toLowerCase()) ||
+      area.includes(filter.toLowerCase()) ||
+      paymentType.includes(filter.toLowerCase()) ||
+      userName.includes(filter.toLowerCase());
 
-    if (userInfo === 3 ) {
+    
+
+    if (userInfo === 3) {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
         const loadingDate = dayjs(new Date(pre.date)).startOf("day");
@@ -173,7 +178,6 @@ function SaleHistory() {
       return matchesTextFilter;
     }
   });
-
 
   useEffect(() => {
     axios
@@ -223,6 +227,23 @@ function SaleHistory() {
       });
   };
 
+  const filteredCreditSales = filteredPreOrders.filter(
+    (pre) => pre.payment_type === "credit"
+  );
+
+  const filteredCashAndChequeSales = filteredPreOrders.filter(
+    (pre) => pre.payment_type === "cash" || pre.payment_type === "cheque"
+  );
+
+  useEffect(() => {
+    axios.get('http://localhost:3001/getcreditsales')
+      .then(response => {
+        setCreditSales(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching credit sales:', error);
+      });
+  }, []);
   
 
   return (
@@ -230,7 +251,7 @@ function SaleHistory() {
       <div className="w-screen px-20 py-5 h-[85vh]">
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="All Sales" />
-          <Tab label="Totals of Pending Pre Orders" />
+          <Tab label="Credit Sales" />
         </Tabs>
         <TabPanel value={tabValue} index={0}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -238,7 +259,7 @@ function SaleHistory() {
               <FilterBox className="w-full p-3 justify-end">
                 <TextField
                   className="w-72"
-                  label="Filter by Loading ID or Rep Name"
+                  label="Filter"
                   variant="outlined"
                   value={filter}
                   onChange={handleFilterChange}
@@ -272,11 +293,13 @@ function SaleHistory() {
                       <StyledTableCell>Billed by</StyledTableCell>
                       <StyledTableCell>Sale Amount ( LKR )</StyledTableCell>
                       <StyledTableCell>Payment Type</StyledTableCell>
+                      <StyledTableCell>Paid Amount</StyledTableCell>
+                      <StyledTableCell>Balance</StyledTableCell>
                       <StyledTableCell />
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredPreOrders.map((pre) => (
+                    {filteredCashAndChequeSales.map((pre) => (
                       <React.Fragment key={pre.saleID}>
                         <TableRow>
                           <TableCell>
@@ -285,9 +308,17 @@ function SaleHistory() {
                           <TableCell>{pre.saleID}</TableCell>
                           <TableCell>{pre.shop_name}</TableCell>
                           <TableCell>{pre.area}</TableCell>
-                          <TableCell >{pre.user_firstname} {pre.user_lastname}</TableCell>
-                          <TableCell >{pre.sale_amount}</TableCell>
-                          <TableCell >{pre.payment_type}</TableCell>
+                          <TableCell>
+                            {pre.user_firstname} {pre.user_lastname}
+                          </TableCell>
+                          <TableCell>{pre.sale_amount}</TableCell>
+                          <TableCell>{pre.payment_type}</TableCell>
+                          <TableCell>
+                            {pre.payment_type === "cash"
+                              ? pre.cash_amount
+                              : pre.cheque_value}
+                          </TableCell>
+                          <TableCell>{Math.abs(pre.cash_balance)}</TableCell>
                           <TableCell align="right">
                             <Button
                               aria-label="expand row"
@@ -362,35 +393,33 @@ function SaleHistory() {
             </Paper>
           </LocalizationProvider>
         </TabPanel>
+
         <TabPanel value={tabValue} index={1}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Paper>
-              <FilterBox className="w-full p-3 justify-between">
-                <Box>
-                  <Button
-                    className="h-14"
-                    variant="contained"
-                    onClick={handleProcessPreOrders}
-                  >
-                    Create a Loading of Pre Orders
-                  </Button>
-                </Box>
-                <Box className="flex gap-4">
-                  <TextField
-                    className="w-72"
-                    label="Filter by Product Name or Supplier"
-                    variant="outlined"
-                    value={filter}
-                    onChange={handleFilterChange}
-                  />
-                  <Button
-                    className="h-14"
-                    variant="outlined"
-                    onClick={handleClearFilters}
-                  >
-                    Clear Filters
-                  </Button>
-                </Box>
+              <FilterBox className="w-full p-3 justify-end">
+                <TextField
+                  className="w-72"
+                  label="Filter"
+                  variant="outlined"
+                  value={filter}
+                  onChange={handleFilterChange}
+                />
+                <DatePicker
+                  label="Filter by Date"
+                  value={dateFilter}
+                  onChange={handleDateFilterChange}
+                  slotProps={{
+                    textField: { style: { width: "200px" } },
+                  }}
+                />
+                <Button
+                  className="h-14"
+                  variant="outlined"
+                  onClick={handleClearFilters}
+                >
+                  Clear Filters
+                </Button>
               </FilterBox>
               <ScrollableTableContainer
                 style={{ maxHeight: "calc(80vh - 160px)" }}
@@ -398,37 +427,101 @@ function SaleHistory() {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <StyledTableCell>Product Name</StyledTableCell>
-                      <StyledTableCell align="center">
-                        Total Quantity ( kg )
-                      </StyledTableCell>
-                      <StyledTableCell align="right">Supplier</StyledTableCell>
+                      <StyledTableCell>Date</StyledTableCell>
+                      <StyledTableCell>Sale ID</StyledTableCell>
+                      <StyledTableCell>Customer</StyledTableCell>
+                      <StyledTableCell>Area</StyledTableCell>
+                      <StyledTableCell>Billed by</StyledTableCell>
+                      <StyledTableCell>Sale Amount ( LKR )</StyledTableCell>
+                      <StyledTableCell>Payment Type</StyledTableCell>
+                      <StyledTableCell>Credited Amount</StyledTableCell>
+                      <StyledTableCell />
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {totals
-                      .filter((row) => {
-                        const productName = row.product_name.toLowerCase();
-                        const supplierCompany =
-                          row.supplier_company.toLowerCase();
-                        const matchesFilter =
-                          productName.includes(filter.toLowerCase()) ||
-                          supplierCompany.includes(filter.toLowerCase());
-                        return matchesFilter;
-                      })
-                      .map((row) => (
-                        <StyledTableRow key={row.product_name}>
-                          <StyledTableCell component="th" scope="row">
-                            {row.product_name}
-                          </StyledTableCell>
-                          <StyledTableCell align="center">
-                            {row.total_quantity}
-                          </StyledTableCell>
-                          <StyledTableCell align="right">
-                            {row.supplier_company}
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      ))}
+                    {creditSales.map((pre) => (
+                      <React.Fragment key={pre.saleID}>
+                        <TableRow>
+                          <TableCell>
+                            {new Date(pre.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>{pre.saleID}</TableCell>
+                          <TableCell>{pre.shop_name}</TableCell>
+                          <TableCell>{pre.area}</TableCell>
+                          <TableCell>
+                            {pre.firstname} {pre.lastname}
+                          </TableCell>
+                          <TableCell>{pre.sale_amount}</TableCell>
+                          <TableCell>{pre.payment_type}</TableCell>
+                          <TableCell>{pre.credit_amount}</TableCell>
+                          <TableCell align="right">
+                            <Button
+                              aria-label="expand row"
+                              size="small"
+                              onClick={() => handleClick(pre.saleID)}
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }} // Added styles for alignment
+                            >
+                              {openRow === pre.saleID ? (
+                                <ExpandLessIcon />
+                              ) : (
+                                <ExpandMoreIcon />
+                              )}
+                              <span>Sale Details</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell
+                            style={{ paddingBottom: 0, paddingTop: 0 }}
+                            colSpan={7}
+                          >
+                            <Collapse
+                              in={openRow === pre.saleID}
+                              timeout="auto"
+                              unmountOnExit
+                            >
+                              <Box margin={1}>
+                                <TableContainer component={Paper}>
+                                  <Table
+                                    sx={{ minWidth: 200 }}
+                                    size="small"
+                                    aria-label="product table"
+                                  >
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>Product</TableCell>
+                                        <TableCell>Quantity</TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {PreOrderProductsMap[pre.saleID].map(
+                                        (product) => (
+                                          <TableRow key={product.productID}>
+                                            <TableCell
+                                              component="th"
+                                              scope="row"
+                                            >
+                                              {product.product_name}
+                                            </TableCell>
+                                            <TableCell>
+                                              {product.quantity}
+                                            </TableCell>
+                                          </TableRow>
+                                        )
+                                      )}
+                                    </TableBody>
+                                  </Table>
+                                </TableContainer>
+                              </Box>
+                            </Collapse>
+                          </TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    ))}
                   </TableBody>
                 </Table>
               </ScrollableTableContainer>
