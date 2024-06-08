@@ -24,6 +24,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Swal from "sweetalert2";
 
 const FilterBox = styled(Box)({
   display: "flex",
@@ -107,7 +108,12 @@ function SaleHistory() {
               // Add a new row to the payment table
               axios.post(`http://localhost:3001/updatepayment/${selectedPaymentID}`)
                 .then(() => {
-                  alert("Payment settled successfully.");
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Settled Successfully!',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after full payment
                 })
@@ -118,7 +124,12 @@ function SaleHistory() {
               // Deduct paymentAmount from credit_amount in credit_sale table
               axios.post(`http://localhost:3001/deductcreditamount/${selectedPaymentID}`, { paymentAmount })
                 .then(() => {
-                  alert("Payment partially settled.");
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Partially Settled.',
+                    timer: 2000,
+                    showConfirmButton: false
+                  });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after partial payment
                 })
@@ -142,7 +153,6 @@ function SaleHistory() {
   
   
   
-
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
     if (token) {
@@ -157,7 +167,6 @@ function SaleHistory() {
   };
 
   useEffect(() => {
-    // Decode token when component mounts
     decodeTokenFromLocalStorage();
   }, []);
 
@@ -252,6 +261,44 @@ function SaleHistory() {
     }
   });
 
+  const filteredCreditSales = creditSales.filter((pre) => {
+    const saleID = pre.saleID.toString().toLowerCase();
+    const shop_name = pre.shop_name.toString().toLowerCase();
+    const area = pre.area.toLowerCase();
+    const paymentType = pre.payment_type.toLowerCase();
+    const userName = `${pre.user_firstname} ${pre.user_lastname}`.toLowerCase();
+    const userID = pre.userID;
+
+    const matchesTextFilter =
+      saleID.includes(filter.toLowerCase()) ||
+      shop_name.includes(filter.toLowerCase()) ||
+      area.includes(filter.toLowerCase()) ||
+      paymentType.includes(filter.toLowerCase()) ||
+      userName.includes(filter.toLowerCase());
+
+    
+
+    if (userInfo === 3) {
+      if (dateFilter) {
+        const selectedDate = dayjs(dateFilter).startOf("day");
+        const loadingDate = dayjs(new Date(pre.date)).startOf("day");
+        return (
+          matchesTextFilter &&
+          selectedDate.isSame(loadingDate) &&
+          userID === uuserID
+        );
+      }
+      return matchesTextFilter && userID === uuserID;
+    } else {
+      if (dateFilter) {
+        const selectedDate = dayjs(dateFilter).startOf("day");
+        const preorderDate = dayjs(new Date(pre.date)).startOf("day");
+        return matchesTextFilter && selectedDate.isSame(preorderDate);
+      }
+      return matchesTextFilter;
+    }
+  });
+
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -282,7 +329,7 @@ function SaleHistory() {
     <div>
       <div className="w-screen px-20 py-5 h-[85vh]">
         <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="All Sales" />
+          <Tab label="Cash and Cheque Sales" />
           <Tab label="Credit Sales" />
         </Tabs>
         <TabPanel value={tabValue} index={0}>
@@ -471,7 +518,7 @@ function SaleHistory() {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {creditSales?.map((pre) => (
+                    {filteredCreditSales?.map((pre) => (
                       <React.Fragment key={pre.saleID}>
                         <TableRow>
                           <TableCell>

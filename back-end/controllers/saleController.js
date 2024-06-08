@@ -37,7 +37,7 @@ const addSale = (req, res) => {
         return;
       }
 
-      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID) VALUES (?, ?, ?, ?, ?, ?)`;
       connection.query(
         saleQuery,
         [
@@ -59,7 +59,7 @@ const addSale = (req, res) => {
           }
 
           const saleID = saleResults.insertId;
-          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, sale_status) VALUES (?, ?, ?, ?, ?)`;
+          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, payment_status) VALUES (?, ?, ?, ?, ?)`;
           connection.query(
             paymentQuery,
             [saleID, payment_type, customerID, discount, payment_status],
