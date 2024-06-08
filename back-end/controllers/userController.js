@@ -2,7 +2,7 @@ const DBconnect = require('../config/DBconnect');
 const bcrypt = require('bcrypt');
 
 const addUser = (req, res) => {
-    const { userID, usertypeID, username, password, firstname, lastname, email, phone, address, area, shop_name, supplier_company } = req.body;
+    const { userID, usertypeID, username, password, firstname, lastname, email, phone, address, areaID, shop_name, supplier_company } = req.body;
   
     const handlePasswordHashing = (callback) => {
       if (password) {
@@ -40,13 +40,13 @@ const addUser = (req, res) => {
             return;
           }
   
-          if (usertypeID === 6 && (area || shop_name)) {
-            const updateCustomerQuery = 'UPDATE customer SET area = ?, shop_name = ? WHERE userID = ?';
-            DBconnect.query(updateCustomerQuery, [area, shop_name, userID], (customerErr, customerResult) => {
+          if (usertypeID === 6 && (areaID || shop_name)) {
+            const updateCustomerQuery = 'UPDATE customer SET areaID = ?, shop_name = ? WHERE userID = ?';
+            DBconnect.query(updateCustomerQuery, [areaID, shop_name, userID], (customerErr, customerResult) => {
               if (customerErr) {
                 console.error('Error updating customer:', customerErr);
                 res.status(500).send('Internal Server Error');
-                return;
+                return; 
               }
   
               res.json({ message: 'User and customer updated successfully' });
@@ -80,8 +80,8 @@ const addUser = (req, res) => {
           const userID = result.insertId;
   
           if (usertypeID === 6) {
-            const insertCustomerQuery = 'INSERT INTO customer (userID, area, shop_name) VALUES (?, ?, ?)';
-            DBconnect.query(insertCustomerQuery, [userID, area, shop_name], (customerErr, customerResult) => {
+            const insertCustomerQuery = 'INSERT INTO customer (userID, areaID, shop_name) VALUES (?, ?, ?)';
+            DBconnect.query(insertCustomerQuery, [userID, areaID, shop_name], (customerErr, customerResult) => {
               if (customerErr) {
                 console.error('Error inserting customer into database:', customerErr);
                 res.status(500).send('Internal Server Error');

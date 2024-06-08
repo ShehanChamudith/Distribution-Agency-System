@@ -594,6 +594,24 @@ const getPaymentStatus = (req, res) => {
   });
 };
 
+const getArea = (req, res) => {
+  const query = "SELECT * FROM area";
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in area table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
 module.exports = {
   getPaymentStatus,
 };
@@ -622,4 +640,5 @@ module.exports = {
   getSales,
   getCreditSales,
   getPaymentStatus,
+  getArea,
 };

@@ -80,6 +80,7 @@ function a11yProps(index) {
 export const Admin = () => {
   const [value, setValue] = React.useState(0);
   const [users, setUsers] = useState([]);
+  const [area, setArea] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [customerData, setcustomerData] = useState({
@@ -92,13 +93,14 @@ export const Admin = () => {
     address: "",
     supplier_company: "",
     shop_name: "",
-    area: "",
+    
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedUserType, setselectedUserType] = useState("");
   const [usertypeID, setUsertypeID] = useState("");
   const [openEditUserDialog, setOpenEditUserDialog] = useState(false);
   const [editUserID, setEditUserID] = useState("");
+  const [areaID, setSelectedArea] = useState('');
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -166,12 +168,15 @@ export const Admin = () => {
       alert("Passwords do not match!");
       return;
     }
-  
-    const newData = { ...customerData, usertypeID };
-  
+
+    const newData = { ...customerData, usertypeID, areaID };
+
     // Check if the username or phone number already exists
     axios
-      .post("http://localhost:3001/checkUserExistence", { username: newData.username, phone: newData.phone })
+      .post("http://localhost:3001/checkUserExistence", {
+        username: newData.username,
+        phone: newData.phone,
+      })
       .then((response) => {
         if (response.data.exists) {
           // If username or phone already exists, show an alert using SweetAlert
@@ -188,6 +193,7 @@ export const Admin = () => {
         } else {
           // If username and phone are unique, proceed with adding the user
           //Handle form submission, e.g., send data to the server
+          
           axios
             .post("http://localhost:3001/adduser", newData)
             .then((response) => {
@@ -202,12 +208,12 @@ export const Admin = () => {
                 email: "",
                 phone: "",
                 address: "",
-                area: "",
+                areaID: "",
                 shop_name: "",
                 supplier_company: "",
               });
               setConfirmPassword("");
-  
+
               Swal.fire({
                 icon: "success",
                 title: "User Added Successfully!",
@@ -215,7 +221,8 @@ export const Admin = () => {
                   popup: "z-50",
                 },
                 didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
                 },
               }).then(() => {
                 fetchUserData();
@@ -230,11 +237,13 @@ export const Admin = () => {
         console.error("Error checking user existence:", error);
       });
   };
-  
-  
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
   };
 
   const handleClick = (usertypeID) => {
@@ -253,12 +262,23 @@ export const Admin = () => {
         console.error("Error fetching data:", error);
       });
   };
-  
+
   useEffect(() => {
     axios
       .get("http://localhost:3001/getuser")
       .then((response) => {
         setUsers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -894,19 +914,23 @@ export const Admin = () => {
                 </>
               )}
 
-              
-
               {selectedUserType === "Customer" && (
-                <TextField
-                  required
-                  label="Area"
-                  name="area"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={customerData.area}
-                  onChange={handleChangeForm}
-                />
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="userarea-label">Select Area</InputLabel>
+                  <Select
+                    required
+                    labelId="userarea-label"
+                    value={areaID}
+                    onChange={handleAreaChange}
+                    label="Select Area"
+                  >
+                    {area.map((item) => (
+                      <MenuItem key={item.areaID} value={item.areaID}>
+                        {item.area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               )}
 
               {selectedUserType === "Customer" && (

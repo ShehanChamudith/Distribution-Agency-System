@@ -432,7 +432,6 @@ const Bill = ({ userID }) => {
     email: "",
     phone: "",
     address: "",
-    area: "",
     shop_name: "",
     usertypeID: 6,
   });
@@ -458,6 +457,9 @@ const Bill = ({ userID }) => {
   const [creditedValue, setCreditedValue] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState('');
+
 
   const handleProceedToCheckout = () => {
     if (addedItems.length === 0) {
@@ -471,6 +473,21 @@ const Bill = ({ userID }) => {
       // setPaymentEnabled(true);
     }
   };
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
 
   useEffect(() => {
     let creditedValue;
@@ -791,6 +808,8 @@ const Bill = ({ userID }) => {
     // Check if the username or phone number already exists
     return axios.post("http://localhost:3001/checkUserExistence", { username: customerData.username, phone: customerData.phone });
   };
+
+  const newData = { ...customerData, areaID };
   
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -816,8 +835,9 @@ const Bill = ({ userID }) => {
         } else {
           // If username and phone are unique, proceed with adding the user
           //Handle form submission, e.g., send data to the server
+          console.log(newData);
           axios
-            .post("http://localhost:3001/adduser", customerData)
+            .post("http://localhost:3001/adduser", newData)
             .then((response) => {
               console.log("Customer added successfully:", response.data);
               setOpenNewCustomerDialog(false);
@@ -830,7 +850,7 @@ const Bill = ({ userID }) => {
                 email: "",
                 phone: "",
                 address: "",
-                area: "",
+                areaID: "",
                 shop_name: "",
                 usertypeID: 6,
               });
@@ -1162,16 +1182,22 @@ const Bill = ({ userID }) => {
             value={customerData.address}
             onChange={handleChangeForm}
           />
-          <TextField
-            required
-            label="Area (Delivery Route)"
-            name="area"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.area}
-            onChange={handleChangeForm}
-          />
+          <FormControl fullWidth margin="normal">
+                  <InputLabel id="userarea-label">Select Area</InputLabel>
+                  <Select
+                    required
+                    labelId="userarea-label"
+                    value={areaID}
+                    onChange={handleAreaChange}
+                    label="Select Area"
+                  >
+                    {area.map((item) => (
+                      <MenuItem key={item.areaID} value={item.areaID}>
+                        {item.area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleNewCustomerDialogClose} color="primary">

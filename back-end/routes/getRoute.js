@@ -21,6 +21,7 @@ const {getUserbyID} = require('../controllers/getController');
 const {getSales} = require('../controllers/getController');
 const {getCreditSales} = require('../controllers/getController');
 const { getPaymentStatus } = require('../controllers/getController');
+const { getArea } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -44,6 +45,7 @@ router.get('/getuser/:editUserID', getUserbyID);
 router.get('/getsales', getSales);
 router.get('/getcreditsales', getCreditSales);
 router.get('/getpaymentstatus/:paymentID', getPaymentStatus);
+router.get('/getarea', getArea);
 
 module.exports = router;
 

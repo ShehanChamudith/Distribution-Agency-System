@@ -28,7 +28,7 @@ export const SideBarData = [
     title: "Create Loading",
     icon: <LoadIcon />,
     link: "/create-loading",
-    roles: [1,2,4],
+    roles: [2,4],
   },
 
   // {
@@ -39,7 +39,7 @@ export const SideBarData = [
   // },
 
   {
-    title: "Past Loadings",
+    title: "Loadings",
     icon: <LoadIcon />,
     link: "/get-loading",
     roles: [1,2,3,4],
@@ -49,7 +49,7 @@ export const SideBarData = [
     title: "Bill-Delivary",
     icon: <ShoppingCartIcon />,
     link: "/delivary-bill",
-    roles: [1,3],
+    roles: [3],
   },
 
   {
@@ -70,14 +70,14 @@ export const SideBarData = [
     title: "Create Pre Order",
     icon: <RotateRightIcon />,
     link: "/create-preorder",
-    roles: [1,3,6],
+    roles: [3,6],
   },
 
   {
     title: "Received Pre Orders",
     icon: <RotateRightIcon />,
     link: "/get-received-preorder",
-    roles: [1,3,4],
+    roles: [1,4],
   },
 
   {
