@@ -206,7 +206,7 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -231,6 +231,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       }
     }
   }, [restore]);
+
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -396,6 +408,10 @@ const CreatePreOrder = ({ userID }) => {
     productID: "",
     amount: "",
   });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
+  });
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
@@ -510,11 +526,14 @@ const CreatePreOrder = ({ userID }) => {
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value-basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -728,6 +747,8 @@ const CreatePreOrder = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock = {restock}
+                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -772,6 +793,7 @@ const CreatePreOrder = ({ userID }) => {
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
+                setRestock = {setRestock}
               />
             ))}
           </div>

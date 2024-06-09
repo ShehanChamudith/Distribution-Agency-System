@@ -24,6 +24,7 @@ import GetPreOrderReceived from "./pages/GetPreOrderReceived";
 import GetPreOrderSent from "./pages/GetPreOrderSent";
 import CreateLoadingPreOrders from "./pages/CreateLoadingPreOrders";
 import SaleHistory from "./pages/SaleHistory";
+import StockReq from "./pages/StockReq";
 
 
 function App() {
@@ -89,7 +90,7 @@ function App() {
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
               
               <Route path="/product-catalog" element={<ProductCatalog />} />
-              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/inventory" element={<Inventory userID= {userID} userInfo={userInfo} />} />
             </Route>
 
             {/* Billing */}
@@ -116,6 +117,12 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
               <Route path="/admin-dashboard" element={<Admin />} />
+            </Route>
+
+            {/* Stock Request */}
+
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
+              <Route path="/stock-request" element={<StockReq userID={userID} />} />
             </Route>
 
             {/* Pre Orders */}

@@ -135,10 +135,12 @@ function GetLoadings() {
   const filteredLoadings = uniqueLoadings.filter((loading) => {
     const loadingID = loading.loadingID.toString().toLowerCase();
     const rep_firstname = loading.rep_firstname.toString().toLowerCase();
+    const area = loading.area.toString().toLowerCase();
     const repID = loading.repID;
     const matchesTextFilter =
       loadingID.includes(filter.toLowerCase()) ||
-      rep_firstname.includes(filter.toLowerCase());
+      rep_firstname.includes(filter.toLowerCase()) ||
+      area.includes(filter.toLowerCase());
 
     if (userInfo === 3) {
       if (dateFilter) {
@@ -201,7 +203,7 @@ function GetLoadings() {
             <FilterBox>
               <TextField
                 className="w-72"
-                label="Filter by Loading ID or Rep Name"
+                label="Filter"
                 variant="outlined"
                 value={filter}
                 onChange={handleFilterChange}
@@ -226,6 +228,7 @@ function GetLoadings() {
                     <StyledTableCell>Loading ID</StyledTableCell>
                     <StyledTableCell>Sales Representative</StyledTableCell>
                     <StyledTableCell>Vehicle Number</StyledTableCell>
+                    <StyledTableCell>Area</StyledTableCell>
                     <StyledTableCell>Actions</StyledTableCell>
                     <StyledTableCell />
                   </TableRow>
@@ -240,6 +243,7 @@ function GetLoadings() {
                         <TableCell>{loading.loadingID}</TableCell>
                         <TableCell>{loading.rep_firstname}</TableCell>
                         <TableCell>{loading.vehicle_number}</TableCell>
+                        <TableCell>{loading.area}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={2}>
                             <Button

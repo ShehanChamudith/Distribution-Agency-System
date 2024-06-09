@@ -426,11 +426,13 @@ const CreateLoadingPreOrders = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
+  const [area, setArea] = useState([]);
 
   const navigate = useNavigate();
 
   const location = useLocation();
-  const preOrderData = location.state?.preOrderData || {};
+  
+  const { preOrderData, areaID } = location.state || {};
 
   useEffect(() => {
     console.log("Pre Order Data:", preOrderData); // Log loadingData for debugging
@@ -470,13 +472,13 @@ const CreateLoadingPreOrders = ({ userID }) => {
 
   const handleCreateLoading = () => {
     checkPendingLoading(); // Check for pending loading first
-
+  
     // Proceed only after the checkPendingLoading completes
     if (pending) {
       // Show a message or take any action when there is a pending loading
       Swal.fire({
         icon: "warning",
-        title: "Please Complete the previous loading first !",
+        title: "Please Complete the previous loading first!",
         text: "There is a pending loading for the selected salesRep. Complete it to create another loading for this sales representative",
         showCancelButton: true, // Show cancel button
         confirmButtonText: "Change Sales Rep", // Button for changing sales rep
@@ -499,46 +501,79 @@ const CreateLoadingPreOrders = ({ userID }) => {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
     } else {
-      const loadingData = {
-        total_value: subtotal,
-        repID: selectedRep.repID,
-        addedItems: addedItems,
-        vehicleID: selectedVehicle.vehicleID,
-        userID: userID,
-        loading_status: "pending",
-        availability: "no",
-      };
-
-      console.log(loadingData);
-
-      axios
-        .post("http://localhost:3001/addloading-pre-orders", loadingData)
-        .then((response) => {
-          console.log("Invoice created successfully:", response.data);
-
-          // if (printBill) {
-          //   generatePDF(invoiceData, addedItems);
-          // }
-
-          Swal.fire({
-            icon: "success",
-            title: "Loading Invoice Created Successfully!",
-            customClass: {
-              popup: "z-50",
-            },
-            didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999";
-            },
-          }).then(() => {
-            window.location.reload();
+      // Extract product IDs from added items
+      const productIDs = addedItems.map(item => item.productID);
+  
+      // Check stock totals before creating the loading
+      axios.post("http://localhost:3001/getproductstocks", { productIDs })
+        .then(response => {
+          const stockData = response.data;
+  
+          // Check if any product exceeds the stock total
+          const exceededProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID);
+            return stockItem && item.quantity > stockItem.stock_total;
           });
+  
+          if (exceededProducts.length > 0) {
+            // Alert the user if any product exceeds the stock total
+            const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Stock Limit Exceeded",
+              text: `Products: ${exceededProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Proceed with creating the loading
+            const loadingData = {
+              total_value: subtotal,
+              repID: selectedRep.repID,
+              addedItems: addedItems,
+              vehicleID: selectedVehicle.vehicleID,
+              userID: userID,
+              loading_status: "pending",
+              availability: "no",
+              areaID: areaID,
+            };
+  
+            console.log(loadingData);
+  
+            axios.post("http://localhost:3001/addloading-pre-orders", loadingData)
+              .then(response => {
+                console.log("Loading created successfully:", response.data);
+  
+                Swal.fire({
+                  icon: "success",
+                  title: "Loading Invoice Created Successfully!",
+                  customClass: {
+                    popup: "z-50",
+                  },
+                  didOpen: () => {
+                    document.querySelector(".swal2-container").style.zIndex = "9999";
+                  },
+                }).then(() => {
+                  window.location.reload();
+                });
+              })
+              .catch(error => {
+                console.error("Error creating loading:", error);
+                alert("Error creating loading. Please try again.");
+              });
+          }
         })
-        .catch((error) => {
-          console.error("Error creating invoice:", error);
-          alert("Error creating invoice. Please try again.");
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
         });
     }
   };
+  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -738,6 +773,17 @@ const CreateLoadingPreOrders = ({ userID }) => {
   }, []);
 
   useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
     const calculateSubtotal = () => {
       return addedItems
         .reduce((total, item) => {
@@ -773,6 +819,11 @@ const CreateLoadingPreOrders = ({ userID }) => {
         console.error("Error fetching data:", error);
       });
   }, []);
+
+  const getSelectedAreaName = () => {
+    const selectedArea = area.find((item) => item.areaID === areaID);
+    return selectedArea ? selectedArea.area : '';
+  };
 
   return (
     <div className="flex w-screen gap-4">
@@ -930,7 +981,7 @@ const CreateLoadingPreOrders = ({ userID }) => {
       <div className="w-2/5 h-[89vh]  pr-8 ">
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-6 justify-between font-PoppinsM text-2xl rounded-lg p-2">
-            <div className="flex justify-between mt-8  border-b-4 ">
+            <div className="flex justify-between mt-4  border-b-4 ">
               <div className="">Loading Details</div>
               <div className="">
                 <h1>#00{preOrderID}</h1>
@@ -945,6 +996,11 @@ const CreateLoadingPreOrders = ({ userID }) => {
               {selectedVehicle.vehicle_number && (
                 <h1 className="text-sm font-PoppinsL">
                   Vehicle Number: {selectedVehicle.vehicle_number}
+                </h1>
+              )}
+              {areaID && (
+                <h1 className="text-sm font-PoppinsL">
+                  Area: {getSelectedAreaName()}
                 </h1>
               )}
               <h1 className="text-sm font-PoppinsL">
@@ -975,7 +1031,7 @@ const CreateLoadingPreOrders = ({ userID }) => {
             ))}
           </div>
 
-          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-5 gap-3 ">
+          <div className="flex flex-col bg-slate-100 rounded-lg px-2  gap-3 ">
             <div className="flex justify-between px-1">
               <p>Total Value of Loaded Quantity:</p>
               <p>{subtotal} LKR</p>

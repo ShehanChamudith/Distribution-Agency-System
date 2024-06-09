@@ -215,7 +215,15 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({
+  item,
+  setAddedItems,
+  addedItems,
+  restore,
+  setRestore,
+  restock,
+  setRestock,
+}) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -240,6 +248,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       }
     }
   }, [restore]);
+
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -417,6 +437,10 @@ const CreateLoading = ({ userID }) => {
     productID: "",
     amount: "",
   });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
+  });
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
@@ -425,9 +449,14 @@ const CreateLoading = ({ userID }) => {
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
   const [area, setArea] = useState([]);
-  const [areaID, setSelectedArea] = useState('');
+  const [areaID, setSelectedArea] = useState("");
 
   const navigate = useNavigate();
+
+  const getSelectedAreaName = () => {
+    const selectedArea = area.find((item) => item.areaID === areaID);
+    return selectedArea ? selectedArea.area : "";
+  };
 
   useEffect(() => {
     axios
@@ -646,11 +675,14 @@ const CreateLoading = ({ userID }) => {
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value - basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -798,8 +830,14 @@ const CreateLoading = ({ userID }) => {
               label="Sales Representative"
             >
               {existingRep.map((rep) => (
-                <MenuItem key={rep.repID} value={rep.firstname}>
+                <MenuItem
+                  key={rep.repID}
+                  value={rep.firstname}
+                  disabled={rep.availability === "no"} // Disable if availability is "no"
+                >
                   {rep.firstname}
+                  {rep.availability === "no" && " - Not Available"}{" "}
+                  {/* Append "Not Available" */}
                 </MenuItem>
               ))}
             </Select>
@@ -935,6 +973,8 @@ const CreateLoading = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock={restock}
+                setRestock={setRestock}
               />
             ))}
           </div>
@@ -945,7 +985,7 @@ const CreateLoading = ({ userID }) => {
       <div className="w-2/5 h-[89vh]  pr-8 ">
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-6 justify-between font-PoppinsM text-2xl rounded-lg p-2">
-            <div className="flex justify-between mt-8  border-b-4 ">
+            <div className="flex justify-between mt-4  border-b-4 ">
               <div className="">Loading Details</div>
               <div className="">
                 <h1>#00{preOrderID}</h1>
@@ -960,6 +1000,11 @@ const CreateLoading = ({ userID }) => {
               {selectedVehicle.vehicle_number && (
                 <h1 className="text-sm font-PoppinsL">
                   Vehicle Number: {selectedVehicle.vehicle_number}
+                </h1>
+              )}
+              {areaID && (
+                <h1 className="text-sm font-PoppinsL">
+                  Area: {getSelectedAreaName()}
                 </h1>
               )}
               <h1 className="text-sm font-PoppinsL">
@@ -986,17 +1031,17 @@ const CreateLoading = ({ userID }) => {
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
+                setRestock={setRestock}
               />
             ))}
           </div>
 
-          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-5 gap-3 ">
+          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-3 gap-3 ">
             <div className="flex justify-between px-1">
               <p>Total Value of Loaded Quantity:</p>
               <p>{subtotal} LKR</p>
             </div>
 
-            <div className="w-full flex items-center gap-5 justify-between px-1"></div>
             <div className="px-1">
               <Button
                 variant="contained"

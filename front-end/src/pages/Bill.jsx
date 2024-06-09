@@ -227,7 +227,7 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -252,6 +252,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       }
     }
   }, [restore]);
+
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -441,6 +453,10 @@ const Bill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
+    productID: "",
+    amount: "",
+  });
+  const [restock, setRestock] = useState({
     productID: "",
     amount: "",
   });
@@ -949,13 +965,16 @@ const Bill = ({ userID }) => {
     }
   }, [openExistingCustomerDialog]);
 
-  function BillingItem({ item, onQuantityChange, onRemoveItem }) {
+  function BillingItem({ item, onQuantityChange, onRemoveItem, setRestock }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value-basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -1376,6 +1395,8 @@ const Bill = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock = {restock}
+                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -1435,6 +1456,7 @@ const Bill = ({ userID }) => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
+                    setRestock = {setRestock}
                   />
                 ))}
               </div>

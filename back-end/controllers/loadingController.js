@@ -79,28 +79,41 @@ const addLoading = (req, res) => {
                             return;
                         }
 
-                        Promise.all(updateStockPromises)
-                            .then(() => {
-                                connection.commit((err) => {
-                                    if (err) {
-                                        console.error('Error committing database transaction:', err);
-                                        connection.rollback(() => {
-                                            connection.release();
-                                            res.status(500).send('Internal Server Error');
-                                        });
-                                        return;
-                                    }
-                                    res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
-                                    connection.release();
-                                });
-                            })
-                            .catch((err) => {
-                                console.error('Error updating product stock:', err);
+                        // Update availability in salesrep table
+                        const updateRepAvailabilityQuery = 'UPDATE salesrep SET availability = "no" WHERE repID = ?';
+                        connection.query(updateRepAvailabilityQuery, [repID], (err, updateRepResult) => {
+                            if (err) {
+                                console.error('Error updating salesrep availability:', err);
                                 connection.rollback(() => {
                                     connection.release();
                                     res.status(500).send('Internal Server Error');
                                 });
-                            });
+                                return;
+                            }
+
+                            Promise.all(updateStockPromises)
+                                .then(() => {
+                                    connection.commit((err) => {
+                                        if (err) {
+                                            console.error('Error committing database transaction:', err);
+                                            connection.rollback(() => {
+                                                connection.release();
+                                                res.status(500).send('Internal Server Error');
+                                            });
+                                            return;
+                                        }
+                                        res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
+                                        connection.release();
+                                    });
+                                })
+                                .catch((err) => {
+                                    console.error('Error updating product stock:', err);
+                                    connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).send('Internal Server Error');
+                                    });
+                                });
+                        });
                     });
                 });
             });
@@ -108,8 +121,9 @@ const addLoading = (req, res) => {
     });
 };
 
+
 const addLoadingPreOrders = (req, res) => {
-    const { total_value, repID, addedItems, vehicleID, userID, loading_status } = req.body;
+    const { total_value, repID, addedItems, vehicleID, userID, loading_status, areaID } = req.body;
     const date = new Date().toISOString().slice(0, 19).replace("T", " ");
     
     // Start a transaction
@@ -129,8 +143,8 @@ const addLoadingPreOrders = (req, res) => {
             }
 
             // Insert into loading table
-            const insertLoadingQuery = 'INSERT INTO loading (total_value, repID, vehicleID, date, userID, loading_status) VALUES (?, ?, ?, ?, ?, ?)';
-            connection.query(insertLoadingQuery, [total_value, repID, vehicleID, date, userID, loading_status], (err, loadingResult) => {
+            const insertLoadingQuery = 'INSERT INTO loading (total_value, repID, vehicleID, date, userID, loading_status, areaID) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            connection.query(insertLoadingQuery, [total_value, repID, vehicleID, date, userID, loading_status, areaID], (err, loadingResult) => {
                 if (err) {
                     console.error('Error inserting item into loading table:', err);
                     connection.rollback(() => {
@@ -204,36 +218,47 @@ const addLoadingPreOrders = (req, res) => {
                             return;
                         }
 
-                        Promise.all([...updateStockPromises, ...updatePreOrderStatusPromises])
-                            .then(() => {
-                                connection.commit((err) => {
-                                    if (err) {
-                                        console.error('Error committing database transaction:', err);
-                                        connection.rollback(() => {
-                                            connection.release();
-                                            res.status(500).send('Internal Server Error');
-                                        });
-                                        return;
-                                    }
-                                    res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
-                                    connection.release();
-                                });
-                            })
-                            .catch((err) => {
-                                console.error('Error updating product stock or pre-order status:', err);
+                        // Update availability in salesrep table
+                        const updateRepAvailabilityQuery = 'UPDATE salesrep SET availability = "no" WHERE repID = ?';
+                        connection.query(updateRepAvailabilityQuery, [repID], (err, updateRepResult) => {
+                            if (err) {
+                                console.error('Error updating salesrep availability:', err);
                                 connection.rollback(() => {
                                     connection.release();
                                     res.status(500).send('Internal Server Error');
                                 });
-                            });
+                                return;
+                            }
+
+                            Promise.all([...updateStockPromises, ...updatePreOrderStatusPromises])
+                                .then(() => {
+                                    connection.commit((err) => {
+                                        if (err) {
+                                            console.error('Error committing database transaction:', err);
+                                            connection.rollback(() => {
+                                                connection.release();
+                                                res.status(500).send('Internal Server Error');
+                                            });
+                                            return;
+                                        }
+                                        res.json({ message: 'Item and products added successfully' }); // Send response indicating successful addition
+                                        connection.release();
+                                    });
+                                })
+                                .catch((err) => {
+                                    console.error('Error updating product stock or pre-order status:', err);
+                                    connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).send('Internal Server Error');
+                                    });
+                                });
+                        });
                     });
                 });
             });
         });
     });
 };
-
-
 
 // Backend API to check if there is any pending loading for the selected salesRep
 const checkPendingLoading = (req, res) => {
@@ -263,25 +288,35 @@ const checkPendingLoading = (req, res) => {
     const loadingID = req.body.loadingID; // Assuming loadingID is provided in the request body
     const updateLoadingStatusQuery = "UPDATE loading SET loading_status = 'completed' WHERE loadingID = ?";
     const updateVehicleAvailabilityQuery = "UPDATE vehicle v JOIN loading l ON v.vehicleID = l.vehicleID SET v.availability = 'yes' WHERE l.loadingID = ?";
-  
+    const updateSalesRepAvailabilityQuery = "UPDATE salesrep SET availability = 'yes' WHERE repID = (SELECT repID FROM loading WHERE loadingID = ?)";
+
     // Execute the first update query to update loading_status
     DBconnect.query(updateLoadingStatusQuery, [loadingID], (error, results) => {
-      if (error) {
-        console.error("Error updating loading status:", error);
-        res.status(500).json({ error: "Error updating loading status" });
-      } else {
-        // If loading_status update is successful, execute the second update query to update availability
-        DBconnect.query(updateVehicleAvailabilityQuery, [loadingID], (error, results) => {
-          if (error) {
-            console.error("Error updating vehicle availability:", error);
-            res.status(500).json({ error: "Error updating vehicle availability" });
-          } else {
-            res.json({ message: "Loading status and vehicle availability updated successfully" });
-          }
-        });
-      }
+        if (error) {
+            console.error("Error updating loading status:", error);
+            res.status(500).json({ error: "Error updating loading status" });
+        } else {
+            // If loading_status update is successful, execute the second update query to update vehicle availability
+            DBconnect.query(updateVehicleAvailabilityQuery, [loadingID], (error, results) => {
+                if (error) {
+                    console.error("Error updating vehicle availability:", error);
+                    res.status(500).json({ error: "Error updating vehicle availability" });
+                } else {
+                    // If vehicle availability update is successful, execute the third update query to update salesrep availability
+                    DBconnect.query(updateSalesRepAvailabilityQuery, [loadingID], (error, results) => {
+                        if (error) {
+                            console.error("Error updating salesrep availability:", error);
+                            res.status(500).json({ error: "Error updating salesrep availability" });
+                        } else {
+                            res.json({ message: "Loading status, vehicle availability, and salesrep availability updated successfully" });
+                        }
+                    });
+                }
+            });
+        }
     });
-  };
+};
+
   
   const getLoadingById = (req, res) => {
     const loadingID = req.params.loadingID;

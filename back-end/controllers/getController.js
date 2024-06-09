@@ -209,18 +209,35 @@ const getLoading = (req, res) => {
   // Fetch all rows from the loading table with joined data from loading_products and product tables
   const selectAllQuery = `
   SELECT 
-  l.loadingID, l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
-  lp.productID, lp.quantity,
+  l.loadingID, 
+  l.total_value, 
+  l.repID, 
+  l.vehicleID, 
+  l.date, 
+  l.userID, 
+  l.loading_status,
+  lp.productID, 
+  lp.quantity,
   p.product_name,
-  u.firstname as rep_firstname,
-  v.vehicle_number  -- Select vehicle_number from the vehicle table
-FROM loading l
-JOIN loading_products lp ON l.loadingID = lp.loadingID
-JOIN product p ON lp.productID = p.productID
-JOIN salesrep s ON l.repID = s.repID
-JOIN user u ON s.userID = u.userID
-JOIN vehicle v ON l.vehicleID = v.vehicleID -- Join with the vehicle table
-ORDER BY l.loadingID DESC;
+  u.firstname AS rep_firstname,
+  v.vehicle_number,  -- Select vehicle_number from the vehicle table
+  a.area  -- Select area from the area table
+FROM 
+  loading l
+JOIN 
+  loading_products lp ON l.loadingID = lp.loadingID
+JOIN 
+  product p ON lp.productID = p.productID
+JOIN 
+  salesrep s ON l.repID = s.repID
+JOIN 
+  user u ON s.userID = u.userID
+JOIN 
+  vehicle v ON l.vehicleID = v.vehicleID  -- Join with the vehicle table
+JOIN 
+  area a ON l.areaID = a.areaID  -- Join with the area table
+ORDER BY 
+  l.loadingID DESC;
 
 `;
 
@@ -480,7 +497,7 @@ const getSales = (req, res) => {
   u.firstname AS user_firstname, 
   u.lastname AS user_lastname, 
   c.shop_name, 
-  c.area,
+  a.area,  -- Changed to a.area to reflect the join with area table
   cs.cash_amount, 
   cs.balance AS cash_balance,
   chs.cheque_value,
@@ -490,11 +507,13 @@ JOIN productsale ps ON s.saleID = ps.saleID
 JOIN product p ON ps.productID = p.productID
 JOIN user u ON s.userID = u.userID
 JOIN customer c ON s.customerID = c.customerID
+JOIN area a ON c.areaID = a.areaID  -- Join customer with area to get area information
 LEFT JOIN payment pm ON s.saleID = pm.saleID
 LEFT JOIN cash_sale cs ON pm.paymentID = cs.paymentID
 LEFT JOIN cheque_sale chs ON pm.paymentID = chs.paymentID
 LEFT JOIN credit_sale crs ON pm.paymentID = crs.paymentID
 ORDER BY s.saleID DESC;
+
 
 
 
@@ -526,7 +545,7 @@ SELECT
     u.firstname, 
     u.lastname, 
     c.shop_name, 
-    c.area, 
+    a.area,  -- Changed to a.area to reflect the join with area table
     p.payment_status
 FROM 
     credit_sale cs
@@ -538,8 +557,11 @@ INNER JOIN
     user u ON s.userID = u.userID
 INNER JOIN 
     customer c ON s.customerID = c.customerID
+INNER JOIN 
+    area a ON c.areaID = a.areaID  -- Join customer with area to get area information
 WHERE 
     p.payment_status != 'fully paid';
+
 
 
 

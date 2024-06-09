@@ -115,6 +115,7 @@ const addSale = (req, res) => {
                     );
                   }
                   break;
+
                 case "cheque":
                   let chequeSaleAmount = cheque_value;
                   let chequeCreditAmount = 0;
@@ -129,12 +130,13 @@ const addSale = (req, res) => {
 
                   specificSaleQuery = `INSERT INTO cheque_sale (paymentID, bank_name, cheque_number, cheque_value) VALUES (?, ?, ?, ?)`;
                   specificSaleValues = [
-                    paymentID,
+                    paymentID, 
                     bank_name,
                     cheque_number,
-                    chequeSaleAmount,
+                    chequeSaleAmount, 
                   ];
 
+                  
                   // If chequeCreditAmount is greater than 0, insert into credit_sale table
                   if (chequeCreditAmount > 0) {
                     const creditSaleQuery = `INSERT INTO credit_sale (paymentID, credit_amount) VALUES (?, ?)`;

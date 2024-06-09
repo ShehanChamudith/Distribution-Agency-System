@@ -107,4 +107,11 @@ export const SideBarData = [
     link: "/admin-dashboard",
     roles: [1,2,3,4,5,6],
   },
+
+  {
+    title: "Stock Request",
+    icon: <ShoppingCartIcon />,
+    link: "/stock-request",
+    roles: [1],
+  },
 ];

@@ -6,15 +6,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Card,
   Modal,
   CardContent,
@@ -22,7 +13,6 @@ import {
   Typography,
   Alert,
   Snackbar,
-  Checkbox,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import porkIcon from "../assets/icons/pork.ico";
@@ -32,8 +22,7 @@ import sausageIcon from "../assets/icons/sausages.ico";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const generatePDF = (invoiceData, addedItems) => {
   const doc = new jsPDF();
@@ -216,7 +205,15 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({
+  item,
+  setAddedItems,
+  addedItems,
+  restore,
+  setRestore,
+  restock,
+  setRestock,
+}) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -242,6 +239,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     }
   }, [restore]);
 
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
+
   const handleClose = () => {
     setOpen(false);
   };
@@ -254,15 +263,6 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
         show: true,
         severity: "error",
         message: "Quantity cannot be empty!",
-      });
-      return;
-    }
-
-    if (enteredQuantity > stock) {
-      setAlert({
-        show: true,
-        severity: "error",
-        message: "Entered quantity exceeds available stock!",
       });
       return;
     }
@@ -350,11 +350,9 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
           <Typography gutterBottom variant="h6" component="div">
             {item.product_name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Stock: {stock} kg
-          </Typography>
+
           <Button onClick={handleOpen} variant="contained" sx={{ mt: 2 }}>
-            Add to Bill
+            Add to Invoice
           </Button>
         </CardContent>
       </Card>
@@ -396,21 +394,9 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   );
 }
 
-const EditLoading = ({ userID }) => {
+const StockReq = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
-  const [category, setCategory] = useState("All");
-  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
-    useState(false);
-  const [selectedRep, setSelectedRep] = useState({
-    repID: "",
-    firstname: "",
-  });
-  const [selectedVehicle, setselectedVehicle] = useState({
-    vehicleID: "",
-    vehicle_number: "",
-  });
-  const [selectedRepInfo, setSelectedRepInfo] = useState("");
-  const [selectedVehicleInfo, setSelectedVehicleInfo] = useState("");
+  const [category, setCategory] = useState(1);
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -418,97 +404,55 @@ const EditLoading = ({ userID }) => {
     productID: "",
     amount: "",
   });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
+  });
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
   const [preOrderID, setpreOrderID] = useState("");
-  const [vehicle, setVehicle] = useState([]);
-  const [existingRep, setExistingRep] = useState([]);
-  const [pending, setPending] = useState(null);
-  const [editloadingID, seteditloadingID] = useState("");
-  const navigate = useNavigate();
-
-  const location = useLocation();
-  const loadingData = location.state?.loadingData?.loadingData || {};
-
-  //console.log(loadingData.repID);
+  const [fName, setFName] = useState("");
+  const [lName, setLName] = useState("");
+  const [customerID, setcustomerID] = useState("");
+  const [supplier, setSupplier] = useState([]);
 
   useEffect(() => {
-    console.log("loadingData:", loadingData); // Log loadingData for debugging
-  
-    if (loadingData) {
-      // Update selectedRep state
-      setSelectedRep({
-        repID: loadingData.repID,
-        firstname: loadingData.rep_firstname
-      });
-  
-      // Update selectedVehicle state
-      setselectedVehicle({
-        vehicleID: loadingData.vehicleID,
-        vehicle_number: loadingData.vehicle_number
-      });
-
-      seteditloadingID(
-        loadingData.loadingID
-      );
-  
-      // Update addedItems state
-      if (loadingData.addedItems) {
-        setAddedItems(loadingData.addedItems);
-        //console.log("Setting addedItems:", loadingData.addedItems); // Log addedItems being set
-      }
+    console.log("userID in useEffect:", userID);
+    if (userID) {
+      axios
+        .get(`http://localhost:3001/getcustomerID/${userID}`)
+        .then((response) => {
+          const cusData = response.data;
+          //console.log(repData);
+          setcustomerID(cusData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
     }
-  }, [loadingData]);
-  
-
-
-  const checkPendingLoading = () => {
-    // Assuming selectedRep contains the repID of the selected salesRep
-    const repID = selectedRep.repID;
-    console.log(repID);
-
-    axios
-      .post("http://localhost:3001/check-pending-loading", { repID })
-      .then((response) => {
-        setPending(response.data.hasPendingLoading);
-        console.log(response.data.hasPendingLoading);
-      })
-      .catch((error) => {
-        console.error("Error checking pending loading:", error);
-        // Handle error
-      });
-  };
-
-  useEffect(() => {
-    if (selectedRep) {
-      checkPendingLoading();
-    }
-  }, [selectedRep]);
+  }, [userID]);
 
   const handleCreateLoading = () => {
-    
-     if (addedItems.length === 0) {
+    console.log(customerID);
+
+    if (addedItems.length === 0) {
       setAlertMessage("Please add at least one item to the bill.");
       setOpen(true);
     } else {
-      const loadingData = {
+      const preOrderData = {
         total_value: subtotal,
-        repID: selectedRep.repID,
         addedItems: addedItems,
-        vehicleID: selectedVehicle.vehicleID,
-        userID: userID,
-        loading_status: "pending",
-        availability: "no",
-        loadingID: editloadingID,
+        pre_order_status: "pending",
+        customerID: customerID,
       };
 
-      console.log(loadingData);
+      console.log(preOrderData);
 
       axios
-        .post("http://localhost:3001/edit-loading", loadingData)
+        .post("http://localhost:3001/addpreorder", preOrderData)
         .then((response) => {
-          console.log("Invoice created successfully:", response.data);
+          console.log("Pre Order Invoice created successfully:", response.data);
 
           // if (printBill) {
           //   generatePDF(invoiceData, addedItems);
@@ -524,7 +468,7 @@ const EditLoading = ({ userID }) => {
               document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           }).then(() => {
-            navigate('/get-loading');
+            window.location.reload();
           });
         })
         .catch((error) => {
@@ -548,9 +492,12 @@ const EditLoading = ({ userID }) => {
         let filteredData = response.data;
 
         // Filter items based on category
-        if (category && category !== "All") {
+        const defaultCategory = category || 1;
+
+        // Apply filter based on category
+        if (defaultCategory) {
           filteredData = filteredData.filter(
-            (item) => item.category === category
+            (item) => item.supplierID === defaultCategory
           );
         }
 
@@ -568,84 +515,23 @@ const EditLoading = ({ userID }) => {
       });
   }, [category, searchQuery]);
 
-  const handleExistingRepChange = (event) => {
-    setSelectedRepInfo(event.target.value); // Update selected rep info
-  };
-
-  const handleVehicleChange = (event) => {
-    setSelectedVehicleInfo(event.target.value);
-  };
-
-  const handleExistingCustomerDialogClose = () => {
-    // Display SweetAlert confirmation dialog
-    Swal.fire({
-      icon: "warning",
-      title: "Please select a Sale Representative and a Vehicle",
-      text: "You need to select a Sale Representative and a vehicle to proceed.",
-      customClass: {
-        popup: "z-50",
-      },
-      didOpen: () => {
-        document.querySelector(".swal2-container").style.zIndex = "9999";
-      },
-    });
-  };
-
-  const handleExistingCustomerSubmit = () => {
-    setOpenExistingCustomerDialog(false);
-    const rep = existingRep.find((rep) => rep.firstname === selectedRepInfo);
-    setSelectedRep(rep);
-    console.log("Selected Customer after button click:", rep);
-
-    const vehi = vehicle.find(
-      (vehi) => vehi.vehicle_number === selectedVehicleInfo
-    );
-    setselectedVehicle(vehi);
-    console.log("Selected Vehicle after button click:", vehi);
-  };
-
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
     setCategory(newAlignment);
   };
 
-  const fetchsaleRep = () => {
-    axios
-      .get("http://localhost:3001/getsalerep")
-      .then((response) => {
-        setExistingRep(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching existing customers:", error);
-      });
-  };
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getvehicle")
-      .then((response) => {
-        const vehicleData = response.data;
-
-        setVehicle(vehicleData);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (openExistingCustomerDialog) {
-      fetchsaleRep();
-    }
-  }, [openExistingCustomerDialog]);
+  console.log(category);
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value - basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -662,11 +548,6 @@ const EditLoading = ({ userID }) => {
           />
           <div className="ml-2">
             <h1 className="text-sm font-medium">{item.product_name}</h1>
-            <h1 className="text-xs text-gray-500">
-              {item.selling_price
-                ? `${item.selling_price.toFixed(2)} LKR`
-                : "Price not available"}
-            </h1>
           </div>
         </div>
 
@@ -680,7 +561,6 @@ const EditLoading = ({ userID }) => {
             />
           </div>
           <div className=" flex justify-end items-center">
-            <h1 className="text-sm ml-2">{totalPrice} LKR</h1>
             <Button
               variant="outlined"
               color="error"
@@ -709,9 +589,9 @@ const EditLoading = ({ userID }) => {
     );
   };
 
-  // useEffect(() => {
-  //   console.log("Updated addedItems:", addedItems);
-  // }, [addedItems]);
+  useEffect(() => {
+    console.log("Updated addedItems:", addedItems);
+  }, [addedItems]);
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString();
@@ -755,10 +635,10 @@ const EditLoading = ({ userID }) => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/getloading")
+      .get("http://localhost:3001/getpreorder")
       .then((response) => {
         const preloadID = response.data.uniqueloadingID;
-        //console.log(preloadID);
+        console.log(preloadID);
         if (preloadID === 0) {
           setpreOrderID(1);
         } else {
@@ -770,74 +650,29 @@ const EditLoading = ({ userID }) => {
       });
   }, []);
 
+  // Decode the token to get user role
+  useEffect(() => {
+    const token = sessionStorage.getItem("accessToken");
+    if (token) {
+      const decodedToken = jwtDecode(token);
+      setFName(decodedToken.firstname);
+      setLName(decodedToken.lastname);
+    }
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getsupplier")
+      .then((response) => {
+        setSupplier(response.data); // Update state with fetched categories
+      })
+      .catch((error) => {
+        console.error("Error fetching data from category table", error);
+      });
+  }, []);
+
   return (
     <div className="flex w-screen gap-4">
-      {/* Select Existing Rep  */}
-      <Dialog
-        open={openExistingCustomerDialog}
-        onClose={handleExistingCustomerDialogClose}
-      >
-        <DialogTitle>Select Sales Representative and Vehicle</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please select an Sales Representative and the Vehicle from the
-            lists.
-          </DialogContentText>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="existing-rep-label">
-              Sales Representative
-            </InputLabel>
-            <Select
-              required
-              labelId="existing-rep-label"
-              value={selectedRepInfo}
-              onChange={handleExistingRepChange}
-              label="Sales Representative"
-            >
-              {existingRep.map((rep) => (
-                <MenuItem key={rep.repID} value={rep.firstname}>
-                  {rep.firstname}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="vehicle-label">Select Vehicle</InputLabel>
-            <Select
-              required
-              labelId="vehicle-label"
-              value={selectedVehicleInfo}
-              onChange={handleVehicleChange}
-              label="Select Vehicle"
-            >
-              {vehicle.map((data) => (
-                <MenuItem
-                  key={data.vehicleID}
-                  value={data.vehicle_number}
-                  disabled={data.availability === "no"} // Disable if availability is "no"
-                >
-                  {data.vehicle_number}
-                  {data.availability === "no" && " - Not Available"}{" "}
-                  {/* Append "Not Available" */}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              handleExistingCustomerSubmit();
-            }}
-            disabled={!selectedRepInfo || !selectedVehicleInfo}
-            variant="contained"
-            color="primary"
-          >
-            Select
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
@@ -852,7 +687,7 @@ const EditLoading = ({ userID }) => {
                 color: "white",
               }}
             >
-              Filter by Category
+              Filter by Supplier
             </Button>
           </div>
 
@@ -864,43 +699,14 @@ const EditLoading = ({ userID }) => {
               onChange={handleChange}
               aria-label="Platform"
             >
-              <ToggleButton value="All">All</ToggleButton>
-              <ToggleButton value="Chicken">
-                <Box
-                  component="img"
-                  src={chickenIcon}
-                  alt="chicken"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Chicken
-              </ToggleButton>
-              <ToggleButton value="Chicken Parts">
-                <Box
-                  component="img"
-                  src={cpartIcon}
-                  alt="chicken_part"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Chicken Parts
-              </ToggleButton>
-              <ToggleButton value="Pork">
-                <Box
-                  component="img"
-                  src={porkIcon}
-                  alt="pork"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Pork
-              </ToggleButton>
-              <ToggleButton value="Sausages">
-                <Box
-                  component="img"
-                  src={sausageIcon}
-                  alt="sausages"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Sausages
-              </ToggleButton>
+              {supplier.map((supplier) => (
+                <ToggleButton
+                  key={supplier.supplierID}
+                  value={supplier.supplierID}
+                >
+                  {supplier.supplier_company}
+                </ToggleButton>
+              ))}
             </ToggleButtonGroup>
           </div>
         </div>
@@ -916,6 +722,8 @@ const EditLoading = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock={restock}
+                setRestock={setRestock}
               />
             ))}
           </div>
@@ -927,22 +735,12 @@ const EditLoading = ({ userID }) => {
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-6 justify-between font-PoppinsM text-2xl rounded-lg p-2">
             <div className="flex justify-between mt-8  border-b-4 ">
-              <div className="">Loading Details</div>
-              <div className="">
-                <h1>#00{preOrderID}</h1>
-              </div>
+              <div className="">Stock Request Details</div>
             </div>
             <div className="">
-              {selectedRep.firstname && (
-                <h1 className="text-sm font-PoppinsL">
-                  Sales Representative Name: {selectedRep.firstname}
-                </h1>
-              )}
-              {selectedVehicle.vehicle_number && (
-                <h1 className="text-sm font-PoppinsL">
-                  Vehicle Name: {selectedVehicle.vehicle_number}
-                </h1>
-              )}
+              <h1 className="text-sm font-PoppinsL">
+                Customer Name: {fName} {lName}
+              </h1>
               <h1 className="text-sm font-PoppinsL">
                 Loaded Date: {formattedDate}
               </h1>
@@ -956,35 +754,29 @@ const EditLoading = ({ userID }) => {
             <div className="w-1/2">Item Name</div>
             <div className="flex justify-between w-1/2">
               <div>Quantity (kg)</div>
-              <div>Price (LKR)</div>
             </div>
           </div>
 
-          <div className="w-full px-4 h-64 overflow-y-auto ">
+          <div className="w-full px-4 h-72 overflow-y-auto ">
             {addedItems.map((item) => (
               <BillingItem
                 key={item.productID}
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
+                setRestock={setRestock}
               />
             ))}
           </div>
 
-          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-5 gap-3 ">
-            <div className="flex justify-between px-1">
-              <p>Total Value of Loaded Quantity:</p>
-              <p>{subtotal} LKR</p>
-            </div>
-
-            <div className="w-full flex items-center gap-5 justify-between px-1"></div>
+          <div className="flex flex-col bg-slate-100 rounded-lg p-7 gap-3 ">
             <div className="px-1">
               <Button
                 variant="contained"
                 sx={{ paddingY: 1, width: "100%", borderRadius: 2 }}
                 onClick={handleCreateLoading}
               >
-                Create a Loading
+                Send the request to the supplier
               </Button>
               <Snackbar
                 open={open}
@@ -1008,4 +800,4 @@ const EditLoading = ({ userID }) => {
   );
 };
 
-export default EditLoading;
+export default StockReq;

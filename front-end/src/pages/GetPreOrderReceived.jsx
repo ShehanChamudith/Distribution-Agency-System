@@ -255,7 +255,7 @@ function GetPreOrderReceived() {
 
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-      backgroundColor: theme.palette.common.black,
+      backgroundColor: "#6573c3",
       color: theme.palette.common.white,
     },
     [`&.${tableCellClasses.body}`]: {
@@ -276,13 +276,15 @@ function GetPreOrderReceived() {
   const handleProcessPreOrders = () => {
     if (areaID) {
       axios
-        .get(`http://localhost:3001/load-preorders`, { params: { areaID } })
+        .get("http://localhost:3001/load-preorders", { params: { areaID } })
         .then((response) => {
           const preOrderData = response.data; // Assuming the response contains the loading data
           console.log(preOrderData);
-
-          // Navigate to "/edit-loading" and pass the data as state
-          navigate("/create-loading-pre-orders", { state: { preOrderData } });
+  
+          // Navigate to "/create-loading-pre-orders" and pass the data as state
+          navigate("/create-loading-pre-orders", {
+            state: { preOrderData, areaID }
+          });
         })
         .catch((error) => {
           console.error("Error fetching pre order information:", error);
@@ -292,6 +294,7 @@ function GetPreOrderReceived() {
       alert("Please select an area.");
     }
   };
+  
 
   return (
     <div className=" h-[85vh]">
