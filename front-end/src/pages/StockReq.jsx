@@ -15,22 +15,23 @@ import {
   Snackbar,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import porkIcon from "../assets/icons/pork.ico";
-import chickenIcon from "../assets/icons/hen.ico";
-import cpartIcon from "../assets/icons/food.ico";
-import sausageIcon from "../assets/icons/sausages.ico";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { jwtDecode } from "jwt-decode";
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
-const generatePDF = (invoiceData, addedItems) => {
+const generatePDF = (preOrderData, addedItems) => {
   const doc = new jsPDF();
 
-  console.log(invoiceData);
+  console.log(preOrderData);
 
   const shopInfo = {
-    name: "Distribution Agency",
+    name: "Distribution Agency - Stock Request",
     address: "Atakalanpanna, Kahawatta",
     tel: "077-4439693",
   };
@@ -78,106 +79,31 @@ const generatePDF = (invoiceData, addedItems) => {
   doc.setFontSize(13);
   let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
 
-  doc.text(`Order Number: #0001`, 15, startY);
-  doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
-  doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
-  doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
-  doc.text(`Order Time: ${orderTime}`, 15, startY + lineSpacing * 4);
+  doc.text(`Request Date: ${orderDate}`, 15, startY);
 
   // Add items table
-  const headers = [["Product Name", "Quantity", "Unit Price", "Price"]];
-  const data = addedItems.map((item) => [
-    item.product_name,
-    item.quantity,
-    `${item.selling_price} LKR`,
-    `${item.quantity * item.selling_price} LKR`,
-  ]);
+  const headers = [["Product Name", "Quantity"]];
+  const data = addedItems.map((item) => [item.product_name, item.quantity]);
 
-  let paymentAmount, paymentLabel;
-  switch (invoiceData.payment_type) {
-    case "cash":
-      paymentAmount = invoiceData.cash_amount;
-      paymentLabel = "Cash Amount Paid";
-      break;
-    case "cheque":
-      paymentAmount = invoiceData.cheque_value;
-      paymentLabel = "Cheque Value";
-      break;
-    case "credit":
-      paymentAmount = invoiceData.credit_amount;
-      paymentLabel = "Credited Value";
-      break;
-    default:
-      paymentAmount = 0;
-      paymentLabel = "Payment Amount";
-  }
+  let finalY; // Variable to store the final Y-coordinate after the table
 
   doc.autoTable({
-    startY: startY + lineSpacing * 7,
+    startY: startY + lineSpacing * 3,
     head: headers,
     body: data,
     didDrawPage: function (data) {
-      let tableHeight = data.cursor.y;
-
-      doc.line(
-        15,
-        tableHeight + lineSpacing * 2,
-        pageWidth - 15,
-        tableHeight + lineSpacing * 2
-      );
-
-      doc.text(`Subtotal:`, 15, tableHeight + lineSpacing * 4.5);
-      // Right align the sale amount
-      const saleAmountValue = `${invoiceData.sale_amount}`;
-      const saleAmountWidth = doc.getTextWidth(saleAmountValue);
-      const saleAmountXPosition = pageWidth - saleAmountWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(
-        saleAmountValue,
-        saleAmountXPosition,
-        tableHeight + lineSpacing * 4.5
-      );
-
-      doc.text(`Discount:`, 15, tableHeight + lineSpacing * 6);
-      // Right align the discount
-      const discountValue = `${invoiceData.discount}`;
-      const discountWidth = doc.getTextWidth(discountValue);
-      const discountXPosition = pageWidth - discountWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(discountValue, discountXPosition, tableHeight + lineSpacing * 6);
-
-      doc.text(`${paymentLabel}:`, 15, tableHeight + lineSpacing * 7.5);
-      // Right align the payment amount
-      const paymentAmountValue = `${paymentAmount}`;
-      const paymentAmountWidth = doc.getTextWidth(paymentAmountValue);
-      const paymentAmountXPosition = pageWidth - paymentAmountWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(
-        paymentAmountValue,
-        paymentAmountXPosition,
-        tableHeight + lineSpacing * 7.5
-      );
-
-      doc.text(`Balance:`, 15, tableHeight + lineSpacing * 9);
-      // Right align the balance
-      const balanceValue = `${invoiceData.balance}`;
-      const balanceWidth = doc.getTextWidth(balanceValue);
-      const balanceXPosition = pageWidth - balanceWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(balanceValue, balanceXPosition, tableHeight + lineSpacing * 9);
-
-      doc.text(`Payment Type:`, 15, tableHeight + lineSpacing * 10.5);
-      // Right align the payment type
-      const paymentTypeValue = `${invoiceData.payment_type}`;
-      const paymentTypeWidth = doc.getTextWidth(paymentTypeValue);
-      const paymentTypeXPosition = pageWidth - paymentTypeWidth - 15; // Right align, leaving a 15 unit margin
-      doc.text(
-        paymentTypeValue,
-        paymentTypeXPosition,
-        tableHeight + lineSpacing * 10.5
-      );
+      finalY = data.cursor.y; // Capture the final y-coordinate
     },
   });
 
+  // Add notes
+  doc.setFontSize(12);
+  doc.text(`Notes: ${preOrderData.note}`, 15, finalY + lineSpacing * 4);
+
   // Save the PDF
-  doc.save(`invoice_${new Date().toISOString()}.pdf`);
+  doc.save(`invoice_stock_request_${new Date().toISOString()}.pdf`);
 };
+
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -395,8 +321,7 @@ function ItemCard({
 }
 
 const StockReq = ({ userID }) => {
-  const [alignment, setAlignment] = React.useState("All");
-  const [category, setCategory] = useState(1);
+
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -411,56 +336,52 @@ const StockReq = ({ userID }) => {
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
-  const [preOrderID, setpreOrderID] = useState("");
   const [fName, setFName] = useState("");
   const [lName, setLName] = useState("");
-  const [customerID, setcustomerID] = useState("");
+  const [supplierID, setsupplierID] = useState(1);
   const [supplier, setSupplier] = useState([]);
+  const [alignment, setAlignment] = useState("");
 
-  useEffect(() => {
-    console.log("userID in useEffect:", userID);
-    if (userID) {
-      axios
-        .get(`http://localhost:3001/getcustomerID/${userID}`)
-        .then((response) => {
-          const cusData = response.data;
-          //console.log(repData);
-          setcustomerID(cusData);
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
-    }
-  }, [userID]);
+  const [openNote, setOpenNote] = useState(false);
+  const [additionalNote, setAdditionalNote] = useState('');
+  const [proceedWithNote, setProceedWithNote] = useState(false);
 
   const handleCreateLoading = () => {
-    console.log(customerID);
-
     if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
-      setOpen(true);
-    } else {
+        setAlertMessage("Please add at least one item to the bill.");
+        setOpen(true);
+      }else
+    setOpenNote(true);
+  };
+
+  const handleClose = () => {
+    setOpenNote(false);
+  };
+
+  const handleProceedWithNote = () => {
+    setProceedWithNote(true);
+    setOpen(false);
+    createPreOrder();
+  };
+
+
+  const createPreOrder = () => {
+    
       const preOrderData = {
-        total_value: subtotal,
         addedItems: addedItems,
-        pre_order_status: "pending",
-        customerID: customerID,
+        supplierID: supplierID,
+        note: additionalNote // Include additional note in pre-order data
       };
 
       console.log(preOrderData);
 
       axios
-        .post("http://localhost:3001/addpreorder", preOrderData)
+        .post("http://localhost:3001/addstockreq", preOrderData)
         .then((response) => {
-          console.log("Pre Order Invoice created successfully:", response.data);
-
-          // if (printBill) {
-          //   generatePDF(invoiceData, addedItems);
-          // }
-
+          console.log("Stock Req Invoice created successfully:", response.data);
           Swal.fire({
             icon: "success",
-            title: "Loading Invoice Created Successfully!",
+            title: "Stock Request Invoice Created Successfully!",
             customClass: {
               popup: "z-50",
             },
@@ -468,6 +389,7 @@ const StockReq = ({ userID }) => {
               document.querySelector(".swal2-container").style.zIndex = "9999";
             },
           }).then(() => {
+            generatePDF(preOrderData, addedItems);
             window.location.reload();
           });
         })
@@ -475,8 +397,10 @@ const StockReq = ({ userID }) => {
           console.error("Error creating invoice:", error);
           alert("Error creating invoice. Please try again.");
         });
-    }
+    
   };
+
+
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -492,7 +416,7 @@ const StockReq = ({ userID }) => {
         let filteredData = response.data;
 
         // Filter items based on category
-        const defaultCategory = category || 1;
+        const defaultCategory = supplierID || 1;
 
         // Apply filter based on category
         if (defaultCategory) {
@@ -513,14 +437,14 @@ const StockReq = ({ userID }) => {
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, [category, searchQuery]);
+  }, [supplierID, searchQuery]);
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
-    setCategory(newAlignment);
+    setsupplierID(newAlignment);
   };
 
-  console.log(category);
+  
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
@@ -633,22 +557,7 @@ const StockReq = ({ userID }) => {
     setStock({ productID: productId, amount: amount });
   };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getpreorder")
-      .then((response) => {
-        const preloadID = response.data.uniqueloadingID;
-        console.log(preloadID);
-        if (preloadID === 0) {
-          setpreOrderID(1);
-        } else {
-          setpreOrderID(parseFloat(preloadID) + 1);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+
 
   // Decode the token to get user role
   useEffect(() => {
@@ -673,6 +582,27 @@ const StockReq = ({ userID }) => {
 
   return (
     <div className="flex w-screen gap-4">
+        <Dialog open={openNote} onClose={handleClose}>
+        <DialogTitle>Additional Note</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Add any additional note for this pre-order:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="additional-note"
+            label="Additional Note"
+            type="text"
+            fullWidth
+            value={additionalNote}
+            onChange={(e) => setAdditionalNote(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" onClick={handleProceedWithNote}>Proceed</Button>
+        </DialogActions>
+        </Dialog>
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">

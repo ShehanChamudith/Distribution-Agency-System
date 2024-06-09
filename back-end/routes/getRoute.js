@@ -23,6 +23,7 @@ const {getCreditSales} = require('../controllers/getController');
 const { getPaymentStatus } = require('../controllers/getController');
 const { getArea } = require('../controllers/getController');
 const { getProductStocks } = require('../controllers/getController');
+const { getStockRequests } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -47,6 +48,7 @@ router.get('/getsales', getSales);
 router.get('/getcreditsales', getCreditSales);
 router.get('/getpaymentstatus/:paymentID', getPaymentStatus);
 router.get('/getarea', getArea);
+router.get('/getstockrequests', getStockRequests);
 
 router.post('/getproductstocks', getProductStocks);
 

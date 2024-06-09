@@ -109,7 +109,14 @@ export const SideBarData = [
   },
 
   {
-    title: "Stock Request",
+    title: "Sent Stock Requests",
+    icon: <ShoppingCartIcon />,
+    link: "/get-stock-request",
+    roles: [1],
+  },
+
+  {
+    title: "Request Stock",
     icon: <ShoppingCartIcon />,
     link: "/stock-request",
     roles: [1],

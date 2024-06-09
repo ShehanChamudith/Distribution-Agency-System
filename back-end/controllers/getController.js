@@ -671,6 +671,49 @@ const getProductStocks = (req, res) => {
   });
 };
 
+const getStockRequests = (req, res) => {
+  const query = `
+    SELECT 
+      sr.requestID, 
+      sr.supplierID, 
+      sr.date, 
+      sr.notes,
+      rp.productID, 
+      rp.quantity,
+      p.product_name,
+      s.supplier_company
+    FROM 
+      stock_request sr
+    JOIN 
+      request_products rp ON sr.requestID = rp.requestID
+    JOIN 
+      product p ON rp.productID = p.productID
+    JOIN 
+      supplier s ON sr.supplierID = s.supplierID
+    ORDER BY 
+      sr.requestID DESC;
+  `;
+
+  DBconnect.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error getting database connection:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    connection.query(query, (err, results) => {
+      connection.release();
+      if (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json(results);
+    });
+  });
+};
+
+
 
 
 
@@ -698,4 +741,5 @@ module.exports = {
   getPaymentStatus,
   getArea,
   getProductStocks,
+  getStockRequests,
 };
