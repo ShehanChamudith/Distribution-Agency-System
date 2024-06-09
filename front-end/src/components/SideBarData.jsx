@@ -77,7 +77,7 @@ export const SideBarData = [
     title: "Received Pre Orders",
     icon: <RotateRightIcon />,
     link: "/get-received-preorder",
-    roles: [1,4],
+    roles: [1,3,4],
   },
 
   {

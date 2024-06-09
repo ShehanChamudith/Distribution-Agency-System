@@ -124,7 +124,7 @@ function App() {
               <Route path="/create-preorder" element={<CreatePreOrder userID={userID} />} />
             </Route>
 
-            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3,4]} />}>
               <Route path="/get-received-preorder" element={<GetPreOrderReceived userID={userID}/>} />
             </Route>
 

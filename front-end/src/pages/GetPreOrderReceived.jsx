@@ -21,7 +21,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-
+import { MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 
 const FilterBox = styled(Box)({
   display: "flex",
@@ -71,6 +71,9 @@ function GetPreOrderReceived() {
   const [ccustomerID, setcustomerID] = useState("");
   const [tabValue, setTabValue] = useState(0);
   const [totals, setTotals] = useState([]);
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState('');
+  
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
@@ -84,6 +87,7 @@ function GetPreOrderReceived() {
       }
     }
   };
+
 
   useEffect(() => {
     // Decode token when component mounts
@@ -116,6 +120,22 @@ function GetPreOrderReceived() {
         console.error("Error fetching data:", error);
       });
   }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
+
 
   // Extract unique loading IDs
   const uniquePreOrders = Array.from(
@@ -155,6 +175,8 @@ function GetPreOrderReceived() {
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
+
+
 
   // Filter unique loadings based on the filter
   const filteredPreOrders = uniquePreOrders.filter((pre) => {
@@ -218,16 +240,18 @@ function GetPreOrderReceived() {
       });
   };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getpreordertotal")
-      .then((response) => {
-        setTotals(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching pre-order totals:", error);
-      });
-  }, []);
+  const handleSearchPreOrders = () => {
+    if (areaID) {
+      axios
+        .get(`http://localhost:3001/getpreordertotal`, { params: { areaID } })
+        .then((response) => {
+          setTotals(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching pre-order totals:", error);
+        });
+    }
+  };
 
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -250,31 +274,33 @@ function GetPreOrderReceived() {
   }));
 
   const handleProcessPreOrders = () => {
-    // Fetch the previously created pre order information using the preorderID
-    axios
-      .get(`http://localhost:3001/load-preorders`)
-      .then((response) => {
-        const preOrderData = response.data; // Assuming the response contains the loading data
-        console.log(preOrderData);
+    if (areaID) {
+      axios
+        .get(`http://localhost:3001/load-preorders`, { params: { areaID } })
+        .then((response) => {
+          const preOrderData = response.data; // Assuming the response contains the loading data
+          console.log(preOrderData);
 
-        // Navigate to "/edit-loading" and pass the data as state
-        navigate("/create-loading-pre-orders", { state: { preOrderData } });
-      })
-      .catch((error) => {
-        console.error("Error fetching pre order information:", error);
-        // Handle error
-      });
+          // Navigate to "/edit-loading" and pass the data as state
+          navigate("/create-loading-pre-orders", { state: { preOrderData } });
+        })
+        .catch((error) => {
+          console.error("Error fetching pre order information:", error);
+          // Handle error
+        });
+    } else {
+      alert("Please select an area.");
+    }
   };
 
-  
-
   return (
-    <div>
-      <div className="w-screen px-20 py-5 h-[85vh]">
-        <Tabs value={tabValue} onChange={handleTabChange}>
-          <Tab label="Pre Orders" />
-          <Tab label="Totals of Pending Pre Orders" />
-        </Tabs>
+    <div className=" h-[85vh]">
+      <div className="w-screen px-20 py-5 h-[85vh] border border-red-400">
+      <Tabs value={tabValue} onChange={handleTabChange}>
+  <Tab label="Pre Orders" />
+  {userInfo !== 3 && <Tab label="Totals of Pending Pre Orders" />}
+</Tabs>
+
         <TabPanel value={tabValue} index={0}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Paper>
@@ -426,19 +452,50 @@ function GetPreOrderReceived() {
             </Paper>
           </LocalizationProvider>
         </TabPanel>
+
+        {userInfo !== 3 && (
         <TabPanel value={tabValue} index={1}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Paper>
               <FilterBox className="w-full p-3 justify-between">
-                <Box>
-                  <Button
-                    className="h-14"
+                
+                <Box className="flex gap-4">
+                <FormControl>
+                  <InputLabel id="userarea-label">Select Area</InputLabel>
+                  <Select
+                  className="w-40"
+                    required
+                    labelId="userarea-label"
+                    value={areaID}
+                    onChange={handleAreaChange}
+                    label="Select Area"
+                  >
+                    {area.map((item) => (
+                      <MenuItem key={item.areaID} value={item.areaID}>
+                        {item.area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                    className="h-14 w-70"
+                    variant="contained"
+                    onClick={handleSearchPreOrders}
+                    disabled={!areaID}
+                  >
+                    Search for Pre Orders
+                  </Button>
+                
+                  {/* <Button
+                    className="h-14 w-70"
                     variant="contained"
                     onClick={handleProcessPreOrders}
                   >
                     Create a Loading of Pre Orders
-                  </Button>
+                  </Button> */}
                 </Box>
+               
+                
                 <Box className="flex gap-4">
                   <TextField
                     className="w-72"
@@ -455,6 +512,7 @@ function GetPreOrderReceived() {
                     Clear Filters
                   </Button>
                 </Box>
+              
               </FilterBox>
               <ScrollableTableContainer
                 style={{ maxHeight: "calc(80vh - 160px)" }}
@@ -497,9 +555,18 @@ function GetPreOrderReceived() {
                 </Table>
               </ScrollableTableContainer>
             </Paper>
+            <Button
+                    className="h-14 w-70"
+                    variant="contained"
+                    onClick={handleProcessPreOrders}
+                  >
+                    Create a Loading of Pre Orders
+                  </Button>
           </LocalizationProvider>
         </TabPanel>
+        )}
       </div>
+
     </div>
   );
 }

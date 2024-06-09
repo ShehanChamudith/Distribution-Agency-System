@@ -365,19 +365,27 @@ const getPreOrder = (req, res) => {
   // Fetch all rows from the loading table with joined data from loading_products and product tables
   const selectAllQuery = `
   SELECT 
-  po.preorderID, po.total_value, po.customerID, po.date, po.pre_order_status,
-  pop.productID, pop.quantity,
+  po.preorderID, 
+  po.total_value, 
+  po.customerID, 
+  po.date, 
+  po.pre_order_status,
+  pop.productID, 
+  pop.quantity,
   p.product_name,
   c.userID,
-  u.firstname as customer_firstname,
-  c.area,
+  u.firstname AS customer_firstname,
+  c.areaID,
+  a.area,
   c.shop_name
 FROM pre_order po
 JOIN pre_order_products pop ON po.preorderID = pop.preorderID
 JOIN product p ON pop.productID = p.productID
 JOIN customer c ON po.customerID = c.customerID
 JOIN user u ON c.userID = u.userID
+JOIN area a ON c.areaID = a.areaID -- Join with area table
 ORDER BY po.preorderID DESC;
+
 
 `;
 
@@ -412,24 +420,30 @@ ORDER BY po.preorderID DESC;
 };
 
 const getPreOrderTotal = (req, res) => {
+  const { areaID } = req.query;
+
+  if (!areaID) {
+    return res.status(400).json({ message: 'areaID is required' });
+  }
+
   const query = `
-  SELECT 
-  pop.productID,
-  p.product_name,
-  ROUND(SUM(pop.quantity), 3) AS total_quantity,
-  s.supplier_company
-FROM pre_order_products pop
-JOIN product p ON pop.productID = p.productID
-JOIN supplier s ON p.supplierID = s.supplierID
-JOIN pre_order po ON pop.preorderID = po.preorderID
-WHERE po.pre_order_status = 'pending'
-GROUP BY pop.productID, p.product_name, s.supplier_company
-ORDER BY total_quantity DESC;
+    SELECT 
+      pop.productID,
+      p.product_name,
+      ROUND(SUM(pop.quantity), 3) AS total_quantity,
+      s.supplier_company
+    FROM pre_order_products pop
+    JOIN product p ON pop.productID = p.productID
+    JOIN supplier s ON p.supplierID = s.supplierID
+    JOIN pre_order po ON pop.preorderID = po.preorderID
+    JOIN customer c ON po.customerID = c.customerID
+    WHERE po.pre_order_status = 'pending'
+      AND c.areaID = ? 
+    GROUP BY pop.productID, p.product_name, s.supplier_company
+    ORDER BY total_quantity DESC;
+  `;
 
-
-`;
-
-  DBconnect.query(query, (err, results) => {
+  DBconnect.query(query, [areaID], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       res.status(500).send("Internal Server Error");
@@ -612,9 +626,29 @@ const getArea = (req, res) => {
   });
 };
 
-module.exports = {
-  getPaymentStatus,
+const getProductStocks = (req, res) => {
+  const { productIDs } = req.body;
+
+  if (!Array.isArray(productIDs) || productIDs.length === 0) {
+    return res.status(400).json({ message: 'Invalid product IDs' });
+  }
+
+  const query = `
+    SELECT productID, stock_total
+    FROM product
+    WHERE productID IN (?)
+  `;
+
+  DBconnect.query(query, [productIDs], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(results);
+  });
 };
+
 
 
 
@@ -641,4 +675,5 @@ module.exports = {
   getCreditSales,
   getPaymentStatus,
   getArea,
+  getProductStocks,
 };

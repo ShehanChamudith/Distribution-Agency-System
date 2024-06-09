@@ -72,22 +72,32 @@ const addPreOrder = (req, res) => {
 };
 
 const getPreOrderTotalToLoad = (req, res) => {
+    const { areaID } = req.query;
+  
+    if (!areaID) {
+      return res.status(400).json({ message: 'areaID is required' });
+    }
+  
     const query = `
-    SELECT 
-      pop.productID,
-      p.product_name, p.selling_price, p.image_path,
-      ROUND(SUM(pop.quantity), 3) AS total_quantity,
-      po.preorderID
-    FROM pre_order_products pop
-    JOIN product p ON pop.productID = p.productID
-    JOIN supplier s ON p.supplierID = s.supplierID
-    JOIN pre_order po ON pop.preorderID = po.preorderID
-    WHERE po.pre_order_status = 'pending'
-    GROUP BY pop.productID, p.product_name, s.supplier_company
-    ORDER BY total_quantity DESC;
+      SELECT 
+        pop.productID,
+        p.product_name, 
+        p.selling_price, 
+        p.image_path,
+        ROUND(SUM(pop.quantity), 3) AS total_quantity,
+        po.preorderID
+      FROM pre_order_products pop
+      JOIN product p ON pop.productID = p.productID
+      JOIN supplier s ON p.supplierID = s.supplierID
+      JOIN pre_order po ON pop.preorderID = po.preorderID
+      JOIN customer c ON po.customerID = c.customerID
+      WHERE po.pre_order_status = 'pending'
+        AND c.areaID = ?
+      GROUP BY pop.productID, p.product_name, p.selling_price, p.image_path, po.preorderID, s.supplier_company
+      ORDER BY total_quantity DESC;
     `;
   
-    DBconnect.query(query, (err, results) => {
+    DBconnect.query(query, [areaID], (err, results) => {
       if (err) {
         console.error('Error executing query:', err);
         res.status(500).send('Internal Server Error');

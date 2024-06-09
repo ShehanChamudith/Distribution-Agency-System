@@ -638,34 +638,67 @@ const Bill = ({ userID }) => {
       addedItems: addedItems, // Array of added items
       payment_status: payment_status,
     };
-
-    console.log(invoiceData);
-
-    axios
-      .post("http://localhost:3001/addsale", invoiceData)
-      .then((response) => {
-        console.log("Invoice created successfully:", response.data);
-
-        if (printBill) {
-          generatePDF(invoiceData, addedItems);
-        }
-
-        Swal.fire({
-          icon: "success",
-          title: "Invoice Created Successfully!",
-          customClass: {
-            popup: "z-50",
-          },
-          didOpen: () => {
-            document.querySelector(".swal2-container").style.zIndex = "9999";
-          },
-        }).then(() => {
-          window.location.reload();
+  
+    // Extract product IDs from added items
+    const productIDs = addedItems.map(item => item.productID);
+  
+    // Check stock totals before creating the invoice
+    axios.post("http://localhost:3001/getproductstocks", { productIDs })
+      .then(response => {
+        const stockData = response.data;
+  
+        // Check if any product exceeds the stock total
+        const exceededProducts = addedItems.filter(item => {
+          const stockItem = stockData.find(stock => stock.productID === item.productID);
+          return stockItem && item.quantity > stockItem.stock_total;
         });
+  
+        if (exceededProducts.length > 0) {
+          // Alert the user if any product exceeds the stock total
+          const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+          Swal.fire({
+            icon: "error",
+            title: "Stock Limit Exceeded",
+            text: `Products:  ${exceededProductNames}`,
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // Proceed with creating the invoice
+          axios.post("http://localhost:3001/addsale", invoiceData)
+            .then((response) => {
+              console.log("Invoice created successfully:", response.data);
+  
+              if (printBill) {
+                generatePDF(invoiceData, addedItems);
+              }
+  
+              Swal.fire({
+                icon: "success",
+                title: "Invoice Created Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              }).then(() => {
+                window.location.reload();
+              });
+            })
+            .catch((error) => {
+              console.error("Error creating invoice:", error);
+              alert("Error creating invoice. Please try again.");
+            });
+        }
       })
-      .catch((error) => {
-        console.error("Error creating invoice:", error);
-        alert("Error creating invoice. Please try again.");
+      .catch(error => {
+        console.error("Error fetching product stocks:", error);
+        alert("Error fetching product stocks. Please try again.");
       });
   };
 
@@ -680,31 +713,35 @@ const Bill = ({ userID }) => {
     setValue(newValue);
   };
 
-  useEffect(() => {
+  const fetchInventoryData = () => {
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
         let filteredData = response.data;
-
+  
         // Filter items based on category
         if (category && category !== "All") {
           filteredData = filteredData.filter(
             (item) => item.category === category
           );
         }
-
+  
         // Filter items based on search query
         if (searchQuery) {
           filteredData = filteredData.filter((item) =>
             item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
           );
         }
-
+  
         setData(filteredData); // Set the filtered data to the state
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
+  };
+
+  useEffect(() => {
+    fetchInventoryData();
   }, [category, searchQuery]);
 
   const handleChangeForm = (event) => {
@@ -1251,7 +1288,6 @@ const Bill = ({ userID }) => {
           <Button
             onClick={() => {
               handleExistingCustomerSubmit();
-              console.log("Selected Customer:", selectedCustomer);
             }}
             disabled={!selectedCustomer}
             variant="contained"

@@ -191,7 +191,6 @@ const generatePDF = (invoiceData, addedItems) => {
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
-  
 
   return (
     <div
@@ -425,8 +424,25 @@ const CreateLoading = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState('');
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
 
   const checkPendingLoading = () => {
     // Assuming selectedRep contains the repID of the selected salesRep
@@ -490,6 +506,7 @@ const CreateLoading = ({ userID }) => {
         userID: userID,
         loading_status: "pending",
         availability: "no",
+        areaID: areaID,
       };
 
       console.log(loadingData);
@@ -569,8 +586,7 @@ const CreateLoading = ({ userID }) => {
     // Display SweetAlert confirmation dialog
     Swal.fire({
       icon: "warning",
-      title: "Please select a Sale Representative and a Vehicle",
-      text: "You need to select a Sale Representative and a vehicle to proceed.",
+      title: "Please select a Sale Representative, a Vehicle and a Area!",
       customClass: {
         popup: "z-50",
       },
@@ -810,13 +826,29 @@ const CreateLoading = ({ userID }) => {
               ))}
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="userarea-label">Select Area</InputLabel>
+            <Select
+              required
+              labelId="userarea-label"
+              value={areaID}
+              onChange={handleAreaChange}
+              label="Select Area"
+            >
+              {area.map((item) => (
+                <MenuItem key={item.areaID} value={item.areaID}>
+                  {item.area}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
               handleExistingCustomerSubmit();
             }}
-            disabled={!selectedRepInfo || !selectedVehicleInfo}
+            disabled={!selectedRepInfo || !selectedVehicleInfo || !areaID}
             variant="contained"
             color="primary"
           >
