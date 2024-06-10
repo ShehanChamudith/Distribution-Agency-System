@@ -229,7 +229,7 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -254,6 +254,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       }
     }
   }, [restore]);
+
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -447,6 +459,10 @@ const DeliveryBill = ({ userID }) => {
     productID: "",
     amount: "",
   });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
+  });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
   const [open, setOpen] = useState(false);
@@ -470,14 +486,74 @@ const DeliveryBill = ({ userID }) => {
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
-    } else if (!paymentType) {
-      setAlertMessage("Please select a payment method.");
-      setOpen(true);
     } else {
-      setValue(1); // Switch to the payment tab
-      // setPaymentEnabled(true);
+      // Check stock totals before proceeding to the payment tab
+      const productIDs = addedItems.map(item => item.productID);
+  
+      axios.post("http://localhost:3001/getproductstocksloading", { loadingId, productIDs })
+        .then(response => {
+          const stockData = response.data;
+  
+          // Check if any product's stock total is 0
+          const unavailableProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID);
+            return stockItem && stockItem.stock_total === 0;
+          });
+  
+          if (unavailableProducts.length > 0) {
+            // Alert the user if any product is not available in the loading
+            const unavailableProductNames = unavailableProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Products Not Available",
+              text: `The following products are not available in the loading:  ${unavailableProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Check if any product exceeds the stock total
+            const exceededProducts = addedItems.filter(item => {
+              const stockItem = stockData.find(stock => stock.productID === item.productID);
+              return stockItem && item.quantity > stockItem.stock_total;
+            });
+  
+            if (exceededProducts.length > 0) {
+              // Alert the user if any product exceeds the stock total
+              const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+              Swal.fire({
+                icon: "error",
+                title: "Stock Limit Exceeded",
+                text: `The following products exceed the stock limit:  ${exceededProductNames}`,
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              });
+            } else {
+              // Check if a payment method is selected
+              if (!paymentType) {
+                setAlertMessage("Please select a payment method.");
+                setOpen(true);
+              } else {
+                // Proceed to the payment tab if all checks are passed
+                setValue(1); // Switch to the payment tab
+              }
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
+        });
     }
   };
+  
 
   useEffect(() => {
     let creditedValue;
@@ -903,11 +979,14 @@ const DeliveryBill = ({ userID }) => {
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value-basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -1324,6 +1403,8 @@ const DeliveryBill = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock = {restock}
+                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -1383,6 +1464,7 @@ const DeliveryBill = ({ userID }) => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
+                    setRestock = {setRestock}
                   />
                 ))}
               </div>

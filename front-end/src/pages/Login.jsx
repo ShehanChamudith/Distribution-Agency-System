@@ -57,7 +57,7 @@ function Login({ setIsAuthenticated,setUserInfo }) {
           } else if (values.usertype_name === 'SalesRep') {
             navigate('/admin-dashboard');
           } else if (values.usertype_name === 'Warehouse') {
-            navigate('/admin-dashboard');
+            navigate('/inventory');
           } else if (values.usertype_name === 'Supplier') {
             navigate('/admin-dashboard');
           } else if (values.usertype_name === 'Customer') {

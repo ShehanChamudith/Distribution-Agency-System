@@ -705,6 +705,13 @@ const BillPreOrders = ({ userID }) => {
   };
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
+    
+
+    const itemsWithLoadingID = addedItems.map(item => ({
+      ...item,
+      loadingID: loadingId  // Add loadingID to each item
+    }));
+
     const invoiceData = {
       sale_amount: saleAmount,
       payment_type: paymentType,
@@ -718,10 +725,10 @@ const BillPreOrders = ({ userID }) => {
       bank_name: bankName,
       cheque_number: chequeNumber,
       cheque_value: chequeValue,
-      addedItems: addedItems, // Array of added items
+      addedItems:itemsWithLoadingID,
       payment_status: payment_status,
     };
-
+    
     console.log(invoiceData);
 
     axios

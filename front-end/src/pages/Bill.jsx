@@ -487,8 +487,6 @@ const Bill = ({ userID }) => {
     } else {
       // Check stock totals before proceeding to the payment tab
       const productIDs = addedItems.map(item => item.productID);
-
-      console.log(productIDs);
   
       axios.post("http://localhost:3001/getproductstocks", { productIDs })
         .then(response => {
@@ -531,6 +529,7 @@ const Bill = ({ userID }) => {
         });
     }
   };
+  
   
   
 

@@ -18,8 +18,14 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 import Typography from '@mui/material/Typography';
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Swal from 'sweetalert2';
 
 // Custom styles for the table headers
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -53,6 +59,10 @@ function GetLoadings() {
   const [rrepID, setrepID] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const [userID, setUserID] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [selectedLoadingID, setSelectedLoadingID] = useState(null);
+  const [actionType, setActionType] = useState(""); // "edit" or "complete"
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
@@ -98,7 +108,7 @@ function GetLoadings() {
       });
   }, []);
 
-  // Extract unique loading IDs
+  // Extract unique loadings
   const uniqueLoadings = Array.from(
     new Set(loadings.map((loading) => loading.loadingID))
   ).map((loadingID) => {
@@ -129,6 +139,80 @@ function GetLoadings() {
   const handleClearFilters = () => {
     setFilter("");
     setDateFilter(null);
+  };
+
+  const openPasswordDialog = (loadingID, type) => {
+    setSelectedLoadingID(loadingID);
+    setActionType(type);
+    setDialogOpen(true);
+  };
+
+  const handlePasswordSubmit = async () => {
+    try {
+      const response = await axios.post('http://localhost:3001/verifypassword', {
+        password: adminPassword
+      });
+  
+      if (response.data.success) {
+        if (actionType === "edit") {
+          handleEditLoading(selectedLoadingID);
+        } else if (actionType === "complete") {
+          handleCompleteLoading(selectedLoadingID);
+        }
+      } else {
+        // Use SweetAlert for displaying the alert
+        Swal.fire({
+          icon: 'error',
+          title: 'Incorrect admin password!',
+          text: 'Please enter the correct admin password.',
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying password:", error.response ? error.response.data : error.message);
+      // Use SweetAlert for displaying error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while verifying the password. Please try again later.',
+      });
+    } finally {
+      setDialogOpen(false);
+      setAdminPassword("");
+    }
+  };
+  
+
+
+  const handleEditLoading = (loadingID) => {
+    // Fetch the previously created loading information using the loadingID
+    axios
+      .get(`http://localhost:3001/getloadingID/${loadingID}`)
+      .then((response) => {
+        const loadingData = response.data; // Assuming the response contains the loading data
+        console.log(loadingData);
+
+        // Navigate to "/edit-loading" and pass the data as state
+        navigate("/edit-loading", { state: { loadingData } });
+      })
+      .catch((error) => {
+        console.error("Error fetching loading information:", error);
+        // Handle error
+      });
+  };
+
+  const handleCompleteLoading = (loadingID) => {
+    axios
+      .put("http://localhost:3001/update-loading-status", { loadingID })
+      .then((response) => {
+        console.log("Loading status updated successfully:", response.data);
+        // Handle success, such as updating UI or showing a confirmation message
+      })
+      .catch((error) => {
+        console.error("Error updating loading status:", error);
+        // Handle error
+      });
+
+    window.location.reload();
   };
 
   // Filter unique loadings based on the filter
@@ -162,38 +246,6 @@ function GetLoadings() {
       return matchesTextFilter;
     }
   });
-
-  const handleCompleteLoading = (loadingID) => {
-    axios
-      .put("http://localhost:3001/update-loading-status", { loadingID })
-      .then((response) => {
-        console.log("Loading status updated successfully:", response.data);
-        // Handle success, such as updating UI or showing a confirmation message
-      })
-      .catch((error) => {
-        console.error("Error updating loading status:", error);
-        // Handle error
-      });
-
-    window.location.reload();
-  };
-
-  const handleEditLoading = (loadingID) => {
-    // Fetch the previously created loading information using the loadingID
-    axios
-      .get(`http://localhost:3001/getloadingID/${loadingID}`)
-      .then((response) => {
-        const loadingData = response.data; // Assuming the response contains the loading data
-        console.log(loadingData);
-
-        // Navigate to "/edit-loading" and pass the data as state
-        navigate("/edit-loading", { state: { loadingData } });
-      })
-      .catch((error) => {
-        console.error("Error fetching loading information:", error);
-        // Handle error
-      });
-  };
 
   return (
     <div>
@@ -250,7 +302,7 @@ function GetLoadings() {
                               variant="contained"
                               disabled={loading.loading_status === "completed"}
                               onClick={() =>
-                                handleEditLoading(loading.loadingID)
+                                openPasswordDialog(loading.loadingID, "edit")
                               }
                             >
                               Edit Loading
@@ -259,8 +311,8 @@ function GetLoadings() {
                               variant="contained"
                               color="success"
                               onClick={() =>
-                                handleCompleteLoading(loading.loadingID)
-                              } // Pass loadingID as argument
+                                openPasswordDialog(loading.loadingID, "complete")
+                              }
                               disabled={loading.loading_status === "completed"}
                             >
                               {loading.loading_status === "completed"
@@ -341,6 +393,28 @@ function GetLoadings() {
           </Paper>
         </LocalizationProvider>
       </div>
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Admin Password Required</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the admin password to proceed.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Admin Password"
+            type="password"
+            fullWidth
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handlePasswordSubmit}>Submit</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
