@@ -286,36 +286,71 @@ const checkPendingLoading = (req, res) => {
 
   const updateLoadingStatus = (req, res) => {
     const loadingID = req.body.loadingID; // Assuming loadingID is provided in the request body
+  
     const updateLoadingStatusQuery = "UPDATE loading SET loading_status = 'completed' WHERE loadingID = ?";
     const updateVehicleAvailabilityQuery = "UPDATE vehicle v JOIN loading l ON v.vehicleID = l.vehicleID SET v.availability = 'yes' WHERE l.loadingID = ?";
     const updateSalesRepAvailabilityQuery = "UPDATE salesrep SET availability = 'yes' WHERE repID = (SELECT repID FROM loading WHERE loadingID = ?)";
-
+  
     // Execute the first update query to update loading_status
     DBconnect.query(updateLoadingStatusQuery, [loadingID], (error, results) => {
+      if (error) {
+        console.error("Error updating loading status:", error);
+        return res.status(500).json({ error: "Error updating loading status" });
+      }
+  
+      // If loading_status update is successful, execute the second update query to update vehicle availability
+      DBconnect.query(updateVehicleAvailabilityQuery, [loadingID], (error, results) => {
         if (error) {
-            console.error("Error updating loading status:", error);
-            res.status(500).json({ error: "Error updating loading status" });
-        } else {
-            // If loading_status update is successful, execute the second update query to update vehicle availability
-            DBconnect.query(updateVehicleAvailabilityQuery, [loadingID], (error, results) => {
-                if (error) {
-                    console.error("Error updating vehicle availability:", error);
-                    res.status(500).json({ error: "Error updating vehicle availability" });
-                } else {
-                    // If vehicle availability update is successful, execute the third update query to update salesrep availability
-                    DBconnect.query(updateSalesRepAvailabilityQuery, [loadingID], (error, results) => {
-                        if (error) {
-                            console.error("Error updating salesrep availability:", error);
-                            res.status(500).json({ error: "Error updating salesrep availability" });
-                        } else {
-                            res.json({ message: "Loading status, vehicle availability, and salesrep availability updated successfully" });
-                        }
-                    });
-                }
-            });
+          console.error("Error updating vehicle availability:", error);
+          return res.status(500).json({ error: "Error updating vehicle availability" });
         }
+  
+        // If vehicle availability update is successful, execute the third update query to update salesrep availability
+        DBconnect.query(updateSalesRepAvailabilityQuery, [loadingID], (error, results) => {
+          if (error) {
+            console.error("Error updating salesrep availability:", error);
+            return res.status(500).json({ error: "Error updating salesrep availability" });
+          }
+  
+          // Retrieve all loading products for the given loadingID
+          const getLoadingProductsQuery = 'SELECT productID, quantity FROM loading_products WHERE loadingID = ?';
+  
+          DBconnect.query(getLoadingProductsQuery, [loadingID], (err, loadingProducts) => {
+            if (err) {
+              console.error("Error retrieving loading products:", err);
+              return res.status(500).send(err);
+            }
+  
+            // For each loading product, update the stock_total in the products table
+            let updatePromises = loadingProducts.map((item) => {
+              const updateStockQuery = 'UPDATE product SET stock_total = stock_total + ? WHERE productID = ?';
+  
+              return new Promise((resolve, reject) => {
+                DBconnect.query(updateStockQuery, [item.quantity, item.productID], (err, result) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(result);
+                  }
+                });
+              });
+            });
+  
+            // Once all updates are complete, send a success response
+            Promise.all(updatePromises)
+              .then(() => {
+                res.json({ message: "Loading status, vehicle availability, salesrep availability, and stock totals updated successfully" });
+              })
+              .catch((err) => {
+                console.error("Error updating stock totals:", err);
+                res.status(500).json({ error: "Error updating stock totals" });
+              });
+          });
+        });
+      });
     });
-};
+  };
+  
 
   
   const getLoadingById = (req, res) => {
@@ -523,6 +558,17 @@ const editLoading = (req, res) => {
     });
 };
 
+const getReturnLoad = (req, res) => {
+    const { loadingID } = req.params;
+    const query = 'SELECT productID, quantity FROM loading_products WHERE loadingID = ?';
+    
+    DBconnect.query(query, [loadingID], (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+  };
 
   
 
@@ -533,4 +579,5 @@ module.exports = {
     getLoadingById,
     editLoading,
     addLoadingPreOrders,
+    getReturnLoad,
 };

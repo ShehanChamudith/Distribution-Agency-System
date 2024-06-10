@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
@@ -6,15 +7,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Card,
   Modal,
   CardContent,
@@ -463,6 +455,7 @@ const BillPreOrders = ({ userID }) => {
   const [loadingId, setLoadingId] = useState(null);
   const [repID, setrepID] = useState("");
   const [billpreorderID, setbillpreorderID] = useState("");
+  const navigate = useNavigate();
 
 
   const location = useLocation();
@@ -705,13 +698,11 @@ const BillPreOrders = ({ userID }) => {
   };
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
-    
-
     const itemsWithLoadingID = addedItems.map(item => ({
       ...item,
       loadingID: loadingId  // Add loadingID to each item
     }));
-
+  
     const invoiceData = {
       sale_amount: saleAmount,
       payment_type: paymentType,
@@ -725,23 +716,23 @@ const BillPreOrders = ({ userID }) => {
       bank_name: bankName,
       cheque_number: chequeNumber,
       cheque_value: chequeValue,
-      addedItems:itemsWithLoadingID,
+      addedItems: itemsWithLoadingID,
       payment_status: payment_status,
     };
-    
+  
     console.log(invoiceData);
-
+  
     axios
       .post("http://localhost:3001/addsaledelivery", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
-
+  
         console.log(saleID);
-
+  
         if (printBill) {
           generatePDF(invoiceData, addedItems, saleID);
         }
-
+  
         Swal.fire({
           icon: "success",
           title: "Invoice Created Successfully!",
@@ -752,6 +743,8 @@ const BillPreOrders = ({ userID }) => {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
+          // Reset addedItems to initial state (empty)
+          navigate('/get-received-preorder')
           window.location.reload();
         });
       })

@@ -200,6 +200,8 @@ function GetLoadings() {
       });
   };
 
+  console.log(loadings);
+
   const handleCompleteLoading = (loadingID) => {
     axios
       .put("http://localhost:3001/update-loading-status", { loadingID })

@@ -7,6 +7,7 @@ const {updateLoadingStatus} = require('../controllers/loadingController');
 const {getLoadingById} = require('../controllers/loadingController');
 const {editLoading} = require('../controllers/loadingController');
 const {addLoadingPreOrders} = require('../controllers/loadingController');
+const {getReturnLoad} = require('../controllers/loadingController');
 
 router.post("/addloading", addLoading);
 router.post("/check-pending-loading", checkPendingLoading);
@@ -14,6 +15,7 @@ router.put("/update-loading-status", updateLoadingStatus);
 router.get("/getloadingID/:loadingID", getLoadingById);
 router.post("/edit-loading", editLoading);
 router.post("/addloading-pre-orders", addLoadingPreOrders);
+router.get("/getreturnload/:loadingID", getReturnLoad);
 
 
 module.exports = router;
