@@ -24,6 +24,7 @@ const { getPaymentStatus } = require('../controllers/getController');
 const { getArea } = require('../controllers/getController');
 const { getProductStocks } = require('../controllers/getController');
 const { getStockRequests } = require('../controllers/getController');
+const { getProductStocksLoading } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -51,6 +52,7 @@ router.get('/getarea', getArea);
 router.get('/getstockrequests', getStockRequests);
 
 router.post('/getproductstocks', getProductStocks);
+router.post('/getproductstocksloading', getProductStocksLoading);
 
 module.exports = router;
 

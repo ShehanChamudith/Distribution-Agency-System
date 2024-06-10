@@ -493,7 +493,6 @@ const BillPreOrders = ({ userID }) => {
     }
   }, [preorderData]);
 
-
   const handleProceedToCheckout = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
@@ -501,14 +500,75 @@ const BillPreOrders = ({ userID }) => {
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
-    } else if (!paymentType) {
-      setAlertMessage("Please select a payment method.");
-      setOpen(true);
     } else {
-      setValue(1); // Switch to the payment tab
-      // setPaymentEnabled(true);
+      // Check stock totals before proceeding to the payment tab
+      const productIDs = addedItems.map(item => item.productID);
+  
+      axios.post("http://localhost:3001/getproductstocksloading", { loadingId, productIDs })
+        .then(response => {
+          const stockData = response.data;
+          console.log(stockData);
+    
+          // Check if any product's stock total is 0
+          const unavailableProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID); 
+            return stockItem && stockItem.stock_total === 0;
+          });
+
+          if (unavailableProducts.length > 0) {
+            // Alert the user if any product is not available in the loading
+            const unavailableProductNames = unavailableProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Products Not Available",
+              text: `The following products are not available in the loading:  ${unavailableProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Check if any product exceeds the stock total
+            const exceededProducts = addedItems.filter(item => {
+              const stockItem = stockData.find(stock => stock.productID === item.productID); 
+              return stockItem && item.quantity > stockItem.stock_total;
+            });
+    
+            if (exceededProducts.length > 0) {
+              // Alert the user if any product exceeds the stock total
+              const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+              Swal.fire({
+                icon: "error",
+                title: "Stock Limit Exceeded",
+                text: `The following products exceed the stock limit:  ${exceededProductNames}`,
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              });
+            } else {
+              // Check if a payment method is selected
+              if (!paymentType) {
+                setAlertMessage("Please select a payment method.");
+                setOpen(true);
+              } else {
+                // Proceed to the payment tab if all checks are passed
+                setValue(1); // Switch to the payment tab
+              }
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
+        });
     }
   };
+
 
   useEffect(() => {
     let creditedValue;

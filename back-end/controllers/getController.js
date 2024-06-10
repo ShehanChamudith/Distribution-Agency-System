@@ -657,7 +657,7 @@ const getProductStocks = (req, res) => {
 
   const query = `
     SELECT productID, stock_total
-    FROM product
+    FROM product 
     WHERE productID IN (?)
   `;
 
@@ -667,9 +667,49 @@ const getProductStocks = (req, res) => {
       res.status(500).send('Internal Server Error');
       return;
     }
+    console.log(results);
     res.json(results);
   });
 };
+
+const getProductStocksLoading = (req, res) => {
+  const { loadingId, productIDs } = req.body;
+
+  console.log(loadingId, productIDs);
+
+  if (!loadingId || !Array.isArray(productIDs) || productIDs.length === 0) {
+    return res.status(400).json({ message: 'Invalid loading ID or product IDs' });
+  }
+
+  const query = `
+    SELECT productID, quantity
+    FROM loading_products
+    WHERE loadingID = ?
+  `;
+
+  DBconnect.query(query, [loadingId], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    // Create a map to store quantities by product ID
+    const quantityMap = {};
+    results.forEach((row) => {
+      quantityMap[row.productID] = row.quantity;
+    });
+
+    // Filter the quantities based on the product IDs provided
+    const response = productIDs.map((productID) => ({
+      productID,
+      stock_total: quantityMap[productID] || 0, // Default quantity to 0 if not found
+    }));
+
+    res.json(response);
+  });
+};
+
 
 const getStockRequests = (req, res) => {
   const query = `
@@ -742,4 +782,5 @@ module.exports = {
   getArea,
   getProductStocks,
   getStockRequests,
+  getProductStocksLoading,
 };
