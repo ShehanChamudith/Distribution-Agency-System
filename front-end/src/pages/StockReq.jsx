@@ -224,7 +224,12 @@ function ItemCard({
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    let value = event.target.value;
+    if (value < 0) {
+      // If negative, set the value to 0
+      value = 0;
+    }
+    setQuantity(value);
   };
 
   useEffect(() => {
@@ -335,7 +340,6 @@ const StockReq = ({ userID }) => {
   });
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [subtotal, setSubtotal] = useState(0);
   const [fName, setFName] = useState("");
   const [lName, setLName] = useState("");
   const [supplierID, setsupplierID] = useState(1);
@@ -347,12 +351,17 @@ const StockReq = ({ userID }) => {
   const [proceedWithNote, setProceedWithNote] = useState(false);
 
   const handleCreateLoading = () => {
-    if (addedItems.length === 0) {
-        setAlertMessage("Please add at least one item to the bill.");
-        setOpen(true);
-      }else
-    setOpenNote(true);
+    // Check if any quantity in addedItems is 0
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+  
+    if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
+      setOpen(true);
+    } else {
+      setOpenNote(true);
+    }
   };
+  
 
   const handleClose = () => {
     setOpenNote(false);
@@ -537,18 +546,7 @@ const StockReq = ({ userID }) => {
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
-  useEffect(() => {
-    const calculateSubtotal = () => {
-      return addedItems
-        .reduce((total, item) => {
-          return total + item.quantity * item.selling_price;
-        }, 0)
-        .toFixed(2);
-    };
 
-    const calculatedSubtotal = calculateSubtotal();
-    setSubtotal(calculatedSubtotal);
-  }, [addedItems]);
 
   const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
@@ -672,10 +670,7 @@ const StockReq = ({ userID }) => {
                 Customer Name: {fName} {lName}
               </h1>
               <h1 className="text-sm font-PoppinsL">
-                Loaded Date: {formattedDate}
-              </h1>
-              <h1 className="text-sm font-PoppinsL">
-                Loaded Time: {currentTime}
+                Request Date: {formattedDate}
               </h1>
             </div>
           </div>

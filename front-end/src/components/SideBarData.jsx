@@ -56,7 +56,7 @@ export const SideBarData = [
     title: "Bill",
     icon: <ShoppingCartIcon />,
     link: "/bill",
-    roles: [1,3,4],
+    roles: [1,4],
   },
 
   {

@@ -96,7 +96,7 @@ function App() {
 
             {/* Billing */}
 
-            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3,4]} />}>
+            <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
               <Route path="/bill" element={<Bill userID= {userID} />} />
             </Route>
 

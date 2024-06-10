@@ -439,12 +439,14 @@ const CreatePreOrder = ({ userID }) => {
   
   const handleCreateLoading = () => {
 
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+
     console.log(customerID);
   
-     if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
+    if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
-    } else {
+    }  else {
       const preOrderData = {
         total_value: subtotal,
         addedItems: addedItems,

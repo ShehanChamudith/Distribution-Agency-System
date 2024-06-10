@@ -499,6 +499,8 @@ const CreateLoading = ({ userID }) => {
   const handleCreateLoading = () => {
     checkPendingLoading(); // Check for pending loading first
 
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+
     // Proceed only after the checkPendingLoading completes
     if (pending) {
       // Show a message or take any action when there is a pending loading
@@ -523,8 +525,8 @@ const CreateLoading = ({ userID }) => {
         }
       });
       return;
-    } else if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
+    } else if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
       const loadingData = {

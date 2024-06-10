@@ -472,6 +472,8 @@ const CreateLoadingPreOrders = ({ userID }) => {
 
   const handleCreateLoading = () => {
     checkPendingLoading(); // Check for pending loading first
+
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
   
     // Proceed only after the checkPendingLoading completes
     if (pending) {
@@ -497,8 +499,8 @@ const CreateLoadingPreOrders = ({ userID }) => {
         }
       });
       return;
-    } else if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
+    } else if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
       // Extract product IDs from added items
@@ -850,8 +852,14 @@ const CreateLoadingPreOrders = ({ userID }) => {
               label="Sales Representative"
             >
               {existingRep.map((rep) => (
-                <MenuItem key={rep.repID} value={rep.firstname}>
+                <MenuItem
+                  key={rep.repID}
+                  value={rep.firstname}
+                  disabled={rep.availability === "no"} // Disable if availability is "no"
+                >
                   {rep.firstname}
+                  {rep.availability === "no" && " - Not Available"}{" "}
+                  {/* Append "Not Available" */}
                 </MenuItem>
               ))}
             </Select>

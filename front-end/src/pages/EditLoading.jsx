@@ -488,8 +488,11 @@ const EditLoading = ({ userID }) => {
 
   const handleCreateLoading = () => {
     
-     if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
+     // Check if any quantity in addedItems is 0
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+  
+    if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
       const loadingData = {
