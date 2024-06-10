@@ -949,9 +949,11 @@ const Bill = ({ userID }) => {
     const customer = existingCustomers.find(
       (customer) => customer.shop_name === selectedCustomerInfo
     );
-    setSelectedCustomer(customer);
-    console.log("Selected Customer after button click:", customer);
-  };
+    if (customer) {
+      setSelectedCustomer(customer);
+      console.log("Selected Customer after button click:", customer);
+    }
+};
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -1318,7 +1320,7 @@ const Bill = ({ userID }) => {
             onClick={() => {
               handleExistingCustomerSubmit();
             }}
-            disabled={!selectedCustomer}
+            disabled={!selectedCustomerInfo}
             variant="contained"
             color="primary"
           >

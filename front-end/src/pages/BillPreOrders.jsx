@@ -493,6 +493,8 @@ const BillPreOrders = ({ userID }) => {
     }
   }, [preorderData]);
 
+  
+
   const handleProceedToCheckout = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);

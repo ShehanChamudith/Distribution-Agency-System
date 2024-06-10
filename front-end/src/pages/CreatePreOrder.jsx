@@ -407,7 +407,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
   );
 }
 
-const CreatePreOrder = ({ userID }) => {
+const CreatePreOrder = ({ userID, userInfo }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [category, setCategory] = useState("All");  
   const [data, setData] = useState([]);
@@ -428,7 +428,7 @@ const CreatePreOrder = ({ userID }) => {
   const [fName, setFName] = useState('');
   const [lName, setLName] = useState('');
   const [customerID, setcustomerID] = useState("");
-  const [openDialog, setOpenDialog] = useState(true);
+  const [openDialog, setOpenDialog] = useState(userInfo !== 6);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
     useState(false);
@@ -446,7 +446,7 @@ const CreatePreOrder = ({ userID }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [area, setArea] = useState([]);
   const [areaID, setSelectedArea] = useState('');
-  const [userInfo, setUserInfo] = useState('');
+  //const [userInfo, setUserInfo] = useState('');
   const [selectedCustomerInfo, setSelectedCustomerInfo] = useState("");
   const [existingCustomers, setExistingCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState({
@@ -466,6 +466,17 @@ const CreatePreOrder = ({ userID }) => {
         console.error("Error fetching existing customers:", error);
       });
   };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
 
   useEffect(() => {
     if (openExistingCustomerDialog) {
@@ -924,7 +935,7 @@ const CreatePreOrder = ({ userID }) => {
       const decodedToken = jwtDecode(token);
       setFName(decodedToken.firstname);
       setLName(decodedToken.lastname);
-      setUserInfo(decodedToken.usertypeID);
+      //setUserInfo(decodedToken.usertypeID);
     }
   }, []);
 
@@ -934,7 +945,7 @@ const CreatePreOrder = ({ userID }) => {
     <div className="flex w-screen gap-4">
 
       {/* Dialog for customer selection */}
-      <Dialog open={userInfo !== 6} onClose={handleDialogClose}>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
         <DialogTitle>Customer Selection</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -1143,7 +1154,7 @@ const CreatePreOrder = ({ userID }) => {
             onClick={() => {
               handleExistingCustomerSubmit();
             }}
-            disabled={!selectedCustomer}
+            disabled={!selectedCustomerInfo}
             variant="contained"
             color="primary"
           >
