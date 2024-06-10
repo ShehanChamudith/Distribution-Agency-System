@@ -26,6 +26,7 @@ import CreateLoadingPreOrders from "./pages/CreateLoadingPreOrders";
 import SaleHistory from "./pages/SaleHistory";
 import StockReq from "./pages/StockReq";
 import SentStockRequests from "./pages/SentStockRequests";
+import BillPreOrders from "./pages/BillPreOrders";
 
 
 function App() {
@@ -149,6 +150,7 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
               <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
+              <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID}/>} />
             </Route>
           </Routes>
         </div>

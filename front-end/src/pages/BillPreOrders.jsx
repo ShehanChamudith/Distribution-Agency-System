@@ -38,8 +38,10 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useLocation } from "react-router-dom";
 
-const generatePDF = (invoiceData, addedItems) => {
+
+const generatePDF = (invoiceData, addedItems, saleID) => {
   const doc = new jsPDF();
 
   console.log(invoiceData);
@@ -93,7 +95,8 @@ const generatePDF = (invoiceData, addedItems) => {
   doc.setFontSize(13);
   let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
 
-  doc.text(`Order Number: #0001`, 15, startY);
+  const formattedSaleID = saleID.toString().padStart(3, "0");
+  doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);
   doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
   doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
   doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
@@ -227,7 +230,7 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -235,7 +238,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
     severity: "",
     message: "",
   });
-  const [stock, setStock] = useState(item.stock_total);
+  const [stock, setStock] = useState(item.quantity);
 
   const handleOpen = () => {
     setOpen(true);
@@ -252,18 +255,6 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
       }
     }
   }, [restore]);
-
-  useEffect(() => {
-    if (restock.productID !== "") {
-      if (item.productID === restock.productID) {
-        setStock((prevStock) => prevStock - restock.amount);
-        setRestock({
-          productID: "",
-          amount: "",
-        }); // Update restore state to null using setRestore
-      }
-    }
-  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -424,10 +415,9 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
   );
 }
 
-const Bill = ({ userID }) => {
+const BillPreOrders = ({ userID }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [category, setCategory] = useState("All");
-  const [openDialog, setOpenDialog] = useState(true);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
     useState(false);
@@ -444,6 +434,7 @@ const Bill = ({ userID }) => {
     email: "",
     phone: "",
     address: "",
+    area: "",
     shop_name: "",
     usertypeID: 6,
   });
@@ -453,10 +444,6 @@ const Bill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
-    productID: "",
-    amount: "",
-  });
-  const [restock, setRestock] = useState({
     productID: "",
     amount: "",
   });
@@ -473,8 +460,38 @@ const Bill = ({ userID }) => {
   const [creditedValue, setCreditedValue] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
-  const [area, setArea] = useState([]);
-  const [areaID, setSelectedArea] = useState('');
+  const [loadingId, setLoadingId] = useState(null);
+  const [repID, setrepID] = useState("");
+  const [billpreorderID, setbillpreorderID] = useState("");
+
+
+  const location = useLocation();
+  const preorderData = location.state?.preorderData?.preorderData || {};
+
+  const fromEditLoading = location.state?.fromEditLoading || false;
+  const [openDialog, setOpenDialog] = useState(!fromEditLoading);
+
+  useEffect(() => {
+    console.log("loadingData:", preorderData); // Log loadingData for debugging
+  
+    if (preorderData) {
+      // Update selectedRep state
+      setSelectedCustomer({
+        customerID: preorderData.customerID,
+        shop_name: preorderData.shop_name
+      });
+  
+      setbillpreorderID(
+        preorderData.preorderID
+      );
+  
+      // Update addedItems state
+      if (preorderData.addedItems) {
+        setAddedItems(preorderData.addedItems);
+        //console.log("Setting addedItems:", loadingData.addedItems); // Log addedItems being set
+      }
+    }
+  }, [preorderData]);
 
 
   const handleProceedToCheckout = () => {
@@ -484,68 +501,14 @@ const Bill = ({ userID }) => {
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
+    } else if (!paymentType) {
+      setAlertMessage("Please select a payment method.");
+      setOpen(true);
     } else {
-      // Check stock totals before proceeding to the payment tab
-      const productIDs = addedItems.map(item => item.productID);
-  
-      axios.post("http://localhost:3001/getproductstocks", { productIDs })
-        .then(response => {
-          const stockData = response.data;
-  
-          // Check if any product exceeds the stock total
-          const exceededProducts = addedItems.filter(item => {
-            const stockItem = stockData.find(stock => stock.productID === item.productID);
-            return stockItem && item.quantity > stockItem.stock_total;
-          });
-  
-          if (exceededProducts.length > 0) {
-            // Alert the user if any product exceeds the stock total
-            const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
-            Swal.fire({
-              icon: "error",
-              title: "Stock Limit Exceeded",
-              text: `Products:  ${exceededProductNames}`,
-              customClass: {
-                popup: "z-50",
-              },
-              didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
-              },
-            });
-          } else {
-            // Check if a payment method is selected
-            if (!paymentType) {
-              setAlertMessage("Please select a payment method.");
-              setOpen(true);
-            } else {
-              // Proceed to the payment tab if all checks are passed
-              setValue(1); // Switch to the payment tab
-            }
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching product stocks:", error);
-          alert("Error fetching product stocks. Please try again.");
-        });
+      setValue(1); // Switch to the payment tab
+      // setPaymentEnabled(true);
     }
   };
-  
-  
-
-  const handleAreaChange = (event) => {
-    setSelectedArea(event.target.value);
-  };
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getarea")
-      .then((response) => {
-        setArea(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
 
   useEffect(() => {
     let creditedValue;
@@ -696,16 +659,20 @@ const Bill = ({ userID }) => {
       addedItems: addedItems, // Array of added items
       payment_status: payment_status,
     };
-  
-    // Proceed with creating the invoice
-    axios.post("http://localhost:3001/addsale", invoiceData)
+
+    console.log(invoiceData);
+
+    axios
+      .post("http://localhost:3001/addsaledelivery", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
-  
+
+        console.log(saleID);
+
         if (printBill) {
-          generatePDF(invoiceData, addedItems);
+          generatePDF(invoiceData, addedItems, saleID);
         }
-  
+
         Swal.fire({
           icon: "success",
           title: "Invoice Created Successfully!",
@@ -724,7 +691,6 @@ const Bill = ({ userID }) => {
         alert("Error creating invoice. Please try again.");
       });
   };
-  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -737,36 +703,59 @@ const Bill = ({ userID }) => {
     setValue(newValue);
   };
 
-  const fetchInventoryData = () => {
-    axios
-      .get("http://localhost:3001/inventory")
-      .then((response) => {
-        let filteredData = response.data;
-  
-        // Filter items based on category
-        if (category && category !== "All") {
-          filteredData = filteredData.filter(
-            (item) => item.category === category
-          );
-        }
-  
-        // Filter items based on search query
-        if (searchQuery) {
-          filteredData = filteredData.filter((item) =>
-            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-  
-        setData(filteredData); // Set the filtered data to the state
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  };
+  useEffect(() => {
+    console.log("userID in useEffect:", userID);
+    if (userID) {
+      axios
+        .get(`http://localhost:3001/getrepID/${userID}`)
+        .then((response) => {
+          const repData = response.data;
+          //console.log(repData);
+          setrepID(repData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [userID]);
 
   useEffect(() => {
-    fetchInventoryData();
-  }, [category, searchQuery]);
+    if (repID) {
+      // Ensure repID is available before fetching loading products
+      console.log("repID in useEffect:", repID);
+      axios
+        .get(`http://localhost:3001/getloadingproducts/${repID}`)
+        .then((response) => {
+          let filteredData = response.data;
+
+          // Filter items based on category
+          if (category && category !== "All") {
+            filteredData = filteredData.filter(
+              (item) => item.category === category
+            );
+          }
+
+          // Filter items based on search query
+          if (searchQuery) {
+            filteredData = filteredData.filter((item) =>
+              item.product_name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+            );
+          }
+
+          setData(filteredData); // Set the filtered data to the state
+
+          // Find the loading ID from the data
+          const loadingIdFromData =
+            filteredData.length > 0 ? filteredData[0].loadingID : null;
+          setLoadingId(loadingIdFromData); // Set the loading ID to state
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [repID, category, searchQuery]); // Only fetch loading products when repID, category, or searchQuery changes
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -865,82 +854,52 @@ const Bill = ({ userID }) => {
     });
   };
 
-  const checkUserExistence = () => {
-    // Check if the username or phone number already exists
-    return axios.post("http://localhost:3001/checkUserExistence", { username: customerData.username, phone: customerData.phone });
-  };
-
-  const newData = { ...customerData, areaID };
-  
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-  
-    checkUserExistence()
+
+    // Handle form submission, e.g., send data to the server
+    axios
+      .post("http://localhost:3001/adduser", customerData)
       .then((response) => {
-        if (response.data.exists) {
-          // If username or phone already exists, show an alert using SweetAlert
-          Swal.fire({
-            icon: "error",
-            title: "Username or phone number already exists!",
-            customClass: {
-              popup: "z-50",
-            },
-            didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999";
-            },
-          });
-        } else {
-          // If username and phone are unique, proceed with adding the user
-          //Handle form submission, e.g., send data to the server
-          console.log(newData);
-          axios
-            .post("http://localhost:3001/adduser", newData)
-            .then((response) => {
-              console.log("Customer added successfully:", response.data);
-              setOpenNewCustomerDialog(false);
-              // Clear form fields
-              setcustomerData({
-                username: "",
-                password: "",
-                firstname: "",
-                lastname: "",
-                email: "",
-                phone: "",
-                address: "",
-                areaID: "",
-                shop_name: "",
-                usertypeID: 6,
-              });
-              setConfirmPassword("");
-  
-              Swal.fire({
-                icon: "success",
-                title: "Customer Added Successfully!",
-                customClass: {
-                  popup: "z-50",
-                },
-                didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
-                },
-              }).then(() => {
-                fetchCustomer();
-                setOpenExistingCustomerDialog(true);
-              });
-            })
-            .catch((error) => {
-              console.error("Error adding customer:", error);
-            });
-        }
+        console.log("Customer added successfully:", response.data);
+        setOpenNewCustomerDialog(false);
+        // Clear form fields
+        setcustomerData({
+          username: "",
+          password: "",
+          firstname: "",
+          lastname: "",
+          email: "",
+          phone: "",
+          address: "",
+          area: "",
+          shop_name: "",
+          usertypeID: 6,
+        });
+        setConfirmPassword("");
+
+        Swal.fire({
+          icon: "success",
+          title: "Customer Added Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          fetchCustomer();
+          setOpenExistingCustomerDialog(true);
+        });
       })
       .catch((error) => {
-        console.error("Error checking user existence:", error);
+        console.error("Error adding customer:", error);
       });
   };
-  
 
   const handleExistingCustomerSubmit = () => {
     setOpenExistingCustomerDialog(false);
@@ -973,16 +932,13 @@ const Bill = ({ userID }) => {
     }
   }, [openExistingCustomerDialog]);
 
-  function BillingItem({ item, onQuantityChange, onRemoveItem, setRestock }) {
+  function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
-    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
-        setRestock({ productID: item.productID, amount: value-basequantity });
-        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -1104,226 +1060,9 @@ const Bill = ({ userID }) => {
       });
   }, []);
 
+
   return (
     <div className="flex w-screen gap-4">
-      {/* Dialog for customer selection */}
-      <Dialog open={openDialog} onClose={handleDialogClose}>
-        <DialogTitle>Customer Selection</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please select whether the customer is an existing customer or a new
-            customer.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
-          <Button
-            variant="contained"
-            onClick={handleExistingCustomer}
-            sx={{ margin: 1 }}
-          >
-            Existing Customer
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleNewCustomer}
-            sx={{ margin: 1 }}
-          >
-            New Customer
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add New Customer  */}
-      <Dialog
-        open={openNewCustomerDialog}
-        onClose={handleNewCustomerDialogClose}
-        PaperProps={{
-          component: "form",
-          onSubmit: handleSubmit,
-        }}
-      >
-        <DialogTitle>Add New Customer</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To add a new customer, please enter the details here.
-          </DialogContentText>
-
-          <TextField
-            required
-            label="Username"
-            name="username"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.username}
-            onChange={handleChangeForm}
-          />
-          <div className="flex gap-5">
-            <TextField
-              required
-              label="Password"
-              name="password"
-              type="password"
-              variant="filled"
-              fullWidth
-              margin="normal"
-              value={customerData.password}
-              onChange={handleChangeForm}
-            />
-            <TextField
-              required
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              variant="filled"
-              fullWidth
-              margin="normal"
-              value={confirmPassword}
-              onChange={handleChangeForm}
-            />
-          </div>
-          <div className="flex gap-5">
-            <TextField
-              required
-              label="First Name"
-              name="firstname"
-              variant="filled"
-              fullWidth
-              margin="normal"
-              value={customerData.firstname}
-              onChange={handleChangeForm}
-            />
-            <TextField
-              required
-              label="Last Name"
-              name="lastname"
-              variant="filled"
-              fullWidth
-              margin="normal"
-              value={customerData.lastname}
-              onChange={handleChangeForm}
-            />
-          </div>
-
-          <TextField
-            required
-            label="Shop Name"
-            name="shop_name"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.shop_name}
-            onChange={handleChangeForm}
-          />
-          <TextField
-            required
-            label="Email"
-            name="email"
-            type="email"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.email}
-            onChange={handleChangeForm}
-          />
-          <TextField
-            required
-            label="Phone"
-            name="phone"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.phone}
-            onChange={handleChangeForm}
-          />
-          <TextField
-            required
-            label="Address"
-            name="address"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.address}
-            onChange={handleChangeForm}
-          />
-          <FormControl fullWidth margin="normal">
-                  <InputLabel id="userarea-label">Select Area</InputLabel>
-                  <Select
-                    required
-                    labelId="userarea-label"
-                    value={areaID}
-                    onChange={handleAreaChange}
-                    label="Select Area"
-                  >
-                    {area.map((item) => (
-                      <MenuItem key={item.areaID} value={item.areaID}>
-                        {item.area}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleNewCustomerDialogClose} color="primary">
-            Cancel
-          </Button>
-          <Button type="submit" variant="contained" color="primary">
-            Add New Customer
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Select Existing Customer  */}
-      <Dialog
-        open={openExistingCustomerDialog}
-        onClose={handleExistingCustomerDialogClose}
-      >
-        <DialogTitle>Select Existing Customer</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Please select an existing customer from the list.
-          </DialogContentText>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="existing-customer-label">Customer</InputLabel>
-            <Select
-              required
-              labelId="existing-customer-label"
-              value={selectedCustomerInfo}
-              onChange={handleExistingCustomerChange}
-              label="Customer"
-            >
-              {existingCustomers.map((customer) => (
-                <MenuItem key={customer.customerID} value={customer.shop_name}>
-                  {customer.shop_name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Typography
-            variant="body2"
-            color="primary"
-            onClick={handleNewCustomer}
-            sx={{ cursor: "pointer", marginTop: 2 }}
-          >
-            Customer doesn't exist? Add New Customer Here
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleExistingCustomerDialogClose} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              handleExistingCustomerSubmit();
-            }}
-            disabled={!selectedCustomer}
-            variant="contained"
-            color="primary"
-          >
-            Select Customer
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
@@ -1339,7 +1078,7 @@ const Bill = ({ userID }) => {
                 color: "white",
               }}
             >
-              Filter by Category
+              Loading ID:{loadingId}
             </Button>
           </div>
 
@@ -1403,8 +1142,6 @@ const Bill = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
-                restock = {restock}
-                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -1464,7 +1201,6 @@ const Bill = ({ userID }) => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
-                    setRestock = {setRestock}
                   />
                 ))}
               </div>
@@ -1731,4 +1467,4 @@ const Bill = ({ userID }) => {
   );
 };
 
-export default Bill;
+export default BillPreOrders;

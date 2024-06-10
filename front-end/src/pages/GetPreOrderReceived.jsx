@@ -226,19 +226,20 @@ function GetPreOrderReceived() {
   const handleEditLoading = (preorderID) => {
     // Fetch the previously created loading information using the loadingID
     axios
-      .get(`http://localhost:3001/getloadingID/${preorderID}`)
+      .get(`http://localhost:3001/getpreorderbyID/${preorderID}`)
       .then((response) => {
-        const loadingData = response.data; // Assuming the response contains the loading data
-        console.log(loadingData);
-
-        // Navigate to "/edit-loading" and pass the data as state
-        navigate("/edit-loading", { state: { loadingData } });
+        const preorderData = response.data; // Assuming the response contains the loading data
+        console.log(preorderData);
+  
+        // Navigate to "/delivery-bill" and pass the data as state
+        navigate("/pre-delivery-bill", { state: { preorderData } });
       })
       .catch((error) => {
-        console.error("Error fetching loading information:", error);
+        console.error("Error fetching preorder information:", error);
         // Handle error
       });
   };
+  
 
   const handleSearchPreOrders = () => {
     if (areaID) {
@@ -294,6 +295,8 @@ function GetPreOrderReceived() {
       alert("Please select an area.");
     }
   };
+
+
   
 
   return (
@@ -342,6 +345,7 @@ function GetPreOrderReceived() {
                       <StyledTableCell>Customer</StyledTableCell>
                       <StyledTableCell>Area</StyledTableCell>
                       <StyledTableCell>Pre Order Status</StyledTableCell>
+                      <StyledTableCell></StyledTableCell>
                       <StyledTableCell />
                     </TableRow>
                   </TableHead>
@@ -355,31 +359,19 @@ function GetPreOrderReceived() {
                           <TableCell>{pre.preorderID}</TableCell>
                           <TableCell>{pre.customer_firstname}</TableCell>
                           <TableCell>{pre.area}</TableCell>
-                          <TableCell align="right">
-                            <Box display="flex" gap={2}>
-                              {pre.pre_order_status}
-                              {/* <Button
-                                variant="contained"
-                                disabled={loading.loading_status === "completed"}
-                                onClick={() =>
-                                  handleEditLoading(loading.loadingID)
-                                }
-                              >
-                                Edit Loading
-                              </Button> */}
-                              {/* <Button
-                                variant="contained"
-                                color="success"
-                                onClick={() =>
-                                  handleCompleteLoading(loading.loadingID)
-                                } // Pass loadingID as argument
-                                disabled={loading.loading_status === "completed"}
-                              >
-                                {loading.loading_status === "completed"
-                                  ? "Completed"
-                                  : "Complete Loading"}
-                              </Button> */}
-                            </Box>
+                          <TableCell>{pre.pre_order_status}</TableCell>
+                          <TableCell>
+                            
+                          <Button
+                              variant="contained"
+                              disabled={pre.pre_order_status === "completed"}
+                              onClick={() =>
+                                handleEditLoading(pre.preorderID)
+                              }
+                            >
+                              Bill
+                            </Button>
+                            
                           </TableCell>
                           <TableCell align="right">
                             <Button

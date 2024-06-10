@@ -13,6 +13,15 @@ import {
   Typography,
   Alert,
   Snackbar,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import porkIcon from "../assets/icons/pork.ico";
@@ -419,6 +428,50 @@ const CreatePreOrder = ({ userID }) => {
   const [fName, setFName] = useState('');
   const [lName, setLName] = useState('');
   const [customerID, setcustomerID] = useState("");
+  const [openDialog, setOpenDialog] = useState(true);
+  const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
+  const [openExistingCustomerDialog, setOpenExistingCustomerDialog] =
+    useState(false);
+  const [customerData, setcustomerData] = useState({
+      username: "",
+      password: "",
+      firstname: "",
+      lastname: "",
+      email: "",
+      phone: "",
+      address: "",
+      shop_name: "",
+      usertypeID: 6,
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState('');
+  const [userInfo, setUserInfo] = useState('');
+  const [selectedCustomerInfo, setSelectedCustomerInfo] = useState("");
+  const [existingCustomers, setExistingCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState({
+    customerID: "",
+    shop_name: "",
+  });
+
+
+
+  const fetchCustomer = () => {
+    axios
+      .get("http://localhost:3001/getcustomer")
+      .then((response) => {
+        setExistingCustomers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching existing customers:", error);
+      });
+  };
+
+  useEffect(() => {
+    if (openExistingCustomerDialog) {
+      fetchCustomer();
+    }
+  }, [openExistingCustomerDialog]);
 
   useEffect(() => {
     console.log("userID in useEffect:", userID);
@@ -438,33 +491,49 @@ const CreatePreOrder = ({ userID }) => {
 
   
   const handleCreateLoading = () => {
-
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
-
+  
     console.log(customerID);
   
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
-    }  else {
+    } else {
+      let finalCustomerID;
+      
+      if (userInfo === 3) {
+        finalCustomerID = selectedCustomer.customerID;
+      } else if (userInfo === 6) {
+        finalCustomerID = customerID;
+      } else {
+        // Handle cases where userInfo is neither 3 nor 6, if necessary
+        finalCustomerID = null;
+      }
+  
+      if (!finalCustomerID) {
+        setAlertMessage("Invalid customer information.");
+        setOpen(true);
+        return;
+      }
+  
       const preOrderData = {
         total_value: subtotal,
         addedItems: addedItems,
         pre_order_status: "pending",
-        customerID: customerID,
+        customerID: finalCustomerID,
       };
-
+  
       console.log(preOrderData);
-
+  
       axios
         .post("http://localhost:3001/addpreorder", preOrderData)
         .then((response) => {
           console.log("Pre Order Invoice created successfully:", response.data);
-
+  
           // if (printBill) {
           //   generatePDF(invoiceData, addedItems);
           // }
-
+  
           Swal.fire({
             icon: "success",
             title: "Loading Invoice Created Successfully!",
@@ -484,6 +553,7 @@ const CreatePreOrder = ({ userID }) => {
         });
     }
   };
+  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -597,6 +667,195 @@ const CreatePreOrder = ({ userID }) => {
     );
   };
 
+  const handleExistingCustomerSubmit = () => {
+    setOpenExistingCustomerDialog(false);
+    const customer = existingCustomers.find(
+      (customer) => customer.shop_name === selectedCustomerInfo
+    );
+    setSelectedCustomer(customer);
+    console.log("Selected Customer after button click:", customer);
+  };
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
+
+  const handleChangeForm = (event) => {
+    const { name, value } = event.target;
+    if (name === "confirmPassword") {
+      setConfirmPassword(value);
+    } else {
+      setcustomerData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleExistingCustomerChange = (event) => {
+    setSelectedCustomerInfo(event.target.value); // Update temporary state
+    //console.log("Temporarily selected shop name:", event.target.value);
+  };
+
+  const handleDialogClose = () => {
+    // Do nothing if the new or existing customer dialogs are not open
+    if (!openNewCustomerDialog && !openExistingCustomerDialog) {
+      Swal.fire({
+        icon: "warning",
+        title: "Please select a customer type",
+        text: "You need to select either 'New Customer' or 'Existing Customer' to proceed.",
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
+      return;
+    }
+    setOpenDialog(false);
+  };
+
+  const handleExistingCustomer = () => {
+    console.log("Existing customer selected");
+    setOpenDialog(false);
+    setOpenExistingCustomerDialog(true);
+  };
+
+  const handleNewCustomer = () => {
+    console.log("New customer selected");
+    setOpenDialog(false);
+    setOpenNewCustomerDialog(true);
+  };
+
+  const handleNewCustomerDialogClose = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to proceed without adding a new customer? There won't be a customer name on the bill!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      cancelButtonText: "No, go back",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      // If user confirms, close the dialog
+      if (result.isConfirmed) {
+        setOpenNewCustomerDialog(false);
+      }
+    });
+  };
+
+  const handleExistingCustomerDialogClose = () => {
+    // Display SweetAlert confirmation dialog
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Are you sure you want to proceed without selecting a customer?  There won't be a customer name on the bill!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, proceed",
+      cancelButtonText: "No, go back",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      // If user confirms, close the dialog
+      if (result.isConfirmed) {
+        setOpenExistingCustomerDialog(false);
+      }
+    });
+  };
+
+  const checkUserExistence = () => {
+    // Check if the username or phone number already exists
+    return axios.post("http://localhost:3001/checkUserExistence", { username: customerData.username, phone: customerData.phone });
+  };
+
+  const newData = { ...customerData, areaID };
+
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (customerData.password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+  
+    checkUserExistence()
+      .then((response) => {
+        if (response.data.exists) {
+          // If username or phone already exists, show an alert using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Username or phone number already exists!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // If username and phone are unique, proceed with adding the user
+          //Handle form submission, e.g., send data to the server
+          console.log(newData);
+          axios
+            .post("http://localhost:3001/adduser", newData)
+            .then((response) => {
+              console.log("Customer added successfully:", response.data);
+              setOpenNewCustomerDialog(false);
+              // Clear form fields
+              setcustomerData({
+                username: "",
+                password: "",
+                firstname: "",
+                lastname: "",
+                email: "",
+                phone: "",
+                address: "",
+                areaID: "",
+                shop_name: "",
+                usertypeID: 6,
+              });
+              setConfirmPassword("");
+  
+              Swal.fire({
+                icon: "success",
+                title: "Customer Added Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              }).then(() => {
+                fetchCustomer();
+                setOpenExistingCustomerDialog(true);
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding customer:", error);
+            });
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking user existence:", error);
+      });
+  };
+
+
+
   useEffect(() => {
     console.log("Updated addedItems:", addedItems);
   }, [addedItems]);
@@ -665,11 +924,233 @@ const CreatePreOrder = ({ userID }) => {
       const decodedToken = jwtDecode(token);
       setFName(decodedToken.firstname);
       setLName(decodedToken.lastname);
+      setUserInfo(decodedToken.usertypeID);
     }
   }, []);
 
+
+
   return (
     <div className="flex w-screen gap-4">
+
+      {/* Dialog for customer selection */}
+      <Dialog open={userInfo !== 6} onClose={handleDialogClose}>
+        <DialogTitle>Customer Selection</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select whether the customer is an existing customer or a new
+            customer.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            onClick={handleExistingCustomer}
+            sx={{ margin: 1 }}
+          >
+            Existing Customer
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNewCustomer}
+            sx={{ margin: 1 }}
+          >
+            New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add New Customer  */}
+      <Dialog
+        open={openNewCustomerDialog}
+        onClose={handleNewCustomerDialogClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleSubmit,
+        }}
+      >
+        <DialogTitle>Add New Customer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To add a new customer, please enter the details here.
+          </DialogContentText>
+
+          <TextField
+            required
+            label="Username"
+            name="username"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.username}
+            onChange={handleChangeForm}
+          />
+          <div className="flex gap-5">
+            <TextField
+              required
+              label="Password"
+              name="password"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.password}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              required
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={confirmPassword}
+              onChange={handleChangeForm}
+            />
+          </div>
+          <div className="flex gap-5">
+            <TextField
+              required
+              label="First Name"
+              name="firstname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.firstname}
+              onChange={handleChangeForm}
+            />
+            <TextField
+              required
+              label="Last Name"
+              name="lastname"
+              variant="filled"
+              fullWidth
+              margin="normal"
+              value={customerData.lastname}
+              onChange={handleChangeForm}
+            />
+          </div>
+
+          <TextField
+            required
+            label="Shop Name"
+            name="shop_name"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.shop_name}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            required
+            label="Email"
+            name="email"
+            type="email"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.email}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            required
+            label="Phone"
+            name="phone"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.phone}
+            onChange={handleChangeForm}
+          />
+          <TextField
+            required
+            label="Address"
+            name="address"
+            variant="filled"
+            fullWidth
+            margin="normal"
+            value={customerData.address}
+            onChange={handleChangeForm}
+          />
+          <FormControl fullWidth margin="normal">
+                  <InputLabel id="userarea-label">Select Area</InputLabel>
+                  <Select
+                    required
+                    labelId="userarea-label"
+                    value={areaID}
+                    onChange={handleAreaChange}
+                    label="Select Area"
+                  >
+                    {area.map((item) => (
+                      <MenuItem key={item.areaID} value={item.areaID}>
+                        {item.area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNewCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            Add New Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Select Existing Customer  */}
+      <Dialog
+        open={openExistingCustomerDialog}
+        onClose={handleExistingCustomerDialogClose}
+      >
+        <DialogTitle>Select Existing Customer</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select an existing customer from the list.
+          </DialogContentText>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="existing-customer-label">Customer</InputLabel>
+            <Select
+              required
+              labelId="existing-customer-label"
+              value={selectedCustomerInfo}
+              onChange={handleExistingCustomerChange}
+              label="Customer"
+            >
+              {existingCustomers.map((customer) => (
+                <MenuItem key={customer.customerID} value={customer.shop_name}>
+                  {customer.shop_name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Typography
+            variant="body2"
+            color="primary"
+            onClick={handleNewCustomer}
+            sx={{ cursor: "pointer", marginTop: 2 }}
+          >
+            Customer doesn't exist? Add New Customer Here
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExistingCustomerDialogClose} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              handleExistingCustomerSubmit();
+            }}
+            disabled={!selectedCustomer}
+            variant="contained"
+            color="primary"
+          >
+            Select Customer
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
