@@ -53,15 +53,15 @@ function Login({ setIsAuthenticated,setUserInfo }) {
           if (values.usertype_name === 'Admin') {
             navigate('/admin-dashboard');
           } else if (values.usertype_name === 'Office') {
-            navigate('/admin-dashboard');
+            navigate('/sales');
           } else if (values.usertype_name === 'SalesRep') {
-            navigate('/admin-dashboard');
+            navigate('/get-loading');
           } else if (values.usertype_name === 'Warehouse') {
             navigate('/inventory');
           } else if (values.usertype_name === 'Supplier') {
             navigate('/admin-dashboard');
           } else if (values.usertype_name === 'Customer') {
-            navigate('/admin-dashboard');
+            navigate('/product-catalog');
           }else
             navigate('/unauthorized')
         }

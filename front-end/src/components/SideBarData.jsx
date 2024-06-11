@@ -21,14 +21,14 @@ export const SideBarData = [
     title: "Inventory",
     icon: <InventoryIcon />,
     link: "/inventory",
-    roles: [1,2,3,4,5],
+    roles: [1,2,3,4],
   },
 
   {
     title: "Create Loading",
     icon: <LoadIcon />,
     link: "/create-loading",
-    roles: [2,4],
+    roles: [4],
   },
 
   // {
@@ -91,21 +91,21 @@ export const SideBarData = [
     title: "Reports",
     icon: <AssessmentIcon />,
     link: "/reports",
-    roles: [1,2,3,4,5,6],
+    roles: [],
   },
 
   {
     title: "Product Catalog",
     icon: <BallotIcon />,
     link: "/product-catalog",
-    roles: [1,2,3,4,5,6],
+    roles: [1,2,3,4,6],
   },
 
   {
     title: "My Dashboard",
     icon: <DashboardIcon />,
     link: "/admin-dashboard",
-    roles: [1,2,3,4,5,6],
+    roles: [1],
   },
 
   {

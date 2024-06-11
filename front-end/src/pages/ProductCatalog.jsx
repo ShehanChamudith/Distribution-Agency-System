@@ -23,7 +23,6 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import defImg from "../assets/images/defimg.png";
 import DynamicItemCard from "../components/DynamicItemCard";
-//import DoughnutGraph from "../components/DoughnutGraph";
 import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
 import cpartIcon from "../assets/icons/food.ico";
@@ -40,7 +39,7 @@ function ProductCatalog() {
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [itemData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     product_name: "",
     wholesale_price: "",
     selling_price: "",
@@ -52,7 +51,6 @@ function ProductCatalog() {
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
-        // Filter out duplicate product titles
         const uniqueProducts = response.data.reduce((acc, current) => {
           if (!acc.some((item) => item.product_name === current.product_name)) {
             acc.push(current);
@@ -94,10 +92,10 @@ function ProductCatalog() {
     if (selectedItem) {
       if (type === "category") {
         setCategoryS(selectedValue);
-        setFormData({ ...itemData, categoryID: selectedItem.categoryID });
+        setFormData({ ...formData, categoryID: selectedItem.categoryID });
       } else if (type === "supplier") {
         setSupplierS(selectedValue);
-        setFormData({ ...itemData, supplierID: selectedItem.supplierID });
+        setFormData({ ...formData, supplierID: selectedItem.supplierID });
       }
     }
   };
@@ -109,16 +107,29 @@ function ProductCatalog() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Check if the product already exists
+    if (!selectedFile) {
+      Swal.fire({
+        icon: "error",
+        title: "Image required",
+        text: "Please upload an image of the product.",
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
+      return;
+    }
+
     axios
       .post("http://localhost:3001/checkitem", {
-        product_name: itemData.product_name,
-        supplierID: itemData.supplierID,
+        product_name: formData.product_name,
+        supplierID: formData.supplierID,
       })
       .then((response) => {
         const responseData = response.data;
         if (responseData.message === "Product already exists") {
-          console.log("Product already exists.");
           Swal.fire({
             icon: "error",
             title: "Product already exists.",
@@ -131,39 +142,23 @@ function ProductCatalog() {
             },
           });
         } else {
-          console.log("Product does not exist. Proceeding with insertion.");
-
-          // Proceed with inserting the product
-          const formData = new FormData();
-
-          if (selectedFile) {
-            formData.append("image", selectedFile);
-          } else {
-            // If no file is selected, append the default image
-            const defaultImage = new File([defImg], "defimg.png", {
-              type: "image/png",
-            });
-            formData.append("image", defaultImage);
-          }
-
-          formData.append("product_name", itemData.product_name);
-          formData.append("stock_total", itemData.stock_total);
-          formData.append("categoryID", itemData.categoryID);
-          formData.append("wholesale_price", itemData.wholesale_price);
-          formData.append("selling_price", itemData.selling_price);
-          formData.append("date_added", itemData.date_added);
-          formData.append("supplierID", itemData.supplierID);
+          const formDataToSend = new FormData();
+          formDataToSend.append("image", selectedFile);
+          formDataToSend.append("product_name", formData.product_name);
+          formDataToSend.append("stock_total", formData.stock_total);
+          formDataToSend.append("categoryID", formData.categoryID);
+          formDataToSend.append("wholesale_price", formData.wholesale_price);
+          formDataToSend.append("selling_price", formData.selling_price);
+          formDataToSend.append("date_added", formData.date_added);
+          formDataToSend.append("supplierID", formData.supplierID);
 
           axios
-            .post("http://localhost:3001/additem", formData, {
+            .post("http://localhost:3001/additem", formDataToSend, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },
             })
             .then((response) => {
-              console.log("Item added successfully:", response.data);
-              console.log("Form Data:", formData);
-
               Swal.fire({
                 icon: "success",
                 title: "Product Added Successfully!",
@@ -191,7 +186,7 @@ function ProductCatalog() {
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...itemData, [name]: value });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleChange = (event, newAlignment) => {
@@ -216,6 +211,7 @@ function ProductCatalog() {
       stock_total: 0,
     });
     setCategoryS("");
+    setSupplierS("");
     setSelectedFile(null);
   };
 
@@ -242,7 +238,7 @@ function ProductCatalog() {
         open,
         handleClose,
         handleSubmit,
-        itemData,
+        formData,
         handleChangeForm,
         categoryS,
         supplierS,
@@ -259,16 +255,8 @@ function ProductCatalog() {
           className=" w-full py-5 px-2 rounded-lg  "
           style={{ overflowY: "auto", height: "65vh" }}
         >
-          <DynamicItemCard category={alignment} searchQuery={searchQuery}/>
+          <DynamicItemCard category={alignment} searchQuery={searchQuery} />
         </div>
-        {/* <div className="w-2/6  bg-slate-200 rounded-lg">
-          <div className="flex h-full w-full">
-            <div className="border border-red-500 w-1/2"></div>
-            <div className="border border-red-500 w-1/2 h-full">
-              <DoughnutGraph showLegend={true} />
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
@@ -313,51 +301,51 @@ export function topdiv(
         </div>
 
         <div>
-        <ToggleButtonGroup
-              color="primary"
-              value={alignment}
-              exclusive
-              onChange={handleChange}
-              aria-label="Platform"
-            >
-              <ToggleButton value="All">All</ToggleButton>
-              <ToggleButton value="Chicken">
-                <Box
-                  component="img"
-                  src={chickenIcon}
-                  alt="chicken"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Chicken
-              </ToggleButton>
-              <ToggleButton value="Chicken Parts">
-                <Box
-                  component="img"
-                  src={cpartIcon}
-                  alt="chicken_part"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Chicken Parts
-              </ToggleButton>
-              <ToggleButton value="Pork">
-                <Box
-                  component="img"
-                  src={porkIcon}
-                  alt="pork"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Pork
-              </ToggleButton>
-              <ToggleButton value="Sausages">
-                <Box
-                  component="img"
-                  src={sausageIcon}
-                  alt="sausages"
-                  sx={{ width: 24, height: 24, marginRight: 1 }}
-                />
-                Sausages
-              </ToggleButton>
-            </ToggleButtonGroup>
+          <ToggleButtonGroup
+            color="primary"
+            value={alignment}
+            exclusive
+            onChange={handleChange}
+            aria-label="Platform"
+          >
+            <ToggleButton value="All">All</ToggleButton>
+            <ToggleButton value="Chicken">
+              <Box
+                component="img"
+                src={chickenIcon}
+                alt="chicken"
+                sx={{ width: 24, height: 24, marginRight: 1 }}
+              />
+              Chicken
+            </ToggleButton>
+            <ToggleButton value="Chicken Parts">
+              <Box
+                component="img"
+                src={cpartIcon}
+                alt="chicken_part"
+                sx={{ width: 24, height: 24, marginRight: 1 }}
+              />
+              Chicken Parts
+            </ToggleButton>
+            <ToggleButton value="Pork">
+              <Box
+                component="img"
+                src={porkIcon}
+                alt="pork"
+                sx={{ width: 24, height: 24, marginRight: 1 }}
+              />
+              Pork
+            </ToggleButton>
+            <ToggleButton value="Sausages">
+              <Box
+                component="img"
+                src={sausageIcon}
+                alt="sausages"
+                sx={{ width: 24, height: 24, marginRight: 1 }}
+              />
+              Sausages
+            </ToggleButton>
+          </ToggleButtonGroup>
         </div>
       </div>
 
@@ -527,7 +515,7 @@ export function topdiv(
                     variant="contained"
                     startIcon={<CloudUploadIcon />}
                   >
-                    Upload a Image of the Product
+                    Upload an Image of the Product
                     <VisuallyHiddenInput
                       type="file"
                       onChange={handleFileChange}

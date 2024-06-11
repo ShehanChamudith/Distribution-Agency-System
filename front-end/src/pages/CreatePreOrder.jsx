@@ -309,7 +309,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    const value = event.target.value;
+    // Ensure the input is not negative
+    if (value >= 0) {
+      setQuantity(value);
+    }
   };
 
   useEffect(() => {
@@ -547,7 +551,7 @@ const CreatePreOrder = ({ userID, userInfo }) => {
   
           Swal.fire({
             icon: "success",
-            title: "Loading Invoice Created Successfully!",
+            title: "Pre Order Request Sent Successfully!",
             customClass: {
               popup: "z-50",
             },

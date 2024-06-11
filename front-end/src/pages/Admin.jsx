@@ -1018,7 +1018,7 @@ export const Admin = () => {
                 Cancel
               </Button>
               <Button type="submit" variant="contained" color="primary">
-                {customerData.userID ? "Update User" : "Add New Customer"}
+                {customerData.userID ? "Update User" : "Add New User"}
               </Button>
             </DialogActions>
           </Dialog>
