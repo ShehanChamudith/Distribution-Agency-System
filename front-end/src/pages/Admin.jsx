@@ -165,78 +165,84 @@ export const Admin = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+        alert("Passwords do not match!");
+        return;
     }
 
     const newData = { ...customerData, usertypeID, areaID };
 
-    // Check if the username or phone number already exists
-    axios
-      .post("http://localhost:3001/checkUserExistence", {
+    const checkData = {
         username: newData.username,
         phone: newData.phone,
-      })
-      .then((response) => {
-        if (response.data.exists) {
-          // If username or phone already exists, show an alert using SweetAlert
-          Swal.fire({
-            icon: "error",
-            title: "Username or phone number already exists!",
-            customClass: {
-              popup: "z-50",
-            },
-            didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999";
-            },
-          });
-        } else {
-          // If username and phone are unique, proceed with adding the user
-          //Handle form submission, e.g., send data to the server
-          
-          axios
-            .post("http://localhost:3001/adduser", newData)
-            .then((response) => {
-              console.log("Customer added successfully:", response.data);
-              setOpenNewCustomerDialog(false);
-              // Clear form fields
-              setcustomerData({
-                username: "",
-                password: "",
-                firstname: "",
-                lastname: "",
-                email: "",
-                phone: "",
-                address: "",
-                areaID: "",
-                shop_name: "",
-                supplier_company: "",
-              });
-              setConfirmPassword("");
+    };
 
-              Swal.fire({
-                icon: "success",
-                title: "User Added Successfully!",
-                customClass: {
-                  popup: "z-50",
-                },
-                didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex =
-                    "9999";
-                },
-              }).then(() => {
-                fetchUserData();
-              });
-            })
-            .catch((error) => {
-              console.error("Error adding customer:", error);
-            });
-        }
-      })
-      .catch((error) => {
-        console.error("Error checking user existence:", error);
-      });
-  };
+    // Include userID if updating an existing user
+    if (newData.userID) {
+        checkData.userID = newData.userID;
+    }
+
+    // Check if the username or phone number already exists
+    axios
+        .post("http://localhost:3001/checkUserExistence", checkData)
+        .then((response) => {
+            if (response.data.exists) {
+                // If username or phone already exists, show an alert using SweetAlert
+                Swal.fire({
+                    icon: "error",
+                    title: "Username or phone number already exists!",
+                    customClass: {
+                        popup: "z-50",
+                    },
+                    didOpen: () => {
+                        document.querySelector(".swal2-container").style.zIndex = "9999";
+                    },
+                });
+            } else {
+                // If username and phone are unique, proceed with adding the user
+                // Handle form submission, e.g., send data to the server
+                axios
+                    .post("http://localhost:3001/adduser", newData)
+                    .then((response) => {
+                        console.log("Customer added successfully:", response.data);
+                        setOpenNewCustomerDialog(false);
+                        // Clear form fields
+                        setcustomerData({
+                            username: "",
+                            password: "",
+                            firstname: "",
+                            lastname: "",
+                            email: "",
+                            phone: "",
+                            address: "",
+                            areaID: "",
+                            shop_name: "",
+                            supplier_company: "",
+                        });
+                        setConfirmPassword("");
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "User Added Successfully!",
+                            customClass: {
+                                popup: "z-50",
+                            },
+                            didOpen: () => {
+                                document.querySelector(".swal2-container").style.zIndex = "9999";
+                            },
+                        }).then(() => {
+                            fetchUserData();
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error adding customer:", error);
+                    });
+            }
+        })
+        .catch((error) => {
+            console.error("Error checking user existence:", error);
+        });
+};
+
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

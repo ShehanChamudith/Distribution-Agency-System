@@ -110,25 +110,37 @@ const addUser = (req, res) => {
   };
 
   const checkUserExistance = (req, res) => {
-    const { username, phone } = req.body;
-  
-    // Query to check if username or phone number already exists
-    const checkUserQuery = 'SELECT COUNT(*) AS count FROM user WHERE username = ? OR phone = ?';
-    DBconnect.query(checkUserQuery, [username, phone], (err, result) => {
-      if (err) {
-        console.error('Error checking user existence:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
-      }
-  
-      // If count > 0, username or phone number already exists
-      if (result[0].count > 0) {
-        res.json({ exists: true });
-      } else {
-        res.json({ exists: false });
-      }
+    const { userID, username, phone } = req.body;
+
+    let checkUserQuery;
+    let queryParams;
+
+    if (userID) {
+        // If userID is provided, exclude the current user being updated
+        checkUserQuery = 'SELECT COUNT(*) AS count FROM user WHERE (username = ? OR phone = ?) AND userID != ?';
+        queryParams = [username, phone, userID];
+    } else {
+        // If userID is not provided, it's a new user addition
+        checkUserQuery = 'SELECT COUNT(*) AS count FROM user WHERE username = ? OR phone = ?';
+        queryParams = [username, phone];
+    }
+
+    DBconnect.query(checkUserQuery, queryParams, (err, result) => {
+        if (err) {
+            console.error('Error checking user existence:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+        }
+
+        // If count > 0, username or phone number already exists
+        if (result[0].count > 0) {
+            res.json({ exists: true });
+        } else {
+            res.json({ exists: false });
+        }
     });
-  }
+};
+
   
 
 
