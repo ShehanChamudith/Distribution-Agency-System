@@ -26,6 +26,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import emailjs from 'emailjs-com';
 
 const generatePDF = (preOrderData, addedItems) => {
   const doc = new jsPDF();
@@ -104,6 +105,47 @@ const generatePDF = (preOrderData, addedItems) => {
 
   // Save the PDF
   doc.save(`invoice_stock_request_${new Date().toISOString()}.pdf`);
+
+  const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+  const pdfDataUri = doc.output('datauristring');
+  const maxLength = addedItems.reduce((max, item) => Math.max(max, item.product_name.length), 0);
+const headerPadding = Math.max(0, maxLength - 'Product Name'.length); // Ensure padding is not negative
+let text = `Product Name${' '.repeat(headerPadding)}\t\tQuantity\n`; // Header row with tab-separated columns
+
+// Iterate through the addedItems array
+addedItems.forEach(item => {
+  // Extract product_name and quantity from each item
+  const { product_name, quantity } = item;
+  // Pad the product name with spaces to align quantities
+  const paddedProductName = product_name + ' - '.repeat(maxLength - product_name.length);
+  // Append the padded product name and quantity to the text string, separated by tabs
+  text += `${paddedProductName}\t\t${quantity}\n`;
+});
+
+// Add a line break after the "Stock Request Invoice" message
+const messageWithTable = `Stock Request Invoice\n\n${text}`;
+
+// Prepare the template parameters
+const templateParams = {
+  to_email: 'ukshehanchamudith@gmail.com', // Supplier's email
+  from_name: 'Shehan Chamudith',
+  message: messageWithTable, // Include the message with the table
+  attachments: {
+    'invoice.pdf': pdfBase64,
+  },
+};
+
+// Send the email using EmailJS
+emailjs.send('service_xy9b0a8', 'template_g9cqf58', templateParams, '3zA35_-SU9RcZeUkr')
+  .then((response) => {
+    console.log('Email sent successfully:', response);
+    // Handle success (e.g., show a success message to the user)
+  })
+  .catch((error) => {
+    console.error('Email could not be sent:', error);
+    // Handle error (e.g., show an error message to the user)
+  });
 };
 
 function CustomTabPanel(props) {
@@ -389,7 +431,7 @@ const StockReq = ({ userID }) => {
         Swal.fire({
           icon: "success",
           title: "Stock Request Invoice Created Successfully!",
-          customClass: {
+          customClass: { 
             popup: "z-50",
           },
           didOpen: () => {
@@ -397,7 +439,7 @@ const StockReq = ({ userID }) => {
           },
         }).then(() => {
           generatePDF(preOrderData, addedItems);
-          window.location.reload();
+          //window.location.reload();
         });
       })
       .catch((error) => {
@@ -520,6 +562,8 @@ const StockReq = ({ userID }) => {
   useEffect(() => {
     console.log("Updated addedItems:", addedItems);
   }, [addedItems]);
+
+
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString();
