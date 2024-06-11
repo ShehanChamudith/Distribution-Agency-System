@@ -104,15 +104,21 @@ export const Admin = () => {
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
+    let newValue = value;
+    // If the field is "phone", limit the input to 10 characters
+    if (name === "phone") {
+      newValue = value.slice(0, 10); // Only take the first 10 characters
+    }
     if (name === "confirmPassword") {
       setConfirmPassword(value);
     } else {
       setcustomerData((prevData) => ({
         ...prevData,
-        [name]: value,
+        [name]: newValue,
       }));
     }
-  };
+};
+
 
   const handleUserTypeChange = (event) => {
     setselectedUserType(event.target.value);

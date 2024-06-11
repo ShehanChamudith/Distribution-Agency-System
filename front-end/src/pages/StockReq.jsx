@@ -13,17 +13,19 @@ import {
   Typography,
   Alert,
   Snackbar,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { jwtDecode } from "jwt-decode";
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
 
 const generatePDF = (preOrderData, addedItems) => {
   const doc = new jsPDF();
@@ -103,7 +105,6 @@ const generatePDF = (preOrderData, addedItems) => {
   // Save the PDF
   doc.save(`invoice_stock_request_${new Date().toISOString()}.pdf`);
 };
-
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -326,7 +327,6 @@ function ItemCard({
 }
 
 const StockReq = ({ userID }) => {
-
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
@@ -347,13 +347,14 @@ const StockReq = ({ userID }) => {
   const [alignment, setAlignment] = useState("");
 
   const [openNote, setOpenNote] = useState(false);
-  const [additionalNote, setAdditionalNote] = useState('');
+  const [additionalNote, setAdditionalNote] = useState("");
   const [proceedWithNote, setProceedWithNote] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(true);
 
   const handleCreateLoading = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
-  
+
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
@@ -361,7 +362,6 @@ const StockReq = ({ userID }) => {
       setOpenNote(true);
     }
   };
-  
 
   const handleClose = () => {
     setOpenNote(false);
@@ -373,43 +373,38 @@ const StockReq = ({ userID }) => {
     createPreOrder();
   };
 
-
   const createPreOrder = () => {
-    
-      const preOrderData = {
-        addedItems: addedItems,
-        supplierID: supplierID,
-        note: additionalNote // Include additional note in pre-order data
-      };
+    const preOrderData = {
+      addedItems: addedItems,
+      supplierID: supplierID,
+      note: additionalNote, // Include additional note in pre-order data
+    };
 
-      console.log(preOrderData);
+    console.log(preOrderData);
 
-      axios
-        .post("http://localhost:3001/addstockreq", preOrderData)
-        .then((response) => {
-          console.log("Stock Req Invoice created successfully:", response.data);
-          Swal.fire({
-            icon: "success",
-            title: "Stock Request Invoice Created Successfully!",
-            customClass: {
-              popup: "z-50",
-            },
-            didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999";
-            },
-          }).then(() => {
-            generatePDF(preOrderData, addedItems);
-            window.location.reload();
-          });
-        })
-        .catch((error) => {
-          console.error("Error creating invoice:", error);
-          alert("Error creating invoice. Please try again.");
+    axios
+      .post("http://localhost:3001/addstockreq", preOrderData)
+      .then((response) => {
+        console.log("Stock Req Invoice created successfully:", response.data);
+        Swal.fire({
+          icon: "success",
+          title: "Stock Request Invoice Created Successfully!",
+          customClass: {
+            popup: "z-50",
+          },
+          didOpen: () => {
+            document.querySelector(".swal2-container").style.zIndex = "9999";
+          },
+        }).then(() => {
+          generatePDF(preOrderData, addedItems);
+          window.location.reload();
         });
-    
+      })
+      .catch((error) => {
+        console.error("Error creating invoice:", error);
+        alert("Error creating invoice. Please try again.");
+      });
   };
-
-
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -453,8 +448,6 @@ const StockReq = ({ userID }) => {
     setsupplierID(newAlignment);
   };
 
-  
-
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
     const [basequantity, setbaseQuantity] = useState(item.quantity);
@@ -470,6 +463,8 @@ const StockReq = ({ userID }) => {
     };
 
     const totalPrice = (quantity * item.selling_price).toFixed(2);
+
+    
 
     return (
       <div className="w-full flex items-center justify-between p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
@@ -546,16 +541,12 @@ const StockReq = ({ userID }) => {
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, []);
 
-
-
   const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
     setStock({ productID: productId, amount: amount });
   };
-
-
 
   // Decode the token to get user role
   useEffect(() => {
@@ -578,9 +569,42 @@ const StockReq = ({ userID }) => {
       });
   }, []);
 
+  const selectedSupplier = supplier.find((supplier) => supplier.supplierID === supplierID);
+  const selectedSupplierName = selectedSupplier ? selectedSupplier.supplier_company : "";
+
   return (
     <div className="flex w-screen gap-4">
-        <Dialog open={openNote} onClose={handleClose}>
+
+      {/* Select the Supplier */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Select Supplier</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please select a supplier from the list below:
+          </DialogContentText>
+          <Select
+            value={supplierID}
+            onChange={(e) => setsupplierID(e.target.value)}
+            fullWidth
+            autoFocus
+          >
+            {supplier.map((supplier) => (
+              <MenuItem key={supplier.supplierID} value={supplier.supplierID}>
+                {supplier.supplier_company}
+              </MenuItem>
+            ))}
+          </Select>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDialogOpen(false)} variant="contained">
+            Select
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Note */}
+      <Dialog open={openNote} onClose={handleClose}>
         <DialogTitle>Additional Note</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -598,9 +622,12 @@ const StockReq = ({ userID }) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={handleProceedWithNote}>Proceed</Button>
+          <Button variant="contained" onClick={handleProceedWithNote}>
+            Proceed
+          </Button>
         </DialogActions>
-        </Dialog>
+      </Dialog>
+      
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
@@ -615,11 +642,11 @@ const StockReq = ({ userID }) => {
                 color: "white",
               }}
             >
-              Filter by Supplier
+              Supplier: {selectedSupplierName} 
             </Button>
           </div>
 
-          <div>
+          {/* <div>
             <ToggleButtonGroup
               color="primary"
               value={alignment}
@@ -636,7 +663,7 @@ const StockReq = ({ userID }) => {
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
-          </div>
+          </div> */}
         </div>
 
         {/* Items  */}

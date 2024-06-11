@@ -112,6 +112,12 @@ function SaleHistory() {
                     icon: 'success',
                     title: 'Payment Settled Successfully!',
                     timer: 2000,
+                    customClass: {
+                      popup: "z-50",
+                    },
+                    didOpen: () => {
+                      document.querySelector(".swal2-container").style.zIndex = "9999";
+                    },
                     showConfirmButton: false
                   });
                   setOpenDialog(false);
@@ -137,19 +143,46 @@ function SaleHistory() {
                   console.error("Error deducting credit amount:", error);
                 });
             } else {
-              alert("Invalid payment amount or payment status.");
+              Swal.fire({
+                icon: 'error',
+                title: 'Invalid Payment Amount or Payment Status',
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              });
             }
           } else {
-            alert("Payment is already fully settled.");
+            Swal.fire({
+              icon: 'error',
+              title: 'Payment is Already Fully Settled',
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
           }
         })
         .catch(error => {
           console.error("Error fetching payment status:", error);
         });
     } else {
-      alert("Please enter a valid payment amount.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Please Enter a Valid Payment Amount',
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
     }
-  };
+};
   
   
   
