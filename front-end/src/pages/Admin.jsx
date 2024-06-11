@@ -340,35 +340,60 @@ export const Admin = () => {
 
   const handleEditUser = (event) => {
     event.preventDefault();
-
+  
+    // Check if the user exists by sending a request to the backend
     axios
-      .get(`http://localhost:3001/getuser/${editUserID}`)
+      .post("http://localhost:3001/checkUserExistence2", { userID: editUserID })
       .then((response) => {
-        const userData = response.data[0]; // Assuming response.data is an array
-
-        // Map the fetched data to the state structure
-        setcustomerData({
-          userID: userData.userID,
-          username: userData.username,
-          password: "", // Usually, you wouldn't prefill the password for security reasons
-          firstname: userData.firstname,
-          lastname: userData.lastname,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
-          area: userData.area || "",
-          shop_name: userData.shop_name || "",
-          supplier_company: userData.supplier_company || "",
-        });
-
-        console.log(userData);
-        setOpenEditUserDialog(false);
-        setOpenNewCustomerDialog(true);
+        if (response.data.exists) {
+          // If the user exists, fetch their data for editing
+          axios
+            .get(`http://localhost:3001/getuser/${editUserID}`)
+            .then((userDataResponse) => {
+              const userData = userDataResponse.data[0]; // Assuming response.data is an array
+  
+              // Map the fetched data to the state structure
+              setcustomerData({
+                userID: userData.userID,
+                username: userData.username,
+                password: "", // Usually, you wouldn't prefill the password for security reasons
+                firstname: userData.firstname,
+                lastname: userData.lastname,
+                email: userData.email,
+                phone: userData.phone,
+                address: userData.address,
+                area: userData.area || "",
+                shop_name: userData.shop_name || "",
+                supplier_company: userData.supplier_company || "",
+              });
+  
+              console.log(userData);
+              setOpenEditUserDialog(false);
+              setOpenNewCustomerDialog(true);
+            })
+            .catch((error) => {
+              console.error("Error fetching user data:", error);
+            });
+        } else {
+          // If the user doesn't exist, show an error message using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "User Not Found!",
+            text: "The user with the provided ID does not exist.",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        }
       })
       .catch((error) => {
-        console.error("Error fetching user data:", error);
+        console.error("Error checking user existence:", error);
       });
   };
+  
 
   return (
     <div>

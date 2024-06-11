@@ -559,8 +559,7 @@ INNER JOIN
     customer c ON s.customerID = c.customerID
 INNER JOIN 
     area a ON c.areaID = a.areaID  -- Join customer with area to get area information
-WHERE 
-    p.payment_status != 'fully paid';
+;
 
 
 

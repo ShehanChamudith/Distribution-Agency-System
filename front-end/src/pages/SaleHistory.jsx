@@ -94,86 +94,97 @@ function SaleHistory() {
 
   const handleSettleUp = () => {
     if (selectedPaymentID && paymentAmount > 0) {
-      axios.get(`http://localhost:3001/getpaymentstatus/${selectedPaymentID}`)
-        .then(response => {
+      axios
+        .get(`http://localhost:3001/getpaymentstatus/${selectedPaymentID}`)
+        .then((response) => {
           const paymentStatus = response.data.payment_status;
           const creditAmount = response.data.credit_amount; // Ensure this matches the column name from your database
-  
+
           console.log("Payment Status:", paymentStatus);
           console.log("Credit Amount:", creditAmount);
           console.log("Entered Payment Amount:", paymentAmount);
-  
+
           if (paymentStatus !== "fully paid") {
             if (Number(paymentAmount) === Number(creditAmount)) {
               // Add a new row to the payment table
-              axios.post(`http://localhost:3001/updatepayment/${selectedPaymentID}`)
+              axios
+                .post(
+                  `http://localhost:3001/updatepayment/${selectedPaymentID}`
+                )
                 .then(() => {
                   Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Settled Successfully!',
+                    icon: "success",
+                    title: "Payment Settled Successfully!",
                     timer: 2000,
                     customClass: {
                       popup: "z-50",
                     },
                     didOpen: () => {
-                      document.querySelector(".swal2-container").style.zIndex = "9999";
+                      document.querySelector(".swal2-container").style.zIndex =
+                        "9999";
                     },
-                    showConfirmButton: false
+                    showConfirmButton: false,
                   });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after full payment
                 })
-                .catch(error => {
+                .catch((error) => {
                   console.error("Error adding payment:", error);
                 });
             } else if (Number(paymentAmount) < Number(creditAmount)) {
               // Deduct paymentAmount from credit_amount in credit_sale table
-              axios.post(`http://localhost:3001/deductcreditamount/${selectedPaymentID}`, { paymentAmount })
+              axios
+                .post(
+                  `http://localhost:3001/deductcreditamount/${selectedPaymentID}`,
+                  { paymentAmount }
+                )
                 .then(() => {
                   Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Partially Settled.',
+                    icon: "success",
+                    title: "Payment Partially Settled.",
                     timer: 2000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
                   });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after partial payment
                 })
-                .catch(error => {
+                .catch((error) => {
                   console.error("Error deducting credit amount:", error);
                 });
             } else {
               Swal.fire({
-                icon: 'error',
-                title: 'Invalid Payment Amount or Payment Status',
+                icon: "error",
+                title: "Invalid Payment Amount or Payment Status",
                 customClass: {
                   popup: "z-50",
                 },
                 didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
                 },
               });
             }
           } else {
             Swal.fire({
-              icon: 'error',
-              title: 'Payment is Already Fully Settled',
+              icon: "error",
+              title: "Payment is Already Fully Settled",
               customClass: {
                 popup: "z-50",
               },
               didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
               },
             });
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching payment status:", error);
         });
     } else {
       Swal.fire({
-        icon: 'error',
-        title: 'Please Enter a Valid Payment Amount',
+        icon: "error",
+        title: "Please Enter a Valid Payment Amount",
         customClass: {
           popup: "z-50",
         },
@@ -182,10 +193,8 @@ function SaleHistory() {
         },
       });
     }
-};
-  
-  
-  
+  };
+
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
     if (token) {
@@ -309,8 +318,6 @@ function SaleHistory() {
       paymentType.includes(filter.toLowerCase()) ||
       userName.includes(filter.toLowerCase());
 
-    
-
     if (userInfo === 3) {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
@@ -343,7 +350,8 @@ function SaleHistory() {
   }));
 
   const fetchCreditSales = () => {
-    return axios.get("http://localhost:3001/getcreditsales")
+    return axios
+      .get("http://localhost:3001/getcreditsales")
       .then((response) => {
         setCreditSales(response.data);
       })
@@ -352,10 +360,11 @@ function SaleHistory() {
         return [];
       });
   };
-  
+
   useEffect(() => {
-    fetchCreditSales()
+    fetchCreditSales();
   }, []);
+
   
 
   return (
@@ -571,8 +580,11 @@ function SaleHistory() {
                                 onClick={() => handleOpenDialog(pre.paymentID)}
                                 color="primary"
                                 variant="contained"
+                                disabled={pre.payment_status === "fully paid"}
                               >
-                                Settle Up
+                                {pre.payment_status === "fully paid"
+                                  ? "Settled"
+                                  : "Settle Up"}
                               </Button>
                             </Box>
                           </TableCell>
