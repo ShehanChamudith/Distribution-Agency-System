@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@date-io/dayjs": "^3.0.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
@@ -19,6 +20,8 @@
     "antd": "^5.17.2",
     "axios": "^1.6.8",
     "chart.js": "^4.4.2",
+    "formik": "^2.4.6",
+    "json2csv": "^6.0.0-alpha.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "jwt-decode": "^4.0.0",
@@ -29,7 +32,8 @@
     "react-scripts": "5.0.1",
     "sweetalert2": "^11.10.8",
     "uuid": "^9.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yup": "^1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -209,18 +209,35 @@ const getLoading = (req, res) => {
   // Fetch all rows from the loading table with joined data from loading_products and product tables
   const selectAllQuery = `
   SELECT 
-  l.loadingID, l.total_value, l.repID, l.vehicleID, l.date, l.userID, l.loading_status,
-  lp.productID, lp.quantity,
+  l.loadingID, 
+  l.total_value, 
+  l.repID, 
+  l.vehicleID, 
+  l.date, 
+  l.userID, 
+  l.loading_status,
+  lp.productID, 
+  lp.quantity,
   p.product_name,
-  u.firstname as rep_firstname,
-  v.vehicle_number  -- Select vehicle_number from the vehicle table
-FROM loading l
-JOIN loading_products lp ON l.loadingID = lp.loadingID
-JOIN product p ON lp.productID = p.productID
-JOIN salesrep s ON l.repID = s.repID
-JOIN user u ON s.userID = u.userID
-JOIN vehicle v ON l.vehicleID = v.vehicleID -- Join with the vehicle table
-ORDER BY l.loadingID DESC;
+  u.firstname AS rep_firstname,
+  v.vehicle_number,  -- Select vehicle_number from the vehicle table
+  a.area  -- Select area from the area table
+FROM 
+  loading l
+JOIN 
+  loading_products lp ON l.loadingID = lp.loadingID
+JOIN 
+  product p ON lp.productID = p.productID
+JOIN 
+  salesrep s ON l.repID = s.repID
+JOIN 
+  user u ON s.userID = u.userID
+JOIN 
+  vehicle v ON l.vehicleID = v.vehicleID  -- Join with the vehicle table
+JOIN 
+  area a ON l.areaID = a.areaID  -- Join with the area table
+ORDER BY 
+  l.loadingID DESC;
 
 `;
 
@@ -254,35 +271,35 @@ ORDER BY l.loadingID DESC;
   });
 };
 
-
-
 const getLoadingProducts = (req, res) => {
-  const loadingID = req.params.loadingID;
+  const repID = req.params.repID;
+  console.log(repID);
 
   const selectAllQuery = `
   SELECT 
-    p.productID, 
-    p.product_name, 
-    p.image_path, 
-    p.selling_price, 
-    lp.quantity, 
-    c.category, 
-    lp.loadingID,
-    l.loading_status
+  p.productID, 
+  p.product_name, 
+  p.image_path, 
+  p.selling_price, 
+  lp.quantity, 
+  c.category, 
+  lp.loadingID,
+  l.loading_status
 FROM 
-    product p
+  product p
 INNER JOIN 
-    loading_products lp ON p.productID = lp.productID
+  loading_products lp ON p.productID = lp.productID
 INNER JOIN 
-    category c ON p.categoryID = c.categoryID
+  category c ON p.categoryID = c.categoryID
 INNER JOIN 
-    loading l ON lp.loadingID = l.loadingID
+  loading l ON lp.loadingID = l.loadingID
 WHERE 
-    l.loading_status = 'pending';
+  l.loading_status = 'pending'
+  AND l.repID = ?;
 
   `;
 
-  DBconnect.query(selectAllQuery, [loadingID], (err, results) => {
+  DBconnect.query(selectAllQuery, [repID], (err, results) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
       res.status(500).send("Internal Server Error");
@@ -299,6 +316,447 @@ WHERE
   });
 };
 
+const getRepID = (req, res) => {
+  const userID = req.params.userID;
+  console.log(userID);
+
+  DBconnect.query(
+    "SELECT repID FROM salesrep WHERE userID = ?",
+    [userID],
+    (err, results) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      if (results.length === 0) {
+        console.warn(
+          "No data found in salesrep table for the provided userID:",
+          userID
+        );
+        res.status(404).send("No data found");
+        return;
+      }
+
+      // Assuming there's only one repID per userID, you might want to send just the repID
+      const repID = results[0].repID;
+      //console.log(repID);
+      res.json(repID);
+    }
+  );
+};
+
+const getCustomerID = (req, res) => {
+  const userID = req.params.userID;
+  console.log(userID);
+
+  DBconnect.query(
+    "SELECT customerID FROM customer WHERE userID = ?",
+    [userID],
+    (err, results) => {
+      if (err) {
+        console.error("Error querying MySQL database:", err);
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      if (results.length === 0) {
+        console.warn(
+          "No data found in salesrep table for the provided userID:",
+          userID
+        );
+        res.status(404).send("No data found");
+        return;
+      }
+
+      // Assuming there's only one repID per userID, you might want to send just the repID
+      const customerID = results[0].customerID;
+      console.log(customerID);
+      res.json(customerID);
+    }
+  );
+};
+
+const getPreOrder = (req, res) => {
+  // Fetch all rows from the loading table with joined data from loading_products and product tables
+  const selectAllQuery = `
+  SELECT 
+  po.preorderID, 
+  po.total_value, 
+  po.customerID, 
+  po.date, 
+  po.pre_order_status,
+  pop.productID, 
+  pop.quantity,
+  p.product_name,
+  c.userID,
+  u.firstname AS customer_firstname,
+  c.areaID,
+  a.area,
+  c.shop_name
+FROM pre_order po
+JOIN pre_order_products pop ON po.preorderID = pop.preorderID
+JOIN product p ON pop.productID = p.productID
+JOIN customer c ON po.customerID = c.customerID
+JOIN user u ON c.userID = u.userID
+JOIN area a ON c.areaID = a.areaID -- Join with area table
+ORDER BY po.preorderID DESC;
+
+
+`;
+
+  DBconnect.query(selectAllQuery, (err, loadingResults) => {
+    if (err) {
+      console.error("Error querying MySQL database for pre order table:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    // Fetch the latest loadingID
+    const latestLoadingIDQuery =
+      "SELECT preorderID FROM pre_order ORDER BY preorderID DESC LIMIT 1";
+    DBconnect.query(latestLoadingIDQuery, (err, latestLoadingIDResult) => {
+      if (err) {
+        console.error(
+          "Error querying MySQL database for latest preorderID:",
+          err
+        );
+        res.status(500).send("Internal Server Error");
+        return;
+      }
+
+      const uniqueloadingID =
+        latestLoadingIDResult.length === 0
+          ? 0
+          : latestLoadingIDResult[0].preorderID;
+
+      res.json({ uniqueloadingID, loadingResults });
+    });
+  });
+};
+
+const getPreOrderTotal = (req, res) => {
+  const { areaID } = req.query;
+
+  if (!areaID) {
+    return res.status(400).json({ message: 'areaID is required' });
+  }
+
+  const query = `
+    SELECT 
+      pop.productID,
+      p.product_name,
+      ROUND(SUM(pop.quantity), 3) AS total_quantity,
+      s.supplier_company
+    FROM pre_order_products pop
+    JOIN product p ON pop.productID = p.productID
+    JOIN supplier s ON p.supplierID = s.supplierID
+    JOIN pre_order po ON pop.preorderID = po.preorderID
+    JOIN customer c ON po.customerID = c.customerID
+    WHERE po.pre_order_status = 'pending'
+      AND c.areaID = ? 
+    GROUP BY pop.productID, p.product_name, s.supplier_company
+    ORDER BY total_quantity DESC;
+  `;
+
+  DBconnect.query(query, [areaID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+    res.json(results);
+  });
+};
+
+const getUser = (req, res) => {
+  const query = "SELECT * FROM user";
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getSales = (req, res) => {
+  const query = `SELECT 
+  s.*, 
+  ps.productID, 
+  ps.quantity, 
+  p.product_name, 
+  u.firstname AS user_firstname, 
+  u.lastname AS user_lastname, 
+  c.shop_name, 
+  a.area,  -- Changed to a.area to reflect the join with area table
+  cs.cash_amount, 
+  cs.balance AS cash_balance,
+  chs.cheque_value,
+  crs.credit_amount
+FROM sale s
+JOIN productsale ps ON s.saleID = ps.saleID
+JOIN product p ON ps.productID = p.productID
+JOIN user u ON s.userID = u.userID
+JOIN customer c ON s.customerID = c.customerID
+JOIN area a ON c.areaID = a.areaID  -- Join customer with area to get area information
+LEFT JOIN payment pm ON s.saleID = pm.saleID
+LEFT JOIN cash_sale cs ON pm.paymentID = cs.paymentID
+LEFT JOIN cheque_sale chs ON pm.paymentID = chs.paymentID
+LEFT JOIN credit_sale crs ON pm.paymentID = crs.paymentID
+ORDER BY s.saleID DESC;
+
+
+
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getCreditSales = (req, res) => {
+  const query = `
+  
+SELECT 
+    cs.credit_saleID, 
+    cs.paymentID, 
+    cs.credit_amount, 
+    s.*, 
+    u.firstname, 
+    u.lastname, 
+    c.shop_name, 
+    a.area,  -- Changed to a.area to reflect the join with area table
+    p.payment_status
+FROM 
+    credit_sale cs
+INNER JOIN 
+    payment p ON cs.paymentID = p.paymentID
+INNER JOIN 
+    sale s ON p.saleID = s.saleID
+INNER JOIN 
+    user u ON s.userID = u.userID
+INNER JOIN 
+    customer c ON s.customerID = c.customerID
+INNER JOIN 
+    area a ON c.areaID = a.areaID  -- Join customer with area to get area information
+WHERE 
+    p.payment_status != 'fully paid';
+
+
+
+
+
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getUserbyID = (req, res) => {
+  userID = req.params.editUserID;
+  console.log(userID);
+  const query = "SELECT * FROM user WHERE userID = ?";
+
+  DBconnect.query(query, [userID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getPaymentStatus = (req, res) => {
+  const paymentID = req.params.paymentID;
+  console.log(paymentID);
+  
+  const query = `
+    SELECT p.payment_status, p.saleID, p.customerID, cs.credit_amount
+    FROM payment p
+    JOIN credit_sale cs ON p.paymentID = cs.paymentID
+    WHERE p.paymentID = ?
+  `;
+
+  DBconnect.query(query, [paymentID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).send("No data found");
+    } else {
+      res.json(results[0]); // Return the first result as an object
+    }
+  });
+};
+
+const getArea = (req, res) => {
+  const query = "SELECT * FROM area";
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in area table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getProductStocks = (req, res) => {
+  const { productIDs } = req.body;
+
+  if (!Array.isArray(productIDs) || productIDs.length === 0) {
+    return res.status(400).json({ message: 'Invalid product IDs' });
+  }
+
+  const query = `
+    SELECT productID, stock_total
+    FROM product 
+    WHERE productID IN (?)
+  `;
+
+  DBconnect.query(query, [productIDs], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    console.log(results);
+    res.json(results);
+  });
+};
+
+const getProductStocksLoading = (req, res) => {
+  const { loadingId, productIDs } = req.body;
+
+  console.log(loadingId, productIDs);
+
+  if (!loadingId || !Array.isArray(productIDs) || productIDs.length === 0) {
+    return res.status(400).json({ message: 'Invalid loading ID or product IDs' });
+  }
+
+  const query = `
+    SELECT productID, quantity
+    FROM loading_products
+    WHERE loadingID = ?
+  `;
+
+  DBconnect.query(query, [loadingId], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    // Create a map to store quantities by product ID
+    const quantityMap = {};
+    results.forEach((row) => {
+      quantityMap[row.productID] = row.quantity;
+    });
+
+    // Filter the quantities based on the product IDs provided
+    const response = productIDs.map((productID) => ({
+      productID,
+      stock_total: quantityMap[productID] || 0, // Default quantity to 0 if not found
+    }));
+
+    res.json(response);
+  });
+};
+
+
+const getStockRequests = (req, res) => {
+  const query = `
+    SELECT 
+      sr.requestID, 
+      sr.supplierID, 
+      sr.date, 
+      sr.notes,
+      rp.productID, 
+      rp.quantity,
+      p.product_name,
+      s.supplier_company
+    FROM 
+      stock_request sr
+    JOIN 
+      request_products rp ON sr.requestID = rp.requestID
+    JOIN 
+      product p ON rp.productID = p.productID
+    JOIN 
+      supplier s ON sr.supplierID = s.supplierID
+    ORDER BY 
+      sr.requestID DESC;
+  `;
+
+  DBconnect.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error getting database connection:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    connection.query(query, (err, results) => {
+      connection.release();
+      if (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json(results);
+    });
+  });
+};
+
+
+
+
+
 module.exports = {
   inventoryGet,
   categoryGet,
@@ -312,4 +770,17 @@ module.exports = {
   getLoading,
   getVehicle,
   getLoadingProducts,
+  getRepID,
+  getCustomerID,
+  getPreOrder,
+  getPreOrderTotal,
+  getUser,
+  getUserbyID,
+  getSales,
+  getCreditSales,
+  getPaymentStatus,
+  getArea,
+  getProductStocks,
+  getStockRequests,
+  getProductStocksLoading,
 };

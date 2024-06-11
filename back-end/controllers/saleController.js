@@ -37,7 +37,7 @@ const addSale = (req, res) => {
         return;
       }
 
-      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID) VALUES (?, ?, ?, ?, ?, ?)`;
       connection.query(
         saleQuery,
         [
@@ -59,7 +59,7 @@ const addSale = (req, res) => {
           }
 
           const saleID = saleResults.insertId;
-          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, sale_status) VALUES (?, ?, ?, ?, ?)`;
+          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, payment_status) VALUES (?, ?, ?, ?, ?)`;
           connection.query(
             paymentQuery,
             [saleID, payment_type, customerID, discount, payment_status],
@@ -115,6 +115,7 @@ const addSale = (req, res) => {
                     );
                   }
                   break;
+
                 case "cheque":
                   let chequeSaleAmount = cheque_value;
                   let chequeCreditAmount = 0;
@@ -129,12 +130,13 @@ const addSale = (req, res) => {
 
                   specificSaleQuery = `INSERT INTO cheque_sale (paymentID, bank_name, cheque_number, cheque_value) VALUES (?, ?, ?, ?)`;
                   specificSaleValues = [
-                    paymentID,
+                    paymentID, 
                     bank_name,
                     cheque_number,
-                    chequeSaleAmount,
+                    chequeSaleAmount, 
                   ];
 
+                  
                   // If chequeCreditAmount is greater than 0, insert into credit_sale table
                   if (chequeCreditAmount > 0) {
                     const creditSaleQuery = `INSERT INTO credit_sale (paymentID, credit_amount) VALUES (?, ?)`;
@@ -309,7 +311,7 @@ const addSaleDelivery = (req, res) => {
         return;
       }
 
-      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+      const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID) VALUES (?, ?, ?, ?, ?, ?)`;
       connection.query(
         saleQuery,
         [
@@ -331,7 +333,7 @@ const addSaleDelivery = (req, res) => {
           }
 
           const saleID = saleResults.insertId;
-          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, sale_status) VALUES (?, ?, ?, ?, ?)`;
+          const paymentQuery = `INSERT INTO payment (saleID, payment_type, customerID, discount, payment_status) VALUES (?, ?, ?, ?, ?)`;
           connection.query(
             paymentQuery,
             [saleID, payment_type, customerID, discount, payment_status],

@@ -39,7 +39,8 @@ import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-const generatePDF = (invoiceData, addedItems) => {
+
+const generatePDF = (invoiceData, addedItems, saleID) => {
   const doc = new jsPDF();
 
   console.log(invoiceData);
@@ -93,7 +94,8 @@ const generatePDF = (invoiceData, addedItems) => {
   doc.setFontSize(13);
   let startY = 30 + lineSpacing * 3; // Adjust startY to prevent overlap with header
 
-  doc.text(`Order Number: #0001`, 15, startY);
+  const formattedSaleID = saleID.toString().padStart(3, "0");
+  doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);
   doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
   doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
   doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
@@ -227,8 +229,7 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
-
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -242,19 +243,29 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     setOpen(true);
   };
 
+  useEffect(() => {
+    if (restore.productID !== "") {
+      if (item.productID === restore.productID) {
+        setStock((prevStock) => prevStock + restore.amount);
+        setRestore({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restore]);
 
   useEffect(() => {
-    if (restore.productID !== ''){
-      if(item.productID === restore.productID) {
-      setStock((prevStock) => prevStock + restore.amount);
-      setRestore(({
-        productID: '',
-        amount: '',
-      })); // Update restore state to null using setRestore
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
     }
-  }
-  }, [restore]);
-  
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -312,7 +323,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    const value = event.target.value;
+    // Ensure the input is not negative
+    if (value >= 0) {
+      setQuantity(value);
+    }
   };
 
   useEffect(() => {
@@ -400,6 +415,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
             value={quantity}
             onChange={handleChange}
             sx={{ mt: 2, mb: 2, display: "block" }}
+            inputProps={{ min: 0 }} // Prevents negative input via arrow keys
           />
           <Button onClick={handleAddToBill} variant="contained">
             Add
@@ -440,8 +456,12 @@ const DeliveryBill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
-    productID: '',
-    amount: '',
+    productID: "",
+    amount: "",
+  });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
   });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
@@ -457,19 +477,83 @@ const DeliveryBill = ({ userID }) => {
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
   const [loadingId, setLoadingId] = useState(null);
+  const [repID, setrepID] = useState("");
 
   const handleProceedToCheckout = () => {
-    if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
-      setOpen(true);
-    } else if (!paymentType) {
-      setAlertMessage("Please select a payment method.");
+    // Check if any quantity in addedItems is 0
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+  
+    if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
-      setValue(1); // Switch to the payment tab
-      // setPaymentEnabled(true);
+      // Check stock totals before proceeding to the payment tab
+      const productIDs = addedItems.map(item => item.productID);
+  
+      axios.post("http://localhost:3001/getproductstocksloading", { loadingId, productIDs })
+        .then(response => {
+          const stockData = response.data;
+  
+          // Check if any product's stock total is 0
+          const unavailableProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID);
+            return stockItem && stockItem.stock_total === 0;
+          });
+  
+          if (unavailableProducts.length > 0) {
+            // Alert the user if any product is not available in the loading
+            const unavailableProductNames = unavailableProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Products Not Available",
+              text: `The following products are not available in the loading:  ${unavailableProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Check if any product exceeds the stock total
+            const exceededProducts = addedItems.filter(item => {
+              const stockItem = stockData.find(stock => stock.productID === item.productID);
+              return stockItem && item.quantity > stockItem.stock_total;
+            });
+  
+            if (exceededProducts.length > 0) {
+              // Alert the user if any product exceeds the stock total
+              const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+              Swal.fire({
+                icon: "error",
+                title: "Stock Limit Exceeded",
+                text: `The following products exceed the stock limit:  ${exceededProductNames}`,
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              });
+            } else {
+              // Check if a payment method is selected
+              if (!paymentType) {
+                setAlertMessage("Please select a payment method.");
+                setOpen(true);
+              } else {
+                // Proceed to the payment tab if all checks are passed
+                setValue(1); // Switch to the payment tab
+              }
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
+        });
     }
   };
+  
 
   useEffect(() => {
     let creditedValue;
@@ -553,7 +637,9 @@ const DeliveryBill = ({ userID }) => {
     if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
       createInvoice(subtotal, "cash", "fully paid");
     } else if (
-      paymentType === "cheque" && chequeValueFormatted === subtotalNumber) {
+      paymentType === "cheque" &&
+      chequeValueFormatted === subtotalNumber
+    ) {
       createInvoice(subtotal, "cheque", "fully paid");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
@@ -581,18 +667,17 @@ const DeliveryBill = ({ userID }) => {
       }).then((result) => {
         if (result.isConfirmed) {
           setCreditedValue(creditValue);
-          if(paymentType==="cash"){
+          if (paymentType === "cash") {
             createInvoice(subtotal, "cash", "partially paid");
-          }else if (paymentType==="cheque"){
+          } else if (paymentType === "cheque") {
             createInvoice(subtotal, "cheque", "partially paid");
           }
-          
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit","not paid");
+      createInvoice(subtotal, "credit", "not paid");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -601,7 +686,6 @@ const DeliveryBill = ({ userID }) => {
       );
     }
   };
-
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -628,8 +712,10 @@ const DeliveryBill = ({ userID }) => {
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
 
+        console.log(saleID);
+
         if (printBill) {
-          generatePDF(invoiceData, addedItems);
+          generatePDF(invoiceData, addedItems, saleID);
         }
 
         Swal.fire({
@@ -663,35 +749,58 @@ const DeliveryBill = ({ userID }) => {
   };
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/getloadingproducts")
-      .then((response) => {
-        let filteredData = response.data;
+    console.log("userID in useEffect:", userID);
+    if (userID) {
+      axios
+        .get(`http://localhost:3001/getrepID/${userID}`)
+        .then((response) => {
+          const repData = response.data;
+          //console.log(repData);
+          setrepID(repData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [userID]);
 
-        // Filter items based on category
-        if (category && category !== "All") {
-          filteredData = filteredData.filter(
-            (item) => item.category === category
-          );
-        }
+  useEffect(() => {
+    if (repID) {
+      // Ensure repID is available before fetching loading products
+      console.log("repID in useEffect:", repID);
+      axios
+        .get(`http://localhost:3001/getloadingproducts/${repID}`)
+        .then((response) => {
+          let filteredData = response.data;
 
-        // Filter items based on search query
-        if (searchQuery) {
-          filteredData = filteredData.filter((item) =>
-            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
+          // Filter items based on category
+          if (category && category !== "All") {
+            filteredData = filteredData.filter(
+              (item) => item.category === category
+            );
+          }
 
-        setData(filteredData); // Set the filtered data to the state
+          // Filter items based on search query
+          if (searchQuery) {
+            filteredData = filteredData.filter((item) =>
+              item.product_name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+            );
+          }
 
-        // Find the loading ID from the data
-        const loadingIdFromData = filteredData.length > 0 ? filteredData[0].loadingID : null;
-        setLoadingId(loadingIdFromData); // Set the loading ID to state
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, [category, searchQuery]);
+          setData(filteredData); // Set the filtered data to the state
+
+          // Find the loading ID from the data
+          const loadingIdFromData =
+            filteredData.length > 0 ? filteredData[0].loadingID : null;
+          setLoadingId(loadingIdFromData); // Set the loading ID to state
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [repID, category, searchQuery]); // Only fetch loading products when repID, category, or searchQuery changes
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -870,11 +979,14 @@ const DeliveryBill = ({ userID }) => {
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value-basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -912,7 +1024,7 @@ const DeliveryBill = ({ userID }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => onRemoveItem(item.productID,quantity)}
+              onClick={() => onRemoveItem(item.productID, quantity)}
               sx={{
                 ml: 1,
                 minWidth: "auto",
@@ -973,12 +1085,11 @@ const DeliveryBill = ({ userID }) => {
     setSubtotal(calculatedSubtotal);
   }, [addedItems]);
 
-  const handleRemoveItem = (productId,amount) => {
+  const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
-    setStock({productID: productId, amount:amount});
-
+    setStock({ productID: productId, amount: amount });
   };
 
   useEffect(() => {
@@ -997,13 +1108,6 @@ const DeliveryBill = ({ userID }) => {
       });
   }, []);
 
-  // Assuming 'data' is an array of objects representing the query result
-data.forEach(row => {
-  const loadingID = row.loadingID;
-  console.log(loadingID);
-});
-
-  
 
   return (
     <div className="flex w-screen gap-4">
@@ -1225,7 +1329,6 @@ data.forEach(row => {
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
           <div>
-            
             <Button
               variant="contained"
               className="h-12"
@@ -1300,6 +1403,8 @@ data.forEach(row => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock = {restock}
+                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -1359,6 +1464,7 @@ data.forEach(row => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
+                    setRestock = {setRestock}
                   />
                 ))}
               </div>

@@ -191,7 +191,6 @@ const generatePDF = (invoiceData, addedItems) => {
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
-  
 
   return (
     <div
@@ -216,7 +215,15 @@ CustomTabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
+function ItemCard({
+  item,
+  setAddedItems,
+  addedItems,
+  restore,
+  setRestore,
+  restock,
+  setRestock,
+}) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -241,6 +248,18 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
       }
     }
   }, [restore]);
+
+  useEffect(() => {
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -418,6 +437,10 @@ const CreateLoading = ({ userID }) => {
     productID: "",
     amount: "",
   });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
+  });
   const [open, setOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [subtotal, setSubtotal] = useState(0);
@@ -425,8 +448,30 @@ const CreateLoading = ({ userID }) => {
   const [vehicle, setVehicle] = useState([]);
   const [existingRep, setExistingRep] = useState([]);
   const [pending, setPending] = useState(null);
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState("");
 
   const navigate = useNavigate();
+
+  const getSelectedAreaName = () => {
+    const selectedArea = area.find((item) => item.areaID === areaID);
+    return selectedArea ? selectedArea.area : "";
+  };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
 
   const checkPendingLoading = () => {
     // Assuming selectedRep contains the repID of the selected salesRep
@@ -453,13 +498,15 @@ const CreateLoading = ({ userID }) => {
 
   const handleCreateLoading = () => {
     checkPendingLoading(); // Check for pending loading first
-
+  
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+  
     // Proceed only after the checkPendingLoading completes
     if (pending) {
       // Show a message or take any action when there is a pending loading
       Swal.fire({
         icon: "warning",
-        title: "Please Complete the previous loading first !",
+        title: "Please Complete the previous loading first!",
         text: "There is a pending loading for the selected salesRep. Complete it to create another loading for this sales representative",
         showCancelButton: true, // Show cancel button
         confirmButtonText: "Change Sales Rep", // Button for changing sales rep
@@ -478,50 +525,80 @@ const CreateLoading = ({ userID }) => {
         }
       });
       return;
-    } else if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
+    } else if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
-      const loadingData = {
-        total_value: subtotal,
-        repID: selectedRep.repID,
-        addedItems: addedItems,
-        vehicleID: selectedVehicle.vehicleID,
-        userID: userID,
-        loading_status: "pending",
-        availability: "no",
-      };
-
-      console.log(loadingData);
-
-      axios
-        .post("http://localhost:3001/addloading", loadingData)
-        .then((response) => {
-          console.log("Invoice created successfully:", response.data);
-
-          // if (printBill) {
-          //   generatePDF(invoiceData, addedItems);
-          // }
-
-          Swal.fire({
-            icon: "success",
-            title: "Loading Invoice Created Successfully!",
-            customClass: {
-              popup: "z-50",
-            },
-            didOpen: () => {
-              document.querySelector(".swal2-container").style.zIndex = "9999";
-            },
-          }).then(() => {
-            window.location.reload();
+      const productIDs = addedItems.map((item) => item.productID);
+  
+      // Check stock totals before proceeding to create the loading
+      axios.post("http://localhost:3001/getproductstocks", { productIDs })
+        .then(response => {
+          const stockData = response.data;
+  
+          // Check if any product exceeds the stock total
+          const exceededProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID);
+            return stockItem && item.quantity > stockItem.stock_total;
           });
+  
+          if (exceededProducts.length > 0) {
+            // Alert the user if any product exceeds the stock total
+            const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Stock Limit Exceeded",
+              text: `Products:  ${exceededProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Proceed with creating the loading if no product exceeds the stock total
+            const loadingData = {
+              total_value: subtotal,
+              repID: selectedRep.repID,
+              addedItems: addedItems,
+              vehicleID: selectedVehicle.vehicleID,
+              userID: userID,
+              loading_status: "pending",
+              availability: "no",
+              areaID: areaID,
+            };
+  
+            axios
+              .post("http://localhost:3001/addloading", loadingData)
+              .then((response) => {
+                console.log("Invoice created successfully:", response.data);
+                Swal.fire({
+                  icon: "success",
+                  title: "Loading Invoice Created Successfully!",
+                  customClass: {
+                    popup: "z-50",
+                  },
+                  didOpen: () => {
+                    document.querySelector(".swal2-container").style.zIndex = "9999";
+                  },
+                }).then(() => {
+                  window.location.reload();
+                });
+              })
+              .catch((error) => {
+                console.error("Error creating invoice:", error);
+                alert("Error creating invoice. Please try again.");
+              });
+          }
         })
-        .catch((error) => {
-          console.error("Error creating invoice:", error);
-          alert("Error creating invoice. Please try again.");
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
         });
     }
   };
+  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -569,8 +646,7 @@ const CreateLoading = ({ userID }) => {
     // Display SweetAlert confirmation dialog
     Swal.fire({
       icon: "warning",
-      title: "Please select a Sale Representative and a Vehicle",
-      text: "You need to select a Sale Representative and a vehicle to proceed.",
+      title: "Please select a Sale Representative, a Vehicle and a Area!",
       customClass: {
         popup: "z-50",
       },
@@ -630,11 +706,14 @@ const CreateLoading = ({ userID }) => {
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value - basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -782,8 +861,14 @@ const CreateLoading = ({ userID }) => {
               label="Sales Representative"
             >
               {existingRep.map((rep) => (
-                <MenuItem key={rep.repID} value={rep.firstname}>
+                <MenuItem
+                  key={rep.repID}
+                  value={rep.firstname}
+                  disabled={rep.availability === "no"} // Disable if availability is "no"
+                >
                   {rep.firstname}
+                  {rep.availability === "no" && " - Not Available"}{" "}
+                  {/* Append "Not Available" */}
                 </MenuItem>
               ))}
             </Select>
@@ -810,13 +895,29 @@ const CreateLoading = ({ userID }) => {
               ))}
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="userarea-label">Select Area</InputLabel>
+            <Select
+              required
+              labelId="userarea-label"
+              value={areaID}
+              onChange={handleAreaChange}
+              label="Select Area"
+            >
+              {area.map((item) => (
+                <MenuItem key={item.areaID} value={item.areaID}>
+                  {item.area}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button
             onClick={() => {
               handleExistingCustomerSubmit();
             }}
-            disabled={!selectedRepInfo || !selectedVehicleInfo}
+            disabled={!selectedRepInfo || !selectedVehicleInfo || !areaID}
             variant="contained"
             color="primary"
           >
@@ -903,6 +1004,8 @@ const CreateLoading = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock={restock}
+                setRestock={setRestock}
               />
             ))}
           </div>
@@ -913,7 +1016,7 @@ const CreateLoading = ({ userID }) => {
       <div className="w-2/5 h-[89vh]  pr-8 ">
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-6 justify-between font-PoppinsM text-2xl rounded-lg p-2">
-            <div className="flex justify-between mt-8  border-b-4 ">
+            <div className="flex justify-between mt-4  border-b-4 ">
               <div className="">Loading Details</div>
               <div className="">
                 <h1>#00{preOrderID}</h1>
@@ -927,7 +1030,12 @@ const CreateLoading = ({ userID }) => {
               )}
               {selectedVehicle.vehicle_number && (
                 <h1 className="text-sm font-PoppinsL">
-                  Vehicle Name: {selectedVehicle.vehicle_number}
+                  Vehicle Number: {selectedVehicle.vehicle_number}
+                </h1>
+              )}
+              {areaID && (
+                <h1 className="text-sm font-PoppinsL">
+                  Area: {getSelectedAreaName()}
                 </h1>
               )}
               <h1 className="text-sm font-PoppinsL">
@@ -954,17 +1062,17 @@ const CreateLoading = ({ userID }) => {
                 item={item}
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
+                setRestock={setRestock}
               />
             ))}
           </div>
 
-          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-5 gap-3 ">
+          <div className="flex flex-col bg-slate-100 rounded-lg px-2 pt-3 gap-3 ">
             <div className="flex justify-between px-1">
               <p>Total Value of Loaded Quantity:</p>
               <p>{subtotal} LKR</p>
             </div>
 
-            <div className="w-full flex items-center gap-5 justify-between px-1"></div>
             <div className="px-1">
               <Button
                 variant="contained"

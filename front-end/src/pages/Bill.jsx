@@ -227,8 +227,7 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
-
+function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -242,19 +241,29 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
     setOpen(true);
   };
 
+  useEffect(() => {
+    if (restore.productID !== "") {
+      if (item.productID === restore.productID) {
+        setStock((prevStock) => prevStock + restore.amount);
+        setRestore({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
+    }
+  }, [restore]);
 
   useEffect(() => {
-    if (restore.productID !== ''){
-      if(item.productID === restore.productID) {
-      setStock((prevStock) => prevStock + restore.amount);
-      setRestore(({
-        productID: '',
-        amount: '',
-      })); // Update restore state to null using setRestore
+    if (restock.productID !== "") {
+      if (item.productID === restock.productID) {
+        setStock((prevStock) => prevStock - restock.amount);
+        setRestock({
+          productID: "",
+          amount: "",
+        }); // Update restore state to null using setRestore
+      }
     }
-  }
-  }, [restore]);
-  
+  }, [restock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -312,7 +321,11 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
   };
 
   const handleChange = (event) => {
-    setQuantity(event.target.value);
+    const value = event.target.value;
+    // Ensure the input is not negative
+    if (value >= 0) {
+      setQuantity(value);
+    }
   };
 
   useEffect(() => {
@@ -400,6 +413,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore }) {
             value={quantity}
             onChange={handleChange}
             sx={{ mt: 2, mb: 2, display: "block" }}
+            inputProps={{ min: 0 }} // Prevents negative input via arrow keys
           />
           <Button onClick={handleAddToBill} variant="contained">
             Add
@@ -430,7 +444,6 @@ const Bill = ({ userID }) => {
     email: "",
     phone: "",
     address: "",
-    area: "",
     shop_name: "",
     usertypeID: 6,
   });
@@ -440,8 +453,12 @@ const Bill = ({ userID }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
-    productID: '',
-    amount: '',
+    productID: "",
+    amount: "",
+  });
+  const [restock, setRestock] = useState({
+    productID: "",
+    amount: "",
   });
   const [paymentType, setPaymentType] = useState("");
   const [value, setValue] = React.useState(0);
@@ -456,19 +473,80 @@ const Bill = ({ userID }) => {
   const [creditedValue, setCreditedValue] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [saleID, setSaleID] = useState("");
+  const [area, setArea] = useState([]);
+  const [areaID, setSelectedArea] = useState('');
+
 
   const handleProceedToCheckout = () => {
-    if (addedItems.length === 0) {
-      setAlertMessage("Please add at least one item to the bill.");
-      setOpen(true);
-    } else if (!paymentType) {
-      setAlertMessage("Please select a payment method.");
+    // Check if any quantity in addedItems is 0
+    const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
+  
+    if (addedItems.length === 0 || hasZeroQuantity) {
+      setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
-      setValue(1); // Switch to the payment tab
-      // setPaymentEnabled(true);
+      // Check stock totals before proceeding to the payment tab
+      const productIDs = addedItems.map(item => item.productID);
+  
+      axios.post("http://localhost:3001/getproductstocks", { productIDs })
+        .then(response => {
+          const stockData = response.data;
+  
+          // Check if any product exceeds the stock total
+          const exceededProducts = addedItems.filter(item => {
+            const stockItem = stockData.find(stock => stock.productID === item.productID);
+            return stockItem && item.quantity > stockItem.stock_total;
+          });
+  
+          if (exceededProducts.length > 0) {
+            // Alert the user if any product exceeds the stock total
+            const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+            Swal.fire({
+              icon: "error",
+              title: "Stock Limit Exceeded",
+              text: `Products:  ${exceededProductNames}`,
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            });
+          } else {
+            // Check if a payment method is selected
+            if (!paymentType) {
+              setAlertMessage("Please select a payment method.");
+              setOpen(true);
+            } else {
+              // Proceed to the payment tab if all checks are passed
+              setValue(1); // Switch to the payment tab
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching product stocks:", error);
+          alert("Error fetching product stocks. Please try again.");
+        });
     }
   };
+  
+  
+  
+
+  const handleAreaChange = (event) => {
+    setSelectedArea(event.target.value);
+  };
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/getarea")
+      .then((response) => {
+        setArea(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
 
   useEffect(() => {
     let creditedValue;
@@ -552,7 +630,9 @@ const Bill = ({ userID }) => {
     if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
       createInvoice(subtotal, "cash", "fully paid");
     } else if (
-      paymentType === "cheque" && chequeValueFormatted === subtotalNumber) {
+      paymentType === "cheque" &&
+      chequeValueFormatted === subtotalNumber
+    ) {
       createInvoice(subtotal, "cheque", "fully paid");
     } else if (
       (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
@@ -580,18 +660,17 @@ const Bill = ({ userID }) => {
       }).then((result) => {
         if (result.isConfirmed) {
           setCreditedValue(creditValue);
-          if(paymentType==="cash"){
+          if (paymentType === "cash") {
             createInvoice(subtotal, "cash", "partially paid");
-          }else if (paymentType==="cheque"){
+          } else if (paymentType === "cheque") {
             createInvoice(subtotal, "cheque", "partially paid");
           }
-          
         } else {
           Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
         }
       });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit","not paid");
+      createInvoice(subtotal, "credit", "not paid");
     } else {
       Swal.fire(
         "Invalid Payment",
@@ -600,7 +679,6 @@ const Bill = ({ userID }) => {
       );
     }
   };
-
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -619,18 +697,16 @@ const Bill = ({ userID }) => {
       addedItems: addedItems, // Array of added items
       payment_status: payment_status,
     };
-
-    console.log(invoiceData);
-
-    axios
-      .post("http://localhost:3001/addsale", invoiceData)
+  
+    // Proceed with creating the invoice
+    axios.post("http://localhost:3001/addsale", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
-
+  
         if (printBill) {
           generatePDF(invoiceData, addedItems);
         }
-
+  
         Swal.fire({
           icon: "success",
           title: "Invoice Created Successfully!",
@@ -649,6 +725,7 @@ const Bill = ({ userID }) => {
         alert("Error creating invoice. Please try again.");
       });
   };
+  
 
   const handleCloseAlert = (event, reason) => {
     if (reason === "clickaway") {
@@ -661,31 +738,35 @@ const Bill = ({ userID }) => {
     setValue(newValue);
   };
 
-  useEffect(() => {
+  const fetchInventoryData = () => {
     axios
       .get("http://localhost:3001/inventory")
       .then((response) => {
         let filteredData = response.data;
-
+  
         // Filter items based on category
         if (category && category !== "All") {
           filteredData = filteredData.filter(
             (item) => item.category === category
           );
         }
-
+  
         // Filter items based on search query
         if (searchQuery) {
           filteredData = filteredData.filter((item) =>
             item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
           );
         }
-
+  
         setData(filteredData); // Set the filtered data to the state
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
+  };
+
+  useEffect(() => {
+    fetchInventoryData();
   }, [category, searchQuery]);
 
   const handleChangeForm = (event) => {
@@ -785,61 +866,93 @@ const Bill = ({ userID }) => {
     });
   };
 
+  const checkUserExistence = () => {
+    // Check if the username or phone number already exists
+    return axios.post("http://localhost:3001/checkUserExistence", { username: customerData.username, phone: customerData.phone });
+  };
+
+  const newData = { ...customerData, areaID };
+  
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
-    // Handle form submission, e.g., send data to the server
-    axios
-      .post("http://localhost:3001/adduser", customerData)
+  
+    checkUserExistence()
       .then((response) => {
-        console.log("Customer added successfully:", response.data);
-        setOpenNewCustomerDialog(false);
-        // Clear form fields
-        setcustomerData({
-          username: "",
-          password: "",
-          firstname: "",
-          lastname: "",
-          email: "",
-          phone: "",
-          address: "",
-          area: "",
-          shop_name: "",
-          usertypeID: 6,
-        });
-        setConfirmPassword("");
-
-        Swal.fire({
-          icon: "success",
-          title: "Customer Added Successfully!",
-          customClass: {
-            popup: "z-50",
-          },
-          didOpen: () => {
-            document.querySelector(".swal2-container").style.zIndex = "9999";
-          },
-        }).then(() => {
-          fetchCustomer();
-          setOpenExistingCustomerDialog(true);
-        });
+        if (response.data.exists) {
+          // If username or phone already exists, show an alert using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Username or phone number already exists!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // If username and phone are unique, proceed with adding the user
+          //Handle form submission, e.g., send data to the server
+          console.log(newData);
+          axios
+            .post("http://localhost:3001/adduser", newData)
+            .then((response) => {
+              console.log("Customer added successfully:", response.data);
+              setOpenNewCustomerDialog(false);
+              // Clear form fields
+              setcustomerData({
+                username: "",
+                password: "",
+                firstname: "",
+                lastname: "",
+                email: "",
+                phone: "",
+                address: "",
+                areaID: "",
+                shop_name: "",
+                usertypeID: 6,
+              });
+              setConfirmPassword("");
+  
+              Swal.fire({
+                icon: "success",
+                title: "Customer Added Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                },
+              }).then(() => {
+                fetchCustomer();
+                setOpenExistingCustomerDialog(true);
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding customer:", error);
+            });
+        }
       })
       .catch((error) => {
-        console.error("Error adding customer:", error);
+        console.error("Error checking user existence:", error);
       });
   };
+  
 
   const handleExistingCustomerSubmit = () => {
     setOpenExistingCustomerDialog(false);
     const customer = existingCustomers.find(
       (customer) => customer.shop_name === selectedCustomerInfo
     );
-    setSelectedCustomer(customer);
-    console.log("Selected Customer after button click:", customer);
-  };
+    if (customer) {
+      setSelectedCustomer(customer);
+      console.log("Selected Customer after button click:", customer);
+    }
+};
 
   const handleChange = (event, newAlignment) => {
     setAlignment(newAlignment);
@@ -863,13 +976,16 @@ const Bill = ({ userID }) => {
     }
   }, [openExistingCustomerDialog]);
 
-  function BillingItem({ item, onQuantityChange, onRemoveItem }) {
+  function BillingItem({ item, onQuantityChange, onRemoveItem, setRestock }) {
     const [quantity, setQuantity] = useState(item.quantity);
+    const [basequantity, setbaseQuantity] = useState(item.quantity);
 
     const handleQuantityChange = (e) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
+        setRestock({ productID: item.productID, amount: value-basequantity });
+        setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
@@ -907,7 +1023,7 @@ const Bill = ({ userID }) => {
               variant="outlined"
               color="error"
               size="small"
-              onClick={() => onRemoveItem(item.productID,quantity)}
+              onClick={() => onRemoveItem(item.productID, quantity)}
               sx={{
                 ml: 1,
                 minWidth: "auto",
@@ -968,12 +1084,11 @@ const Bill = ({ userID }) => {
     setSubtotal(calculatedSubtotal);
   }, [addedItems]);
 
-  const handleRemoveItem = (productId,amount) => {
+  const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
       prevItems.filter((item) => item.productID !== productId)
     );
-    setStock({productID: productId, amount:amount});
-
+    setStock({ productID: productId, amount: amount });
   };
 
   useEffect(() => {
@@ -1134,16 +1249,22 @@ const Bill = ({ userID }) => {
             value={customerData.address}
             onChange={handleChangeForm}
           />
-          <TextField
-            required
-            label="Area (Delivery Route)"
-            name="area"
-            variant="filled"
-            fullWidth
-            margin="normal"
-            value={customerData.area}
-            onChange={handleChangeForm}
-          />
+          <FormControl fullWidth margin="normal">
+                  <InputLabel id="userarea-label">Select Area</InputLabel>
+                  <Select
+                    required
+                    labelId="userarea-label"
+                    value={areaID}
+                    onChange={handleAreaChange}
+                    label="Select Area"
+                  >
+                    {area.map((item) => (
+                      <MenuItem key={item.areaID} value={item.areaID}>
+                        {item.area}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleNewCustomerDialogClose} color="primary">
@@ -1197,9 +1318,8 @@ const Bill = ({ userID }) => {
           <Button
             onClick={() => {
               handleExistingCustomerSubmit();
-              console.log("Selected Customer:", selectedCustomer);
             }}
-            disabled={!selectedCustomer}
+            disabled={!selectedCustomerInfo}
             variant="contained"
             color="primary"
           >
@@ -1286,6 +1406,8 @@ const Bill = ({ userID }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
+                restock = {restock}
+                setRestock = {setRestock}
               />
             ))}
           </div>
@@ -1345,6 +1467,7 @@ const Bill = ({ userID }) => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
+                    setRestock = {setRestock}
                   />
                 ))}
               </div>

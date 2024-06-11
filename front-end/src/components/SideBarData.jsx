@@ -21,62 +21,104 @@ export const SideBarData = [
     title: "Inventory",
     icon: <InventoryIcon />,
     link: "/inventory",
-    roles: [1,2,3,4,5],
+    roles: [1,2,3,4],
   },
 
   {
     title: "Create Loading",
     icon: <LoadIcon />,
     link: "/create-loading",
-    roles: [1,2,4],
+    roles: [4],
   },
+
+  // {
+  //   title: "Create Loading Pre",
+  //   icon: <LoadIcon />,
+  //   link: "/create-loading-pre-orders",
+  //   roles: [1,2,4],
+  // },
 
   {
     title: "Loadings",
     icon: <LoadIcon />,
     link: "/get-loading",
-    roles: [1,2,3],
+    roles: [1,2,3,4],
   },
 
   {
     title: "Bill-Delivary",
     icon: <ShoppingCartIcon />,
     link: "/delivary-bill",
-    roles: [1,3,4],
+    roles: [3],
   },
 
   {
     title: "Bill",
     icon: <ShoppingCartIcon />,
     link: "/bill",
+    roles: [1,4],
+  },
+
+  {
+    title: "Sales History",
+    icon: <ShoppingCartIcon />,
+    link: "/sales",
+    roles: [1,2,3,4],
+  },
+
+  {
+    title: "Create Pre Order",
+    icon: <RotateRightIcon />,
+    link: "/create-preorder",
+    roles: [3,6],
+  },
+
+  {
+    title: "Received Pre Orders",
+    icon: <RotateRightIcon />,
+    link: "/get-received-preorder",
     roles: [1,3,4],
   },
 
   {
-    title: "Pre Orders",
+    title: "Sent Pre Orders",
     icon: <RotateRightIcon />,
-    link: "/pre-orders",
-    roles: [1,2,3,4,6],
+    link: "/get-sent-preorder",
+    roles: [6],
   },
 
   {
     title: "Reports",
     icon: <AssessmentIcon />,
     link: "/reports",
-    roles: [1,2,3,4,5,6],
+    roles: [],
   },
 
   {
     title: "Product Catalog",
     icon: <BallotIcon />,
     link: "/product-catalog",
-    roles: [1,2,3,4,5,6],
+    roles: [1,2,3,4,6],
   },
 
   {
     title: "My Dashboard",
     icon: <DashboardIcon />,
     link: "/admin-dashboard",
-    roles: [1,2,3,4,5,6],
+    roles: [1],
+  },
+
+  {
+    title: "Sent Stock Requests",
+    icon: <ShoppingCartIcon />,
+    link: "/get-stock-request",
+    roles: [1],
+  },
+
+  {
+    title: "Request Stock",
+    icon: <ShoppingCartIcon />,
+    link: "/stock-request",
+    roles: [1],
   },
 ];

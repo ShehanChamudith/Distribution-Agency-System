@@ -18,6 +18,14 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import dayjs from "dayjs";
+import {jwtDecode} from "jwt-decode";
+import Typography from '@mui/material/Typography';
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import Swal from 'sweetalert2';
 
 // Custom styles for the table headers
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -48,6 +56,45 @@ function GetLoadings() {
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
   const navigate = useNavigate();
+  const [rrepID, setrepID] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
+  const [userID, setUserID] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [selectedLoadingID, setSelectedLoadingID] = useState(null);
+  const [actionType, setActionType] = useState(""); // "edit" or "complete"
+
+  const decodeTokenFromLocalStorage = () => {
+    const token = sessionStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setUserInfo(decodedToken.usertypeID);
+        setUserID(decodedToken.userID);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Decode token when component mounts
+    decodeTokenFromLocalStorage();
+  }, []);
+
+  useEffect(() => {
+    if (userID && userInfo === 3) {
+      axios
+        .get(`http://localhost:3001/getrepID/${userID}`)
+        .then((response) => {
+          const repData = response.data;
+          setrepID(repData);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [userID, userInfo]);
 
   useEffect(() => {
     axios
@@ -61,7 +108,7 @@ function GetLoadings() {
       });
   }, []);
 
-  // Extract unique loading IDs
+  // Extract unique loadings
   const uniqueLoadings = Array.from(
     new Set(loadings.map((loading) => loading.loadingID))
   ).map((loadingID) => {
@@ -89,21 +136,71 @@ function GetLoadings() {
     setDateFilter(newValue);
   };
 
-  // Filter unique loadings based on the filter
-  const filteredLoadings = uniqueLoadings.filter((loading) => {
-    const loadingID = loading.loadingID.toString().toLowerCase();
-    const rep_firstname = loading.rep_firstname.toString().toLowerCase();
-    const matchesTextFilter =
-      loadingID.includes(filter.toLowerCase()) ||
-      rep_firstname.includes(filter.toLowerCase());
+  const handleClearFilters = () => {
+    setFilter("");
+    setDateFilter(null);
+  };
 
-    if (dateFilter) {
-      const selectedDate = dayjs(dateFilter).startOf("day");
-      const loadingDate = dayjs(new Date(loading.date)).startOf("day");
-      return matchesTextFilter && selectedDate.isSame(loadingDate);
+  const openPasswordDialog = (loadingID, type) => {
+    setSelectedLoadingID(loadingID);
+    setActionType(type);
+    setDialogOpen(true);
+  };
+
+  const handlePasswordSubmit = async () => {
+    try {
+      const response = await axios.post('http://localhost:3001/verifypassword', {
+        password: adminPassword
+      });
+  
+      if (response.data.success) {
+        if (actionType === "edit") {
+          handleEditLoading(selectedLoadingID);
+        } else if (actionType === "complete") {
+          handleCompleteLoading(selectedLoadingID);
+        }
+      } else {
+        // Use SweetAlert for displaying the alert
+        Swal.fire({
+          icon: 'error',
+          title: 'Incorrect admin password!',
+          text: 'Please enter the correct admin password.',
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying password:", error.response ? error.response.data : error.message);
+      // Use SweetAlert for displaying error message
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while verifying the password. Please try again later.',
+      });
+    } finally {
+      setDialogOpen(false);
+      setAdminPassword("");
     }
-    return matchesTextFilter;
-  });
+  };
+  
+
+
+  const handleEditLoading = (loadingID) => {
+    // Fetch the previously created loading information using the loadingID
+    axios
+      .get(`http://localhost:3001/getloadingID/${loadingID}`)
+      .then((response) => {
+        const loadingData = response.data; // Assuming the response contains the loading data
+        console.log(loadingData);
+
+        // Navigate to "/edit-loading" and pass the data as state
+        navigate("/edit-loading", { state: { loadingData } });
+      })
+      .catch((error) => {
+        console.error("Error fetching loading information:", error);
+        // Handle error
+      });
+  };
+
+  console.log(loadings);
 
   const handleCompleteLoading = (loadingID) => {
     axios
@@ -117,25 +214,40 @@ function GetLoadings() {
         // Handle error
       });
 
-      window.location.reload();
+    window.location.reload();
   };
 
-  const handleEditLoading = (loadingID) => {
-    // Fetch the previously created loading information using the loadingID
-    axios
-      .get(`http://localhost:3001/getloadingID/${loadingID}`)
-      .then((response) => {
-        const loadingData = response.data; // Assuming the response contains the loading data
-        console.log(loadingData);
+  // Filter unique loadings based on the filter
+  const filteredLoadings = uniqueLoadings.filter((loading) => {
+    const loadingID = loading.loadingID.toString().toLowerCase();
+    const rep_firstname = loading.rep_firstname.toString().toLowerCase();
+    const area = loading.area.toString().toLowerCase();
+    const repID = loading.repID;
+    const matchesTextFilter =
+      loadingID.includes(filter.toLowerCase()) ||
+      rep_firstname.includes(filter.toLowerCase()) ||
+      area.includes(filter.toLowerCase());
 
-        // Navigate to "/edit-loading" and pass the data as state
-        navigate('/edit-loading', { state: { loadingData } });
-      })
-      .catch((error) => {
-        console.error("Error fetching loading information:", error);
-        // Handle error
-      });
-  };
+    if (userInfo === 3) {
+      if (dateFilter) {
+        const selectedDate = dayjs(dateFilter).startOf("day");
+        const loadingDate = dayjs(new Date(loading.date)).startOf("day");
+        return (
+          matchesTextFilter &&
+          selectedDate.isSame(loadingDate) &&
+          repID === rrepID
+        );
+      }
+      return matchesTextFilter && repID === rrepID;
+    } else {
+      if (dateFilter) {
+        const selectedDate = dayjs(dateFilter).startOf("day");
+        const loadingDate = dayjs(new Date(loading.date)).startOf("day");
+        return matchesTextFilter && selectedDate.isSame(loadingDate);
+      }
+      return matchesTextFilter;
+    }
+  });
 
   return (
     <div>
@@ -145,7 +257,7 @@ function GetLoadings() {
             <FilterBox>
               <TextField
                 className="w-72"
-                label="Filter by Loading ID or Rep Name"
+                label="Filter"
                 variant="outlined"
                 value={filter}
                 onChange={handleFilterChange}
@@ -154,8 +266,13 @@ function GetLoadings() {
                 label="Filter by Date"
                 value={dateFilter}
                 onChange={handleDateFilterChange}
-                renderInput={(params) => <TextField {...params} />}
+                slotProps={{
+                  textField: { style: { width: "200px" } },
+                }}
               />
+              <Button className="h-14" variant="outlined" onClick={handleClearFilters}>
+                Clear Filters
+              </Button>
             </FilterBox>
             <ScrollableTableContainer>
               <Table stickyHeader>
@@ -165,6 +282,7 @@ function GetLoadings() {
                     <StyledTableCell>Loading ID</StyledTableCell>
                     <StyledTableCell>Sales Representative</StyledTableCell>
                     <StyledTableCell>Vehicle Number</StyledTableCell>
+                    <StyledTableCell>Area</StyledTableCell>
                     <StyledTableCell>Actions</StyledTableCell>
                     <StyledTableCell />
                   </TableRow>
@@ -179,21 +297,24 @@ function GetLoadings() {
                         <TableCell>{loading.loadingID}</TableCell>
                         <TableCell>{loading.rep_firstname}</TableCell>
                         <TableCell>{loading.vehicle_number}</TableCell>
+                        <TableCell>{loading.area}</TableCell>
                         <TableCell align="right">
                           <Box display="flex" gap={2}>
-                            <Button 
-                            variant="contained" 
-                            disabled={loading.loading_status === "completed"}
-                            onClick={() => handleEditLoading(loading.loadingID)}
+                            <Button
+                              variant="contained"
+                              disabled={loading.loading_status === "completed"}
+                              onClick={() =>
+                                openPasswordDialog(loading.loadingID, "edit")
+                              }
                             >
-                                Edit Loading
+                              Edit Loading
                             </Button>
                             <Button
                               variant="contained"
                               color="success"
                               onClick={() =>
-                                handleCompleteLoading(loading.loadingID)
-                              } // Pass loadingID as argument
+                                openPasswordDialog(loading.loadingID, "complete")
+                              }
                               disabled={loading.loading_status === "completed"}
                             >
                               {loading.loading_status === "completed"
@@ -234,6 +355,7 @@ function GetLoadings() {
                           >
                             <Box margin={1}>
                               <TableContainer component={Paper}>
+                                <Typography variant="h6" gutterBottom component="div">Loading Details:</Typography>
                                 <Table
                                   sx={{ minWidth: 200 }}
                                   size="small"
@@ -273,6 +395,28 @@ function GetLoadings() {
           </Paper>
         </LocalizationProvider>
       </div>
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <DialogTitle>Admin Password Required</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please enter the admin password to proceed.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Admin Password"
+            type="password"
+            fullWidth
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handlePasswordSubmit}>Submit</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

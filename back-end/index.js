@@ -28,6 +28,12 @@ app.use('/', saleRoute);
 const loadingRoute = require('./routes/loadingRoute');
 app.use('/', loadingRoute);
 
+const preOrderRoute = require('./routes/preOrderRoute');
+app.use('/', preOrderRoute);
+
+const paymentRoute = require('./routes/paymentRoute');
+app.use('/', paymentRoute);
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
