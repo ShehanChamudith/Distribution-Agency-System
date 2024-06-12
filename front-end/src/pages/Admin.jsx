@@ -57,7 +57,7 @@ function CustomTabPanel(props) {
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: "#6573c3",
     color: theme.palette.common.white,
   },
   [`&.${tableCellClasses.body}`]: {
@@ -507,7 +507,11 @@ export const Admin = () => {
           <CustomTabPanel value={value} index={0}>
             <div className="flex w-full  ">
               <div className="flex flex-col w-full gap-4 ">
-                <div className="w-full  h-[20vh] rounded-xl shadow-md"></div>
+                <div className="w-full  h-[20vh] rounded-xl shadow-md">
+                  <div>
+
+                  </div>
+                </div>
 
                 <div className="w-full flex h-[50vh] gap-5">
                   <div className="flex w-4/6 border rounded-xl">
@@ -551,8 +555,8 @@ export const Admin = () => {
                   </div>
 
                   <div className="flex flex-col w-2/6 border rounded-xl">
-                    <h1 className=" font-PoppinsM text-xl pl-2"> Inventory </h1>
-                    <div>
+                    <h1 className=" font-PoppinsM text-xl pl-6 pt-2"> Inventory </h1>
+                    <div className="flex justify-center h-[45vh]">
                       <DoughnutGraph />
                     </div>
                   </div>

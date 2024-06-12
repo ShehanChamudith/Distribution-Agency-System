@@ -879,6 +879,18 @@ LIMIT 5;
   });
 };
 
+const getProductChart = (req, res) => {
+  const query = 'SELECT productID, product_name, stock_total FROM product';
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching product data:', err);
+      res.status(500).json({ error: 'Failed to fetch product data' });
+      return;
+    }
+    res.json(results);
+  });
+};
+
 
 
 
@@ -915,4 +927,5 @@ module.exports = {
   getLoadingStatus,
   getSalesChart,
   getTopSales,
+  getProductChart,
 };

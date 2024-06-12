@@ -566,6 +566,20 @@ const StockReq = ({ userID }) => {
       });
   }, []);
 
+  const handleExistingCustomerDialogClose = () => {
+    // Display SweetAlert confirmation dialog
+    Swal.fire({
+      icon: "warning",
+      title: "Please select a Sale Representative, a Vehicle and a Area!",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    });
+  };
+
   useEffect(() => {
     // Find the supplier with the selected supplierID
     const selectedSupplier = supplier.find(
@@ -588,7 +602,7 @@ const StockReq = ({ userID }) => {
   return (
     <div className="flex w-screen gap-4">
       {/* Select the Supplier */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+      <Dialog open={dialogOpen} onClose={handleExistingCustomerDialogClose}>
         <DialogTitle>Select Supplier</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -608,7 +622,6 @@ const StockReq = ({ userID }) => {
           </Select>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
           <Button onClick={() => setDialogOpen(false)} variant="contained">
             Select
           </Button>
