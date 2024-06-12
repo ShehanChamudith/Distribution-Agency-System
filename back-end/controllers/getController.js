@@ -846,6 +846,40 @@ ORDER BY date DESC;
   });
 };
 
+const getTopSales = (req, res) => {
+  const query = `SELECT 
+    ps.productID, 
+    p.product_name, 
+    SUM(ps.quantity) AS total_quantity
+FROM 
+    productsale ps
+JOIN 
+    product p ON ps.productID = p.productID
+GROUP BY 
+    ps.productID, 
+    p.product_name
+ORDER BY 
+    total_quantity DESC
+LIMIT 5;
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+
 
 
 
@@ -880,4 +914,5 @@ module.exports = {
   getUserbyIDdel,
   getLoadingStatus,
   getSalesChart,
+  getTopSales,
 };

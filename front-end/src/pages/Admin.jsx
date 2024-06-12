@@ -33,6 +33,7 @@ import {
 } from "@mui/material";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import Swal from "sweetalert2";
+import WhatshotIcon from "@mui/icons-material/Whatshot";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -102,6 +103,20 @@ export const Admin = () => {
   const [editUserID, setEditUserID] = useState("");
   const [deleteUserID, setDeleteUserID] = useState("");
   const [areaID, setSelectedArea] = useState("");
+  const [topProducts, setTopProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/gettopsales");
+        setTopProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching top selling products:", error);
+      }
+    };
+
+    fetchTopProducts();
+  }, []);
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -495,15 +510,44 @@ export const Admin = () => {
                 <div className="w-full  h-[20vh] rounded-xl shadow-md"></div>
 
                 <div className="w-full flex h-[50vh] gap-5">
-                  <div className="flex w-4/6 border rounded-xl border border-red-800">
+                  <div className="flex w-4/6 border rounded-xl">
                     <div className=" w-[70%] ">
-                      <h1 className=" font-PoppinsM text-xl pl-2"> Sales of Last 7 Days </h1>
+                      <h1 className=" font-PoppinsM text-md pl-6 pt-2">
+                        {" "}
+                        Sales of Last 7 Days{" "}
+                      </h1>
                       <div>
                         <LineGraph />
                       </div>
                     </div>
 
-                    <div className=" w-[30%] border border-red-500">............</div>
+                    <div className=" w-[30%] ">
+                      <div>
+                        <h1 className="font-PoppinsM text-md pt-2">
+                          Top Selling Products{" "}
+                          <WhatshotIcon
+                            style={{ fontSize: "16px", color: "red" }}
+                          />
+                        </h1>
+                      </div>
+                      <div className="h-[38vh] rounded-lg bg-slate-100 mt-5 mr-5 mb-96 p-5">
+                        <div className="flex justify-between text-sm font-PoppinsB pt-4">
+                          <span>Product Name</span>
+                          <span>Sold Quantity</span>
+                        </div>
+                        <ul className="font-PoppinsR space-y-2 pt-9">
+                          {topProducts.map((product) => (
+                            <li
+                              key={product.productID}
+                              className="flex justify-between"
+                            >
+                              <span>{product.product_name}</span>
+                              <span>{product.total_quantity}kg</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex flex-col w-2/6 border rounded-xl">
