@@ -65,6 +65,7 @@ function TabPanel(props) {
 
 function SaleHistory() {
   const [preorders, setLoadings] = useState([]);
+  const [paymentlog, setpaymentlog] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
@@ -218,6 +219,19 @@ function SaleHistory() {
       .then((response) => {
         const salesData = response.data;
         setLoadings(salesData);
+        //console.log(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/paymentlog")
+      .then((response) => {
+        const paymentData = response.data;
+        setpaymentlog(paymentData);
         //console.log(response.data);
       })
       .catch((error) => {
@@ -721,102 +735,24 @@ function SaleHistory() {
                   <TableHead>
                     <TableRow>
                       <StyledTableCell>Date</StyledTableCell>
-                      <StyledTableCell>Sale ID</StyledTableCell>
-                      <StyledTableCell>Customer</StyledTableCell>
-                      <StyledTableCell>Area</StyledTableCell>
-                      <StyledTableCell>Billed by</StyledTableCell>
-                      <StyledTableCell>Sale Amount ( LKR )</StyledTableCell>
+                      <StyledTableCell>Log ID</StyledTableCell>
                       <StyledTableCell>Payment Type</StyledTableCell>
-                      <StyledTableCell>Paid Amount</StyledTableCell>
-                      <StyledTableCell>Balance</StyledTableCell>
-                      <StyledTableCell />
+                      <StyledTableCell>Amount</StyledTableCell>
+                      <StyledTableCell>Customer</StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredPreOrders?.map((pre) => (
-                      <React.Fragment key={pre.saleID}>
+                    {paymentlog?.map((pay) => (
+                      <React.Fragment key={pay.logID}>
                         <TableRow>
                           <TableCell>
-                            {new Date(pre.date).toLocaleDateString()}
+                            {new Date(pay.date).toLocaleDateString()}
                           </TableCell>
-                          <TableCell>{pre.saleID}</TableCell>
-                          <TableCell>{pre.shop_name}</TableCell>
-                          <TableCell>{pre.area}</TableCell>
+                          <TableCell>{pay.logID}</TableCell>
+                          <TableCell>{pay.payment_type}</TableCell>
+                          <TableCell>{pay.amount}</TableCell>
                           <TableCell>
-                            {pre.user_firstname} {pre.user_lastname}
-                          </TableCell>
-                          <TableCell>{pre.sale_amount}</TableCell>
-                          <TableCell>{pre.payment_type}</TableCell>
-                          <TableCell>
-                            {pre.payment_type === "cash"
-                              ? pre.cash_amount
-                              : pre.cheque_value}
-                          </TableCell>
-                          <TableCell>{Math.abs(pre.cash_balance)}</TableCell>
-                          <TableCell align="right">
-                            <Button
-                              aria-label="expand row"
-                              size="small"
-                              onClick={() => handleClick(pre.saleID)}
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "5px",
-                              }} // Added styles for alignment
-                            >
-                              {openRow === pre.saleID ? (
-                                <ExpandLessIcon />
-                              ) : (
-                                <ExpandMoreIcon />
-                              )}
-                              <span>Sale Details</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell
-                            style={{ paddingBottom: 0, paddingTop: 0 }}
-                            colSpan={4}
-                          >
-                            <Collapse
-                              in={openRow === pre.saleID}
-                              timeout="auto"
-                              unmountOnExit
-                            >
-                              <Box margin={1}>
-                                <TableContainer component={Paper}>
-                                  <Table
-                                    sx={{ minWidth: 200 }}
-                                    size="small"
-                                    aria-label="product table"
-                                  >
-                                    <TableHead>
-                                      <TableRow>
-                                        <TableCell>Product</TableCell>
-                                        <TableCell>Quantity</TableCell>
-                                      </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                      {PreOrderProductsMap[pre.saleID]?.map(
-                                        (product) => (
-                                          <TableRow key={product.productID}>
-                                            <TableCell
-                                              component="th"
-                                              scope="row"
-                                            >
-                                              {product.product_name}
-                                            </TableCell>
-                                            <TableCell>
-                                              {product.quantity}
-                                            </TableCell>
-                                          </TableRow>
-                                        )
-                                      )}
-                                    </TableBody>
-                                  </Table>
-                                </TableContainer>
-                              </Box>
-                            </Collapse>
+                            {pay.shop_name} 
                           </TableCell>
                         </TableRow>
                       </React.Fragment>

@@ -944,6 +944,26 @@ const getTotalCounts = (req, res) => {
   });
 };
 
+const paymentLog = (req, res) => {
+  const query = `
+    SELECT pl.*, c.shop_name 
+    FROM payment_log pl
+    JOIN customer c ON pl.customerID = c.customerID
+  `;
+
+  // Get a connection from the pool
+  DBconnect.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching data from payment_log:', error);
+      return res.status(500).json({ message: 'Error fetching data from payment_log' });
+    }
+
+    // Successfully fetched data
+    res.status(200).json(results);
+  });
+};
+
+
 
 
 
@@ -984,4 +1004,5 @@ module.exports = {
   getBestArea,
   getTotalofMonth,
   getTotalCounts,
+  paymentLog,
 };

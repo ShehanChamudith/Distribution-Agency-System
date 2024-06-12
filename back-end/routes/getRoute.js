@@ -33,6 +33,7 @@ const { getProductChart } = require('../controllers/getController');
 const { getBestArea } = require('../controllers/getController');
 const { getTotalofMonth } = require('../controllers/getController');
 const { getTotalCounts } = require('../controllers/getController');
+const { paymentLog } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -66,6 +67,7 @@ router.get('/getproductchart', getProductChart);
 router.get('/getbestarea', getBestArea);
 router.get('/gettotalofmonth', getTotalofMonth);
 router.get('/getemp', getTotalCounts);
+router.get('/paymentlog', paymentLog);
 
 
 router.post('/getproductstocks', getProductStocks);
