@@ -213,7 +213,7 @@ const checkUserExistance = (req, res) => {
 
 const checkUserExistance2 = (req, res) => {
   const { userID } = req.body;
- 
+
   let checkUserQuery;
   let queryParams;
 
@@ -237,24 +237,56 @@ const checkUserExistance2 = (req, res) => {
   });
 };
 
+const checkUserExistance3 = (req, res) => {
+  const { userID } = req.body;
+
+  let checkUserQuery;
+  let queryParams;
+
+  // If userID is not provided, it's a new user addition
+  checkUserQuery = `SELECT usertypeID, firstname ,COUNT(*) AS count 
+FROM user 
+WHERE userID = ?
+`;
+  queryParams = [userID];
+
+  DBconnect.query(checkUserQuery, queryParams, (err, result) => {
+    if (err) {
+      console.error("Error checking user existence:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // If count > 0, username or phone number already exists
+    if (result[0].count > 0) {
+      res.json({ exists: true, usertypeID: result[0].usertypeID, firstname: result[0].firstname  });
+    } else {
+      res.json({ exists: false });
+    }
+  });
+};
+
 const deleteUser = (req, res) => {
   const userID = req.params.deleteUserID;
   const sql = `UPDATE user SET active = 'no' WHERE userID = ?;`;
 
   DBconnect.query(sql, [userID], (err, result) => {
     if (err) {
-      console.error('Error deleting row:', err);
-      res.status(500).json({ error: 'An error occurred while deleting the row' });
+      console.error("Error deleting row:", err);
+      res
+        .status(500)
+        .json({ error: "An error occurred while deleting the row" });
       return;
     }
-    console.log('Row deleted successfully');
-    res.status(200).json({ message: 'Row updated successfully', id: userID });
+    console.log("Row deleted successfully");
+    res.status(200).json({ message: "Row updated successfully", id: userID });
   });
-}
+};
 
 module.exports = {
   addUser,
   checkUserExistance,
   checkUserExistance2,
+  checkUserExistance3,
   deleteUser,
 };

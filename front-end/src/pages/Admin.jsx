@@ -394,62 +394,66 @@ useEffect(() => {
 
   const handleDeleteUser = (event) => {
     event.preventDefault();
-
+  
     // Check if the user exists by sending a request to the backend
     axios
-      .post("http://localhost:3001/checkUserExistence2", {
+      .post("http://localhost:3001/checkUserExistence3", {
         userID: deleteUserID,
       })
       .then((response) => {
         if (response.data.exists) {
-          // If the user exists, fetch their data for confirmation
-          axios
-            .get(`http://localhost:3001/getuserdel/${deleteUserID}`)
-            .then((userDataResponse) => {
-              const { firstname } = userDataResponse.data[0];
-
-              console.log(firstname);
-
-              // Show confirmation dialog using SweetAlert
-              Swal.fire({
-                icon: "warning",
-                title: `Are you sure you want to delete ${firstname}?`,
-                text: "This action cannot be undone.",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "Cancel",
-                customClass: {
-                  popup: "z-50",
-                },
-                didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex =
-                    "9999";
-                },
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  // If user confirms, proceed with deletion
-                  axios
-                    .put(`http://localhost:3001/deleteuser/${deleteUserID}`)
-                    .then((response) => {
-                      // Show success alert
-                      Swal.fire({
-                        icon: "success",
-                        title: "User Deleted",
-                        text: "The user has been deleted successfully.",
-                      });
-
-                      fetchUserData();
-                      setOpenDeleteUserDialog(false);
-                    })
-                    .catch((error) => {
-                      console.error("Error deleting user:", error);
-                    });
-                }
-              });
-            })
-            .catch((error) => {
-              console.error("Error fetching user data:", error);
+          const { usertypeID, firstname } = response.data;
+  
+          if (usertypeID === 1) {
+            // If usertypeID is 1, show an error message using SweetAlert
+            Swal.fire({
+              icon: "error",
+              title: "Admin Cannot Be Removed!",
+              text: "The user with admin privileges cannot be deleted.",
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
             });
+          } else {
+            // Show confirmation dialog using SweetAlert
+            Swal.fire({
+              icon: "warning",
+              title: `Are you sure you want to delete ${firstname}?`,
+              text: "This action cannot be undone.",
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+              cancelButtonText: "Cancel",
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex = "9999";
+              },
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // If user confirms, proceed with deletion
+                axios
+                  .put(`http://localhost:3001/deleteuser/${deleteUserID}`)
+                  .then((response) => {
+                    // Show success alert
+                    Swal.fire({
+                      icon: "success",
+                      title: "User Deleted",
+                      text: "The user has been deleted successfully.",
+                    });
+  
+                    fetchUserData();
+                    setOpenDeleteUserDialog(false);
+                  })
+                  .catch((error) => {
+                    console.error("Error deleting user:", error);
+                  });
+              }
+            });
+          }
         } else {
           // If the user doesn't exist, show an error message using SweetAlert
           Swal.fire({
@@ -469,6 +473,7 @@ useEffect(() => {
         console.error("Error checking user existence:", error);
       });
   };
+  
 
   return (
     <div>
