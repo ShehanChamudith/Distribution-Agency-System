@@ -778,6 +778,52 @@ const getStockRequests = (req, res) => {
   });
 };
 
+const getLoadingStatus = (req, res) => {
+  const { repID } = req.params;
+  console.log(repID);
+
+  // Query to get the latest loading status from the loading table for the given repID
+  const selectLoadingStatusQuery = `
+    SELECT 
+      loading_status 
+    FROM 
+      loading 
+    WHERE 
+      repID = ?
+    ORDER BY 
+      loadingID DESC  -- Ordering by loadingID in descending order
+    LIMIT 1
+  `;
+
+  DBconnect.query(selectLoadingStatusQuery, [repID], (err, loadingResults) => {
+    if (err) {
+      console.error("Error querying MySQL database for loading status:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    // Check if there is a result
+    if (loadingResults.length > 0) {
+      // Get the loading status from the first (and only) result
+      const loadingStatus = loadingResults[0].loading_status;
+      
+      // Check if the loading status is 'pending'
+      const hasPendingStatus = loadingStatus === "pending";
+
+      console.log(hasPendingStatus);
+      
+      // Respond with true if there is a pending loading status, otherwise false
+      res.json({ hasPendingStatus });
+    } else {
+      // If there are no results, respond with false
+      res.json({ hasPendingStatus: false });
+    }
+  });
+};
+
+
+
+
 
 
 
@@ -809,4 +855,5 @@ module.exports = {
   getStockRequests,
   getProductStocksLoading,
   getUserbyIDdel,
+  getLoadingStatus,
 };

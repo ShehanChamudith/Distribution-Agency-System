@@ -136,7 +136,7 @@ const getPreOrderTotalToLoad = (req, res) => {
 
 const getPreOrderById = (req, res) => {
   const preorderID = req.params.preorderID;
-  console.log(preorderID);
+  //console.log(preorderID);
 
   const getPreOrderQuery = `
     SELECT 

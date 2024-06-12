@@ -150,7 +150,7 @@ function App() {
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
               <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
-              <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID}/>} />
+              <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID} userInfo={userInfo}/>} />
             </Route>
           </Routes>
         </div>

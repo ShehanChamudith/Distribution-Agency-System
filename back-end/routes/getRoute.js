@@ -26,6 +26,7 @@ const { getProductStocks } = require('../controllers/getController');
 const { getStockRequests } = require('../controllers/getController');
 const { getProductStocksLoading } = require('../controllers/getController');
 const { getUserbyIDdel } = require('../controllers/getController');
+const { getLoadingStatus } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -52,6 +53,7 @@ router.get('/getpaymentstatus/:paymentID', getPaymentStatus);
 router.get('/getarea', getArea);
 router.get('/getstockrequests', getStockRequests);
 router.get('/getuserdel/:deleteUserID', getUserbyIDdel);
+router.get('/getloadingstatus/:repID', getLoadingStatus);
 
 router.post('/getproductstocks', getProductStocks);
 router.post('/getproductstocksloading', getProductStocksLoading);
