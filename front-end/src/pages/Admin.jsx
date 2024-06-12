@@ -93,7 +93,6 @@ export const Admin = () => {
     address: "",
     supplier_company: "",
     shop_name: "",
-    
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedUserType, setselectedUserType] = useState("");
@@ -101,7 +100,8 @@ export const Admin = () => {
   const [openEditUserDialog, setOpenEditUserDialog] = useState(false);
   const [openDeleteUserDialog, setOpenDeleteUserDialog] = useState(false);
   const [editUserID, setEditUserID] = useState("");
-  const [areaID, setSelectedArea] = useState('');
+  const [deleteUserID, setDeleteUserID] = useState("");
+  const [areaID, setSelectedArea] = useState("");
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
@@ -118,8 +118,7 @@ export const Admin = () => {
         [name]: newValue,
       }));
     }
-};
-
+  };
 
   const handleUserTypeChange = (event) => {
     setselectedUserType(event.target.value);
@@ -172,84 +171,84 @@ export const Admin = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
+      alert("Passwords do not match!");
+      return;
     }
 
     const newData = { ...customerData, usertypeID, areaID };
 
     const checkData = {
-        username: newData.username,
-        phone: newData.phone,
+      username: newData.username,
+      phone: newData.phone,
     };
 
     // Include userID if updating an existing user
     if (newData.userID) {
-        checkData.userID = newData.userID;
+      checkData.userID = newData.userID;
     }
 
     // Check if the username or phone number already exists
     axios
-        .post("http://localhost:3001/checkUserExistence", checkData)
-        .then((response) => {
-            if (response.data.exists) {
-                // If username or phone already exists, show an alert using SweetAlert
-                Swal.fire({
-                    icon: "error",
-                    title: "Username or phone number already exists!",
-                    customClass: {
-                        popup: "z-50",
-                    },
-                    didOpen: () => {
-                        document.querySelector(".swal2-container").style.zIndex = "9999";
-                    },
-                });
-            } else {
-                // If username and phone are unique, proceed with adding the user
-                // Handle form submission, e.g., send data to the server
-                axios
-                    .post("http://localhost:3001/adduser", newData)
-                    .then((response) => {
-                        console.log("Customer added successfully:", response.data);
-                        setOpenNewCustomerDialog(false);
-                        // Clear form fields
-                        setcustomerData({
-                            username: "",
-                            password: "",
-                            firstname: "",
-                            lastname: "",
-                            email: "",
-                            phone: "",
-                            address: "",
-                            areaID: "",
-                            shop_name: "",
-                            supplier_company: "",
-                        });
-                        setConfirmPassword("");
+      .post("http://localhost:3001/checkUserExistence", checkData)
+      .then((response) => {
+        if (response.data.exists) {
+          // If username or phone already exists, show an alert using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Username or phone number already exists!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // If username and phone are unique, proceed with adding the user
+          // Handle form submission, e.g., send data to the server
+          axios
+            .post("http://localhost:3001/adduser", newData)
+            .then((response) => {
+              console.log("Customer added successfully:", response.data);
+              setOpenNewCustomerDialog(false);
+              // Clear form fields
+              setcustomerData({
+                username: "",
+                password: "",
+                firstname: "",
+                lastname: "",
+                email: "",
+                phone: "",
+                address: "",
+                areaID: "",
+                shop_name: "",
+                supplier_company: "",
+              });
+              setConfirmPassword("");
 
-                        Swal.fire({
-                            icon: "success",
-                            title: "User Added Successfully!",
-                            customClass: {
-                                popup: "z-50",
-                            },
-                            didOpen: () => {
-                                document.querySelector(".swal2-container").style.zIndex = "9999";
-                            },
-                        }).then(() => {
-                            fetchUserData();
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error adding customer:", error);
-                    });
-            }
-        })
-        .catch((error) => {
-            console.error("Error checking user existence:", error);
-        });
-};
-
+              Swal.fire({
+                icon: "success",
+                title: "User Added Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              }).then(() => {
+                fetchUserData();
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding customer:", error);
+            });
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking user existence:", error);
+      });
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -265,27 +264,24 @@ export const Admin = () => {
     );
   };
 
-  const fetchUserData = () => {
-    axios
-      .get("http://localhost:3001/getuser")
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/getuser")
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+// Define a function to fetch user data
+const fetchUserData = () => {
+  axios
+    .get("http://localhost:3001/getuser")
+    .then((response) => {
+      setUsers(response.data);
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error);
+    });
+};
+
+// Call the fetchUserData function inside useEffect
+useEffect(() => {
+  fetchUserData();
+}, []);
+
 
   useEffect(() => {
     axios
@@ -341,7 +337,7 @@ export const Admin = () => {
 
   const handleEditUser = (event) => {
     event.preventDefault();
-  
+
     // Check if the user exists by sending a request to the backend
     axios
       .post("http://localhost:3001/checkUserExistence2", { userID: editUserID })
@@ -352,7 +348,7 @@ export const Admin = () => {
             .get(`http://localhost:3001/getuser/${editUserID}`)
             .then((userDataResponse) => {
               const userData = userDataResponse.data[0]; // Assuming response.data is an array
-  
+
               // Map the fetched data to the state structure
               setcustomerData({
                 userID: userData.userID,
@@ -367,8 +363,9 @@ export const Admin = () => {
                 shop_name: userData.shop_name || "",
                 supplier_company: userData.supplier_company || "",
               });
-  
+
               console.log(userData);
+              fetchUserData();
               setOpenEditUserDialog(false);
               setOpenNewCustomerDialog(true);
             })
@@ -394,7 +391,84 @@ export const Admin = () => {
         console.error("Error checking user existence:", error);
       });
   };
-  
+
+  const handleDeleteUser = (event) => {
+    event.preventDefault();
+
+    // Check if the user exists by sending a request to the backend
+    axios
+      .post("http://localhost:3001/checkUserExistence2", {
+        userID: deleteUserID,
+      })
+      .then((response) => {
+        if (response.data.exists) {
+          // If the user exists, fetch their data for confirmation
+          axios
+            .get(`http://localhost:3001/getuserdel/${deleteUserID}`)
+            .then((userDataResponse) => {
+              const { firstname } = userDataResponse.data[0];
+
+              console.log(firstname);
+
+              // Show confirmation dialog using SweetAlert
+              Swal.fire({
+                icon: "warning",
+                title: `Are you sure you want to delete ${firstname}?`,
+                text: "This action cannot be undone.",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "Cancel",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // If user confirms, proceed with deletion
+                  axios
+                    .put(`http://localhost:3001/deleteuser/${deleteUserID}`)
+                    .then((response) => {
+                      // Show success alert
+                      Swal.fire({
+                        icon: "success",
+                        title: "User Deleted",
+                        text: "The user has been deleted successfully.",
+                      });
+
+                      fetchUserData();
+                      setOpenDeleteUserDialog(false);
+                    })
+                    .catch((error) => {
+                      console.error("Error deleting user:", error);
+                    });
+                }
+              });
+            })
+            .catch((error) => {
+              console.error("Error fetching user data:", error);
+            });
+        } else {
+          // If the user doesn't exist, show an error message using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "User Not Found!",
+            text: "The user with the provided ID does not exist.",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking user existence:", error);
+      });
+  };
 
   return (
     <div>
@@ -1099,11 +1173,11 @@ export const Admin = () => {
               <TextField
                 autoFocus
                 margin="dense"
-                label="User ID"
+                label="User ID Delete"
                 type="text"
                 fullWidth
-                value={editUserID}
-                onChange={(e) => setEditUserID(e.target.value)}
+                value={deleteUserID}
+                onChange={(e) => setDeleteUserID(e.target.value)}
               />
             </DialogContent>
             <DialogActions>
@@ -1113,7 +1187,7 @@ export const Admin = () => {
               >
                 Cancel
               </Button>
-              <Button onClick={handleEditUser} color="primary">
+              <Button onClick={handleDeleteUser} color="primary">
                 Delete
               </Button>
             </DialogActions>

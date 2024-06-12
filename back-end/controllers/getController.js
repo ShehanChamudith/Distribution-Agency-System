@@ -3,7 +3,12 @@ const DBconnect = require("../config/DBconnect");
 //get product items from product table( to show items ) and relavant category from category table ( category for what - for filter based on category )
 const inventoryGet = (req, res) => {
   DBconnect.query(
-    "SELECT p.*, c.category, s.supplier_company FROM product p JOIN category c ON p.categoryID = c.categoryID JOIN supplier s ON p.supplierID = s.supplierID",
+    `SELECT p.*, c.category, s.supplier_company
+FROM product p
+JOIN category c ON p.categoryID = c.categoryID
+JOIN supplier s ON p.supplierID = s.supplierID
+WHERE p.active = 'yes';
+`,
     (err, results) => {
       if (err) {
         console.error("Error querying MySQL database:", err);
@@ -603,6 +608,27 @@ const getUserbyID = (req, res) => {
   });
 };
 
+const getUserbyIDdel = (req, res) => {
+  userID = req.params.deleteUserID;
+  console.log(userID);
+  const query = "SELECT * FROM user WHERE userID = ?";
+
+  DBconnect.query(query, [userID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      console.log(results);
+      res.json(results);
+    }
+  });
+};
+
 const getPaymentStatus = (req, res) => {
   const paymentID = req.params.paymentID;
   console.log(paymentID);
@@ -782,4 +808,5 @@ module.exports = {
   getProductStocks,
   getStockRequests,
   getProductStocksLoading,
+  getUserbyIDdel,
 };

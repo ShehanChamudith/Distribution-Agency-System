@@ -213,8 +213,7 @@ const checkUserExistance = (req, res) => {
 
 const checkUserExistance2 = (req, res) => {
   const { userID } = req.body;
-  console.log(req.body);
-
+ 
   let checkUserQuery;
   let queryParams;
 
@@ -238,8 +237,24 @@ const checkUserExistance2 = (req, res) => {
   });
 };
 
+const deleteUser = (req, res) => {
+  const userID = req.params.deleteUserID;
+  const sql = `UPDATE user SET active = 'no' WHERE userID = ?;`;
+
+  DBconnect.query(sql, [userID], (err, result) => {
+    if (err) {
+      console.error('Error deleting row:', err);
+      res.status(500).json({ error: 'An error occurred while deleting the row' });
+      return;
+    }
+    console.log('Row deleted successfully');
+    res.status(200).json({ message: 'Row updated successfully', id: userID });
+  });
+}
+
 module.exports = {
   addUser,
   checkUserExistance,
   checkUserExistance2,
+  deleteUser,
 };

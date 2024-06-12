@@ -26,7 +26,7 @@ import { styled } from "@mui/material/styles";
 
 const deleteRow = (productId) => {
   axios
-    .delete(`http://localhost:3001/deleteItem/${productId}`)
+    .put(`http://localhost:3001/deleteItem/${productId}`)
     .then((response) => {
       console.log("Row deleted successfully");
     })
