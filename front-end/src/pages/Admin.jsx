@@ -264,24 +264,22 @@ export const Admin = () => {
     );
   };
 
+  // Define a function to fetch user data
+  const fetchUserData = () => {
+    axios
+      .get("http://localhost:3001/getuser")
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  };
 
-// Define a function to fetch user data
-const fetchUserData = () => {
-  axios
-    .get("http://localhost:3001/getuser")
-    .then((response) => {
-      setUsers(response.data);
-    })
-    .catch((error) => {
-      console.error("Error fetching data:", error);
-    });
-};
-
-// Call the fetchUserData function inside useEffect
-useEffect(() => {
-  fetchUserData();
-}, []);
-
+  // Call the fetchUserData function inside useEffect
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     axios
@@ -394,7 +392,7 @@ useEffect(() => {
 
   const handleDeleteUser = (event) => {
     event.preventDefault();
-  
+
     // Check if the user exists by sending a request to the backend
     axios
       .post("http://localhost:3001/checkUserExistence3", {
@@ -403,7 +401,7 @@ useEffect(() => {
       .then((response) => {
         if (response.data.exists) {
           const { usertypeID, firstname } = response.data;
-  
+
           if (usertypeID === 1) {
             // If usertypeID is 1, show an error message using SweetAlert
             Swal.fire({
@@ -414,7 +412,8 @@ useEffect(() => {
                 popup: "z-50",
               },
               didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
               },
             });
           } else {
@@ -430,7 +429,8 @@ useEffect(() => {
                 popup: "z-50",
               },
               didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
               },
             }).then((result) => {
               if (result.isConfirmed) {
@@ -444,7 +444,7 @@ useEffect(() => {
                       title: "User Deleted",
                       text: "The user has been deleted successfully.",
                     });
-  
+
                     fetchUserData();
                     setOpenDeleteUserDialog(false);
                   })
@@ -473,11 +473,10 @@ useEffect(() => {
         console.error("Error checking user existence:", error);
       });
   };
-  
 
   return (
     <div>
-      <div className="w-screen px-20 py-5 h-[85vh]">
+      <div className="w-screen px-10 py-5 h-[85vh]">
         <Box sx={{ width: "100%" }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs
@@ -491,19 +490,27 @@ useEffect(() => {
             </Tabs>
           </Box>
           <CustomTabPanel value={value} index={0}>
-            <div className="flex w-full ">
-              <div className="flex w-full -300 gap-4">
-                <div className="flex flex-col w-4/6 p-2 border rounded-xl ml-6 mt-5">
-                  <h1 className=" font-PoppinsM text-xl pl-2"> Sales </h1>
-                  <div>
-                    <LineGraph />
-                  </div>
-                </div>
+            <div className="flex w-full  ">
+              <div className="flex flex-col w-full gap-4 ">
+                <div className="w-full  h-[20vh] rounded-xl shadow-md"></div>
 
-                <div className="flex flex-col w-2/6 p-2 border rounded-xl mr-6 mt-5">
-                  <h1 className=" font-PoppinsM text-xl pl-2"> Inventory </h1>
-                  <div>
-                    <DoughnutGraph />
+                <div className="w-full flex h-[50vh] gap-5">
+                  <div className="flex w-4/6 border rounded-xl border border-red-800">
+                    <div className=" w-[70%] ">
+                      <h1 className=" font-PoppinsM text-xl pl-2"> Sales of Last 7 Days </h1>
+                      <div>
+                        <LineGraph />
+                      </div>
+                    </div>
+
+                    <div className=" w-[30%] border border-red-500">............</div>
+                  </div>
+
+                  <div className="flex flex-col w-2/6 border rounded-xl">
+                    <h1 className=" font-PoppinsM text-xl pl-2"> Inventory </h1>
+                    <div>
+                      <DoughnutGraph />
+                    </div>
                   </div>
                 </div>
               </div>

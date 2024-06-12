@@ -101,12 +101,6 @@ export const SideBarData = [
     roles: [1,2,3,4,6],
   },
 
-  {
-    title: "My Dashboard",
-    icon: <DashboardIcon />,
-    link: "/admin-dashboard",
-    roles: [1],
-  },
 
   {
     title: "Sent Stock Requests",
@@ -119,6 +113,13 @@ export const SideBarData = [
     title: "Request Stock",
     icon: <ShoppingCartIcon />,
     link: "/stock-request",
+    roles: [1],
+  },
+
+  {
+    title: "My Dashboard",
+    icon: <DashboardIcon />,
+    link: "/admin-dashboard",
     roles: [1],
   },
 ];

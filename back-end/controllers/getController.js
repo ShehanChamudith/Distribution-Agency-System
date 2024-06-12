@@ -821,7 +821,30 @@ const getLoadingStatus = (req, res) => {
   });
 };
 
+const getSalesChart = (req, res) => {
+  const query = `SELECT DATE(date) AS date, SUM(sale_amount) AS sale_amount
+FROM sale
+WHERE date BETWEEN DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND CURDATE()
+GROUP BY DATE(date)
+ORDER BY date DESC;
 
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
 
 
 
@@ -856,4 +879,5 @@ module.exports = {
   getProductStocksLoading,
   getUserbyIDdel,
   getLoadingStatus,
+  getSalesChart,
 };
