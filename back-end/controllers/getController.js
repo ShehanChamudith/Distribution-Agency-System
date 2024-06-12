@@ -115,7 +115,7 @@ const getStock = (req, res) => {
 };
 
 const getSupplier = (req, res) => {
-  DBconnect.query("SELECT * FROM supplier", (err, results) => {
+  DBconnect.query("SELECT supplier.*, user.email FROM supplier JOIN user ON supplier.userID = user.userID;", (err, results) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
       res.status(500).send("Internal Server Error");

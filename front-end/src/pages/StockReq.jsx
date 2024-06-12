@@ -24,9 +24,9 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import emailjs from 'emailjs-com';
+import emailjs from "emailjs-com";
 
-const generatePDF = (preOrderData, addedItems) => {
+const generatePDF = (preOrderData, addedItems, supplierEmail) => {
   const doc = new jsPDF();
 
   console.log(preOrderData);
@@ -103,40 +103,44 @@ const generatePDF = (preOrderData, addedItems) => {
   // const pdfBase64 = doc.output('datauristring').split(',')[1];
   // const pdfDataUri = doc.output('datauristring');
 
-const maxLength = addedItems.reduce((max, item) => Math.max(max, item.product_name.length), 0);
-const headerPadding = Math.max(0, maxLength - 'Product Name'.length); 
-let text = `Product Name${' '.repeat(headerPadding)}\t\tQuantity\n`; 
+  const maxLength = addedItems.reduce(
+    (max, item) => Math.max(max, item.product_name.length),
+    0
+  );
+  const headerPadding = Math.max(0, maxLength - "Product Name".length);
+  let text = `Product Name${" ".repeat(headerPadding)}\t\tQuantity\n`;
 
-
-addedItems.forEach(item => {
-  const { product_name, quantity } = item;
-  const paddedProductName = product_name + ' - '.repeat(maxLength - product_name.length);
-  text += `${paddedProductName}\t\t${quantity}\n`;
-});
-
-
-const messageWithTable = `Stock Request Invoice\n\n${text}\n\nNote: ${preOrderData.note}`;
-
-
-const templateParams = {
-  to_email: 'ukshehanchamudith@gmail.com', 
-  from_name: 'Shehan Chamudith',
-  message: messageWithTable, 
-  // attachments: {
-  //   'invoice.pdf': pdfBase64,
-  // },
-};
-
-
-emailjs.send('service_xy9b0a8', 'template_g9cqf58', templateParams, '3zA35_-SU9RcZeUkr')
-  .then((response) => {
-    console.log('Email sent successfully:', response);
-  
-  })
-  .catch((error) => {
-    console.error('Email could not be sent:', error);
-   
+  addedItems.forEach((item) => {
+    const { product_name, quantity } = item;
+    const paddedProductName =
+      product_name + " - ".repeat(maxLength - product_name.length);
+    text += `${paddedProductName}\t\t${quantity}\n`;
   });
+
+  const messageWithTable = `Stock Request Invoice\n\n${text}\n\nNote: ${preOrderData.note}`;
+
+  const templateParams = {
+    to_email: supplierEmail,
+    from_name: "Shehan Chamudith",
+    message: messageWithTable,
+    // attachments: {
+    //   'invoice.pdf': pdfBase64,
+    // },
+  };
+
+  emailjs
+    .send(
+      "service_xy9b0a8",
+      "template_g9cqf58",
+      templateParams,
+      "3zA35_-SU9RcZeUkr"
+    )
+    .then((response) => {
+      console.log("Email sent successfully:", response);
+    })
+    .catch((error) => {
+      console.error("Email could not be sent:", error);
+    });
 };
 
 function CustomTabPanel(props) {
@@ -195,7 +199,7 @@ function ItemCard({
         }); // Update restore state to null using setRestore
       }
     }
-  }, [restore, setRestore,item.productID]);
+  }, [restore, setRestore, item.productID]);
 
   useEffect(() => {
     if (restock.productID !== "") {
@@ -203,10 +207,10 @@ function ItemCard({
         setRestock({
           productID: "",
           amount: "",
-        }); 
+        });
       }
     }
-  }, [restock, item.productID,setRestock]);
+  }, [restock, item.productID, setRestock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -370,11 +374,12 @@ const StockReq = ({ userID }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [fName, setFName] = useState("");
   const [lName, setLName] = useState("");
-  const [supplierID, setsupplierID] = useState(1);
+  const [supplierID, setsupplierID] = useState("");
   const [supplier, setSupplier] = useState([]);
   const [openNote, setOpenNote] = useState(false);
   const [additionalNote, setAdditionalNote] = useState("");
   const [dialogOpen, setDialogOpen] = useState(true);
+  const [supplierEmail, setsupplierEmail] = useState("");
 
   const handleCreateLoading = () => {
     // Check if any quantity in addedItems is 0
@@ -401,7 +406,7 @@ const StockReq = ({ userID }) => {
     const preOrderData = {
       addedItems: addedItems,
       supplierID: supplierID,
-      note: additionalNote, 
+      note: additionalNote,
     };
 
     console.log(preOrderData);
@@ -409,18 +414,19 @@ const StockReq = ({ userID }) => {
     axios
       .post("http://localhost:3001/addstockreq", preOrderData)
       .then((response) => {
+        generatePDF(preOrderData, addedItems, supplierEmail);
         console.log("Stock Req Invoice created successfully:", response.data);
         Swal.fire({
           icon: "success",
-          title: "Stock Request Invoice Created and Request Sent to the Supplier Successfully!",
-          customClass: { 
+          title:
+            "Stock Request Invoice Created and Request Sent to the Supplier Successfully!",
+          customClass: {
             popup: "z-50",
           },
           didOpen: () => {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
-          generatePDF(preOrderData, addedItems);
           window.location.reload();
         });
       })
@@ -453,14 +459,12 @@ const StockReq = ({ userID }) => {
           );
         }
 
-        setData(filteredData); 
+        setData(filteredData);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
   }, [supplierID]);
-
-
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
@@ -475,7 +479,6 @@ const StockReq = ({ userID }) => {
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
     };
-
 
     return (
       <div className="w-full flex items-center justify-between p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
@@ -532,27 +535,8 @@ const StockReq = ({ userID }) => {
     console.log("Updated addedItems:", addedItems);
   }, [addedItems]);
 
-
-
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString();
-
-  const [setCurrentTime] = useState(() => {
-    const now = new Date();
-    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  });
-
-  // Time
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      );
-    }, 1000); // Update every minute
-
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [setCurrentTime]);
 
   const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
@@ -582,12 +566,27 @@ const StockReq = ({ userID }) => {
       });
   }, []);
 
-  const selectedSupplier = supplier.find((supplier) => supplier.supplierID === supplierID);
-  const selectedSupplierName = selectedSupplier ? selectedSupplier.supplier_company : "";
+  useEffect(() => {
+    // Find the supplier with the selected supplierID
+    const selectedSupplier = supplier.find(
+      (supplier) => supplier.supplierID === supplierID
+    );
+
+    // Set the supplierEmail to the email of the found supplier
+    if (selectedSupplier) {
+      setsupplierEmail(selectedSupplier.email);
+    }
+  }, [supplierID, supplier]);
+
+  const selectedSupplier = supplier.find(
+    (supplier) => supplier.supplierID === supplierID
+  );
+  const selectedSupplierName = selectedSupplier
+    ? selectedSupplier.supplier_company
+    : "";
 
   return (
     <div className="flex w-screen gap-4">
-
       {/* Select the Supplier */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
         <DialogTitle>Select Supplier</DialogTitle>
@@ -615,7 +614,7 @@ const StockReq = ({ userID }) => {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       {/* Note */}
       <Dialog open={openNote} onClose={handleClose}>
         <DialogTitle>Additional Note</DialogTitle>
@@ -640,7 +639,7 @@ const StockReq = ({ userID }) => {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
@@ -655,7 +654,7 @@ const StockReq = ({ userID }) => {
                 color: "white",
               }}
             >
-              Supplier: {selectedSupplierName} 
+              Supplier: {selectedSupplierName}
             </Button>
           </div>
 
