@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
-import myPhoto from '../assets/images/hehe.jpg';
+import myPhoto from '../assets/images/hehe.png';
 
 
 export default function Profile({ setIsAuthenticated, setUserInfo }) {
@@ -81,18 +81,16 @@ export default function Profile({ setIsAuthenticated, setUserInfo }) {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleClose}>
+        {/* <MenuItem onClick={handleClose}>
           <Avatar /> Profile
         </MenuItem>
-    
-        <Divider />
     
         <MenuItem onClick={handleClose}>
           <ListItemIcon>
             <Settings fontSize="small" />
           </ListItemIcon>
           Settings
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem onClick={logout}>
           <ListItemIcon>
             <Logout fontSize="small" />

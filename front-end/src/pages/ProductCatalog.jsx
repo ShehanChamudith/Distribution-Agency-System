@@ -377,16 +377,15 @@ export function topdiv(
 
         <div className="">
           <React.Fragment>
-            {userInfo === 1 ||
-              (userInfo === 4 && (
-                <Button
-                  className="h-12 gap-2"
-                  variant="contained"
-                  onClick={handleClickOpen}
-                >
-                  Add Item <AddCircleOutlineIcon />
-                </Button>
-              ))}
+            {(userInfo === 1 || userInfo === 4) && (
+              <Button
+                className="h-12 gap-2"
+                variant="contained"
+                onClick={handleClickOpen}
+              >
+                Add Item <AddCircleOutlineIcon />
+              </Button>
+            )}
 
             <Dialog
               open={open}

@@ -33,6 +33,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [userID, setUserID] = useState(null);
+  const [username, setUsername] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ function App() {
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken.usertypeID);
         setUserID(decodedToken.userID);
+        setUsername(decodedToken.firstname);
         setIsAuthenticated(true); // Set authentication state to true
         //console.log(decodedToken);
       } catch (error) {
@@ -98,7 +100,7 @@ function App() {
             {/* Billing */}
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
-              <Route path="/bill" element={<Bill userID= {userID} />} />
+              <Route path="/bill" element={<Bill userID= {userID} username={username} />} />
             </Route>
 
             {/* Sales History */}
@@ -149,7 +151,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-              <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
+              <Route path="/delivary-bill" element={<DeliveryBill userID={userID} username={username}/>} />
               <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID} userInfo={userInfo}/>} />
             </Route>
           </Routes>

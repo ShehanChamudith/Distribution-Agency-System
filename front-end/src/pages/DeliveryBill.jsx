@@ -40,13 +40,13 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 
-const generatePDF = (invoiceData, addedItems, saleID) => {
+const generatePDF = (invoiceData, addedItems, shop_name, username, saleID) => {
   const doc = new jsPDF();
 
   console.log(invoiceData);
 
   const shopInfo = {
-    name: "Distribution Agency",
+    name: "Maleesha Distribution Agency - Invoice",
     address: "Atakalanpanna, Kahawatta",
     tel: "077-4439693",
   };
@@ -96,8 +96,8 @@ const generatePDF = (invoiceData, addedItems, saleID) => {
 
   const formattedSaleID = saleID.toString().padStart(3, "0");
   doc.text(`Order Number: #00${formattedSaleID}`, 15, startY);
-  doc.text(`Customer ID: ${invoiceData.customerID}`, 15, startY + lineSpacing);
-  doc.text(`User ID: ${invoiceData.userID}`, 15, startY + lineSpacing * 2);
+  doc.text(`Customer Name: ${shop_name}`, 15, startY + lineSpacing);
+  doc.text(`Billed by: ${username}`, 15, startY + lineSpacing * 2);
   doc.text(`Order Date: ${orderDate}`, 15, startY + lineSpacing * 3);
   doc.text(`Order Time: ${orderTime}`, 15, startY + lineSpacing * 4);
 
@@ -426,7 +426,7 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
   );
 }
 
-const DeliveryBill = ({ userID }) => {
+const DeliveryBill = ({ userID, username }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [category, setCategory] = useState("All");
   const [openDialog, setOpenDialog] = useState(true);
@@ -634,58 +634,69 @@ const DeliveryBill = ({ userID }) => {
     let chequeValueFormatted = parseFloat(chequeValue).toFixed(2);
     const subtotalNumber = parseFloat(subtotal);
 
-    if (paymentType === "cash" && paidAmountFormatted >= subtotalNumber) {
-      createInvoice(subtotal, "cash", "fully paid");
-    } else if (
-      paymentType === "cheque" &&
-      chequeValueFormatted === subtotalNumber
-    ) {
-      createInvoice(subtotal, "cheque", "fully paid");
-    } else if (
-      (paymentType === "cash" && paidAmountFormatted < subtotalNumber) ||
-      (paymentType === "cheque" && chequeValueFormatted < subtotalNumber)
-    ) {
-      let creditValue;
+    console.log(paidAmountFormatted, chequeValueFormatted);
 
-      if (paymentType === "cash") {
-        creditValue = subtotalNumber - paidAmountFormatted;
-      } else if (paymentType === "cheque") {
-        creditValue = subtotalNumber - chequeValueFormatted;
-      } else {
-        creditValue = subtotalNumber;
-      }
-
-      Swal.fire({
-        title: "Insufficient Payment",
-        html: `The ${
-          paymentType === "cash" ? "paid amount" : "cheque value"
-        } is less than the subtotal. <br/>Proceed with a credit value of ${creditValue} LKR?`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes",
-        cancelButtonText: "No",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setCreditedValue(creditValue);
-          if (paymentType === "cash") {
-            createInvoice(subtotal, "cash", "partially paid");
-          } else if (paymentType === "cheque") {
-            createInvoice(subtotal, "cheque", "partially paid");
-          }
-        } else {
-          Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
-        }
-      });
+    if (paymentType === "cash") {
+        Swal.fire({
+            title: "Confirm Invoice Creation",
+            text: "Are you sure you want to create the invoice for cash payment?",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (paidAmountFormatted >= subtotalNumber) {
+                    createInvoice(subtotal, "cash", "fully paid");
+                } else {
+                    createInvoice(subtotal, "cash", "partially paid");
+                }
+            } else {
+                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+            }
+        });
+    } else if (paymentType === "cheque") {
+        Swal.fire({
+            title: "Confirm Invoice Creation",
+            text: "Are you sure you want to create the invoice for cheque payment?",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (chequeValueFormatted == subtotalNumber) {
+                    createInvoice(subtotal, "cheque", "fully paid");
+                } else {
+                    createInvoice(subtotal, "cheque", "partially paid");
+                }
+            } else {
+                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+            }
+        });
     } else if (paymentType === "credit") {
-      createInvoice(subtotal, "credit", "not paid");
+        Swal.fire({
+            title: "Confirm Invoice Creation",
+            text: "Are you sure you want to create the invoice for credit payment?",
+            icon: "info",
+            showCancelButton: true,
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                createInvoice(subtotal, "credit", "not paid");
+            } else {
+                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+            }
+        });
     } else {
-      Swal.fire(
-        "Invalid Payment",
-        "The paid amount or cheque value does not match the subtotal.",
-        "error"
-      );
+        Swal.fire(
+            "Invalid Payment",
+            "The paid amount or cheque value does not match the subtotal.",
+            "error"
+        );
     }
-  };
+};
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -715,7 +726,7 @@ const DeliveryBill = ({ userID }) => {
         console.log(saleID);
 
         if (printBill) {
-          generatePDF(invoiceData, addedItems, saleID);
+          generatePDF(invoiceData, addedItems, selectedCustomer.shop_name, username, saleID);
         }
 
         Swal.fire({

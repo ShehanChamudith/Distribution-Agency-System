@@ -385,12 +385,12 @@ const StockReq = ({ userID }) => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
 
-    if (addedItems.length === 0 || hasZeroQuantity) {
-      setAlertMessage("Please add items with a quantity greater than 0.");
-      setOpen(true);
-    } else {
+    // if (addedItems.length === 0 || hasZeroQuantity) {
+    //   setAlertMessage("Please add items with a quantity greater than 0.");
+    //   setOpen(true);
+    // } else {
       setOpenNote(true);
-    }
+    
   };
 
   const handleClose = () => {
