@@ -21,7 +21,6 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/material/styles";
 import axios from "axios";
 import Swal from "sweetalert2";
-import defImg from "../assets/images/defimg.png";
 import DynamicItemCard from "../components/DynamicItemCard";
 import porkIcon from "../assets/icons/pork.ico";
 import chickenIcon from "../assets/icons/hen.ico";
@@ -29,7 +28,7 @@ import cpartIcon from "../assets/icons/food.ico";
 import sausageIcon from "../assets/icons/sausages.ico";
 import Box from "@mui/material/Box";
 
-function ProductCatalog() {
+function ProductCatalog({ userInfo }) {
   const [alignment, setAlignment] = React.useState("All");
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -247,7 +246,8 @@ function ProductCatalog() {
         suppliers,
         VisuallyHiddenInput,
         handleFileChange,
-        selectedFile
+        selectedFile,
+        userInfo
       )}
 
       <div className="flex w-screen px-10 py-5 gap-5 ">
@@ -280,7 +280,8 @@ export function topdiv(
   suppliers,
   VisuallyHiddenInput,
   handleFileChange,
-  selectedFile
+  selectedFile,
+  userInfo
 ) {
   return (
     <div className="flex w-screen py-10  ">
@@ -355,8 +356,10 @@ export function topdiv(
             <Autocomplete
               freeSolo
               id="free-solo-2-demo"
-              disableClearable
               options={data.map((item) => item.product_name)}
+              onChange={(event, value) =>
+                handleSearchInputChange({ target: { value } })
+              }
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -365,7 +368,6 @@ export function topdiv(
                     ...params.InputProps,
                     type: "search",
                     sx: { height: 48 },
-                    onChange: handleSearchInputChange,
                   }}
                 />
               )}
@@ -375,13 +377,17 @@ export function topdiv(
 
         <div className="">
           <React.Fragment>
-            <Button
-              className=" h-12 gap-2"
-              variant="contained"
-              onClick={handleClickOpen}
-            >
-              Add Item <AddCircleOutlineIcon />
-            </Button>
+            {userInfo === 1 ||
+              (userInfo === 4 && (
+                <Button
+                  className="h-12 gap-2"
+                  variant="contained"
+                  onClick={handleClickOpen}
+                >
+                  Add Item <AddCircleOutlineIcon />
+                </Button>
+              ))}
+
             <Dialog
               open={open}
               onClose={handleClose}
