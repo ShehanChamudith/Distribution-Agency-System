@@ -891,6 +891,59 @@ const getProductChart = (req, res) => {
   });
 };
 
+const getBestArea = (req, res) => {
+  // Execute the SQL query
+  DBconnect.query(
+    'SELECT a.areaID, a.area, SUM(s.sale_amount) AS total_sale_amount FROM sale s JOIN customer c ON s.customerID = c.customerID JOIN area a ON c.areaID = a.areaID GROUP BY a.areaID, a.area ORDER BY total_sale_amount DESC LIMIT 1',
+    (error, results, fields) => {
+      if (error) {
+        console.error('Error executing query:', error);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      // Send the area with the highest total sale_amount to the frontend
+      res.json(results[0]);
+    }
+  );
+};
+
+const getTotalofMonth = (req, res) => {
+  const query = `
+    SELECT SUM(sale_amount) AS total_amount
+    FROM sale
+    WHERE MONTH(date) = MONTH(CURRENT_DATE())
+      AND YEAR(date) = YEAR(CURRENT_DATE());
+  `;
+
+  DBconnect.query(query, (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    res.json({ total_amount: result[0].total_amount });
+  });
+};
+
+
+const getTotalCounts = (req, res) => {
+  const queryEmployees = 'SELECT COUNT(*) AS total_employees FROM `user` WHERE `usertypeID` NOT IN (5, 6)';
+  const queryCustomers = 'SELECT COUNT(*) AS total_customers FROM `user` WHERE `usertypeID` = 6';
+
+  DBconnect.query(queryEmployees, (errorEmployees, resultsEmployees) => {
+    if (errorEmployees) throw errorEmployees;
+    const totalEmployees = resultsEmployees[0].total_employees;
+
+    DBconnect.query(queryCustomers, (errorCustomers, resultsCustomers) => {
+      if (errorCustomers) throw errorCustomers;
+      const totalCustomers = resultsCustomers[0].total_customers;
+
+      res.json({ totalEmployees, totalCustomers });
+    });
+  });
+};
+
 
 
 
@@ -928,4 +981,7 @@ module.exports = {
   getSalesChart,
   getTopSales,
   getProductChart,
+  getBestArea,
+  getTotalofMonth,
+  getTotalCounts,
 };

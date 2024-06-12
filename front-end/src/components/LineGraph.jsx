@@ -25,6 +25,9 @@ export const LineGraph = () => {
         const response = await axios.get("http://localhost:3001/getsaleschart");
         const salesData = response.data;
     
+        // Sort the salesData by date in ascending order
+        salesData.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
         // Process the fetched data to extract labels (day names) and sales amounts
         const labels = salesData.map((sale) => {
           const saleDate = new Date(sale.date);
@@ -32,7 +35,8 @@ export const LineGraph = () => {
           const date = saleDate.getDate(); // Get the day of the month
           return `${dayName}-${date}`;
         });
-        const salesAmounts = salesData.map((sale) => sale.sale_amount);
+        const salesAmounts = salesData.map((sale) => parseFloat(sale.sale_amount).toFixed(2));
+
     
         // Update the lineData object with the fetched data
         setLineData((prevLineData) => ({

@@ -10,7 +10,7 @@ const login = (req, res) => {
     `SELECT user.*, usertype.usertype_name
 FROM user
 JOIN usertype ON user.usertypeID = usertype.usertypeID
-WHERE user.username = ? AND user.password = ? AND user.active = 'yes';
+WHERE BINARY user.username = ? AND BINARY user.password = ? AND user.active = 'yes';
 `,
     [username, password],
     (err, rows) => {
@@ -41,6 +41,7 @@ WHERE user.username = ? AND user.password = ? AND user.active = 'yes';
     }
   );
 };
+
 
 const verifyPassword = (req, res) => {
   const { password } = req.body;

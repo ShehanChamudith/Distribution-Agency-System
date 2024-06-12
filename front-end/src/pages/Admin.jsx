@@ -34,6 +34,7 @@ import {
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import Swal from "sweetalert2";
 import WhatshotIcon from "@mui/icons-material/Whatshot";
+import CountUp from "react-countup";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -104,6 +105,10 @@ export const Admin = () => {
   const [deleteUserID, setDeleteUserID] = useState("");
   const [areaID, setSelectedArea] = useState("");
   const [topProducts, setTopProducts] = useState([]);
+  const [bestArea, setBestArea] = useState(null);
+  const [totalMonth, settotalMonth] = useState(null);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
 
   useEffect(() => {
     const fetchTopProducts = async () => {
@@ -489,6 +494,45 @@ export const Admin = () => {
       });
   };
 
+  useEffect(() => {
+    const fetchBestArea = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/getbestarea"); // Replace with your actual endpoint
+        setBestArea(response.data);
+      } catch (error) {
+        console.error("Error fetching best area:", error);
+      }
+    };
+
+    fetchBestArea();
+  }, []);
+
+  useEffect(() => {
+    const fetchTotalMonth = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3001/gettotalofmonth"
+        ); // Replace with your actual endpoint
+        settotalMonth(response.data);
+      } catch (error) {
+        console.error("Error fetching best area:", error);
+      }
+    };
+
+    fetchTotalMonth();
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/getemp")
+      .then((response) => response.json())
+      .then((data) => {
+        setTotalEmployees(data.totalEmployees);
+        setTotalCustomers(data.totalCustomers);
+      })
+      .catch((error) => console.error("Error:", error));
+  }, []);
+
+
   return (
     <div>
       <div className="w-screen px-10 py-5 h-[85vh]">
@@ -507,9 +551,69 @@ export const Admin = () => {
           <CustomTabPanel value={value} index={0}>
             <div className="flex w-full  ">
               <div className="flex flex-col w-full gap-4 ">
-                <div className="w-full  h-[20vh] rounded-xl shadow-md">
-                  <div>
-
+                <div className="w-full h-[20vh] rounded-xl flex justify-between gap-14">
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Sales This Month
+                    </h2>
+                    {totalMonth !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        <CountUp
+                          end={totalMonth.total_amount}
+                          duration={2}
+                          separator=","
+                        />{" "}
+                        LKR
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Employees
+                    </h2>
+                    {totalEmployees !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        {totalEmployees}
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Customers
+                    </h2>
+                    {totalCustomers !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        {totalCustomers}
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col bg-white p-4 rounded-lg shadow-lg w-1/4 justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Best Sales Area
+                    </h2>
+                    {bestArea ? (
+                      <div>
+                        <p className="text-center font-PoppinsM">
+                          {bestArea.area}
+                        </p>
+                        <p className="text-center text-3xl font-PoppinsB">
+                          <CountUp
+                            end={bestArea.total_sale_amount}
+                            duration={2}
+                            separator=","
+                          />{" "}
+                          LKR
+                        </p>
+                      </div>
+                    ) : (
+                      <p>Loading...</p>
+                    )}
                   </div>
                 </div>
 
@@ -546,7 +650,10 @@ export const Admin = () => {
                               className="flex justify-between"
                             >
                               <span>{product.product_name}</span>
-                              <span>{product.total_quantity}kg</span>
+                              <span>
+                                {parseFloat(product.total_quantity).toFixed(2)}
+                                kg
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -555,7 +662,10 @@ export const Admin = () => {
                   </div>
 
                   <div className="flex flex-col w-2/6 border rounded-xl">
-                    <h1 className=" font-PoppinsM text-xl pl-6 pt-2"> Inventory </h1>
+                    <h1 className=" font-PoppinsM text-md pl-6 pt-2">
+                      {" "}
+                      Inventory{" "}
+                    </h1>
                     <div className="flex justify-center h-[45vh]">
                       <DoughnutGraph />
                     </div>

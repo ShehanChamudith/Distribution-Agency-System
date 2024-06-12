@@ -114,7 +114,7 @@ const generatePDF = (preOrderData, addedItems, supplierEmail) => {
     const { product_name, quantity } = item;
     const paddedProductName =
       product_name + " - ".repeat(maxLength - product_name.length);
-    text += `${paddedProductName}\t\t${quantity}\n`;
+    text += `${paddedProductName}\t\t-${quantity}\n`;
   });
 
   const messageWithTable = `Stock Request Invoice\n\n${text}\n\nNote: ${preOrderData.note}`;

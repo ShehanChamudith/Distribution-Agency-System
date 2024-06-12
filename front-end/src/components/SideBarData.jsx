@@ -117,7 +117,7 @@ export const SideBarData = [
   },
 
   {
-    title: "My Dashboard",
+    title: "Admin Dashboard",
     icon: <DashboardIcon />,
     link: "/admin-dashboard",
     roles: [1],

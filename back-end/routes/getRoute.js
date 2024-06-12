@@ -30,6 +30,9 @@ const { getLoadingStatus } = require('../controllers/getController');
 const { getSalesChart } = require('../controllers/getController');
 const { getTopSales } = require('../controllers/getController');
 const { getProductChart } = require('../controllers/getController');
+const { getBestArea } = require('../controllers/getController');
+const { getTotalofMonth } = require('../controllers/getController');
+const { getTotalCounts } = require('../controllers/getController');
 
 
 router.get("/inventory", inventoryGet);
@@ -60,6 +63,9 @@ router.get('/getloadingstatus/:repID', getLoadingStatus);
 router.get('/getsaleschart', getSalesChart);
 router.get('/gettopsales', getTopSales);
 router.get('/getproductchart', getProductChart);
+router.get('/getbestarea', getBestArea);
+router.get('/gettotalofmonth', getTotalofMonth);
+router.get('/getemp', getTotalCounts);
 
 
 router.post('/getproductstocks', getProductStocks);

@@ -66,7 +66,7 @@ function DoughnutGraph({ showLegend }) {
     maintainAspectRatio: true,
     plugins: {
       datalabels: {
-        display: true,
+        display: false,
         color: 'black', // Set the label color
         formatter: (value, context) => {
           // Show label only if value is greater than 10
