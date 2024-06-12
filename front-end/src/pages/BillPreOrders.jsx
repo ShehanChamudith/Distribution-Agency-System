@@ -461,11 +461,13 @@ const BillPreOrders = ({ userID }) => {
   const location = useLocation();
   const preorderData = location.state?.preorderData?.preorderData || {};
 
+
+
   const fromEditLoading = location.state?.fromEditLoading || false;
   const [openDialog, setOpenDialog] = useState(!fromEditLoading);
 
   useEffect(() => {
-    console.log("loadingData:", preorderData); // Log loadingData for debugging
+    console.log("Pre-order data:", preorderData); // Log loadingData for debugging
   
     if (preorderData) {
       // Update selectedRep state
@@ -718,6 +720,7 @@ const BillPreOrders = ({ userID }) => {
       cheque_value: chequeValue,
       addedItems: itemsWithLoadingID,
       payment_status: payment_status,
+      preorderID: billpreorderID,
     };
   
     console.log(invoiceData);

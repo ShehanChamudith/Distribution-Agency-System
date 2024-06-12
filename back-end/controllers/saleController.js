@@ -291,6 +291,7 @@ const addSaleDelivery = (req, res) => {
     credit_amount,
     addedItems,
     payment_status,
+    preorderID,
   } = req.body;
   const date = new Date().toISOString().slice(0, 19).replace("T", " "); // Current date and time
 
@@ -314,15 +315,7 @@ const addSaleDelivery = (req, res) => {
       const saleQuery = `INSERT INTO sale (sale_amount, payment_type, date, note, userID, customerID) VALUES (?, ?, ?, ?, ?, ?)`;
       connection.query(
         saleQuery,
-        [
-          sale_amount,
-          payment_type,
-          date,
-          note,
-          userID,
-          customerID,
-          payment_status,
-        ],
+        [sale_amount, payment_type, date, note, userID, customerID, payment_status],
         (err, saleResults) => {
           if (err) {
             console.error("Error inserting into sale table: ", err);
@@ -374,15 +367,10 @@ const addSaleDelivery = (req, res) => {
                       [paymentID, creditSaleAmount],
                       (err, creditSaleResults) => {
                         if (err) {
-                          console.error(
-                            `Error inserting into credit_sale table: `,
-                            err
-                          );
+                          console.error(`Error inserting into credit_sale table: `, err);
                           return connection.rollback(() => {
                             connection.release(); // Release the connection back to the pool
-                            res
-                              .status(500)
-                              .json({ error: "Internal server error" });
+                            res.status(500).json({ error: "Internal server error" });
                           });
                         }
                       }
@@ -402,12 +390,7 @@ const addSaleDelivery = (req, res) => {
                   }
 
                   specificSaleQuery = `INSERT INTO cheque_sale (paymentID, bank_name, cheque_number, cheque_value) VALUES (?, ?, ?, ?)`;
-                  specificSaleValues = [
-                    paymentID,
-                    bank_name,
-                    cheque_number,
-                    chequeSaleAmount,
-                  ];
+                  specificSaleValues = [paymentID, bank_name, cheque_number, chequeSaleAmount];
 
                   // If chequeCreditAmount is greater than 0, insert into credit_sale table
                   if (chequeCreditAmount > 0) {
@@ -417,15 +400,10 @@ const addSaleDelivery = (req, res) => {
                       [paymentID, chequeCreditAmount],
                       (err, creditSaleResults) => {
                         if (err) {
-                          console.error(
-                            `Error inserting into credit_sale table: `,
-                            err
-                          );
+                          console.error(`Error inserting into credit_sale table: `, err);
                           return connection.rollback(() => {
                             connection.release(); // Release the connection back to the pool
-                            res
-                              .status(500)
-                              .json({ error: "Internal server error" });
+                            res.status(500).json({ error: "Internal server error" });
                           });
                         }
                       }
@@ -446,98 +424,85 @@ const addSaleDelivery = (req, res) => {
                   });
               }
 
-              connection.query(specificSaleQuery,specificSaleValues,(err, specificSaleResults) => {
+              connection.query(specificSaleQuery, specificSaleValues, (err, specificSaleResults) => {
+                if (err) {
+                  console.error(`Error inserting into ${payment_type} table: `, err);
+                  return connection.rollback(() => {
+                    connection.release(); // Release the connection back to the pool
+                    res.status(500).json({ error: "Internal server error" });
+                  });
+                }
+
+                // Insert into productsale table
+                const productSaleQuery = `INSERT INTO productsale (saleID, productID, quantity) VALUES ?`;
+                const productSaleValues = addedItems.map((item) => [saleID, item.productID, item.quantity]);
+
+                connection.query(productSaleQuery, [productSaleValues], (err, productSaleResults) => {
                   if (err) {
-                    console.error(
-                      `Error inserting into ${payment_type} table: `,
-                      err
-                    );
+                    console.error("Error inserting into productsale table: ", err);
                     return connection.rollback(() => {
                       connection.release(); // Release the connection back to the pool
                       res.status(500).json({ error: "Internal server error" });
                     });
                   }
 
-                  // Insert into productsale table
-                  const productSaleQuery = `INSERT INTO productsale (saleID, productID, quantity) VALUES ?`;
-                  const productSaleValues = addedItems.map((item) => [
-                    saleID,
-                    item.productID,
-                    item.quantity,
-                  ]);
-
-                  connection.query(productSaleQuery,[productSaleValues],(err, productSaleResults) => {
-                      if (err) {
-                        console.error(
-                          "Error inserting into productsale table: ",
-                          err
-                        );
-                        return connection.rollback(() => {
-                          connection.release(); // Release the connection back to the pool
-                          res
-                            .status(500)
-                            .json({ error: "Internal server error" });
-                        });
-                      }
-
-                      // Update stock_total in product table
-                      const updateStockPromises = addedItems.map((item) => {
-                        return new Promise((resolve, reject) => {
-                            const updateStockQuery = `UPDATE loading_products SET quantity = quantity - ? WHERE productID = ? AND loadingID = ?`;
-                            connection.query(updateStockQuery, [item.quantity, item.productID, item.loadingID], (err, result) => {
-                                if (err) {
-                                    reject(err);
-                                } else {
-                                    resolve(result);
-                                }
-                            });
-                        });
+                  // Update stock_total in product table
+                  const updateStockPromises = addedItems.map((item) => {
+                    return new Promise((resolve, reject) => {
+                      const updateStockQuery = `UPDATE loading_products SET quantity = quantity - ? WHERE productID = ? AND loadingID = ?`;
+                      connection.query(updateStockQuery, [item.quantity, item.productID, item.loadingID], (err, result) => {
+                        if (err) {
+                          reject(err);
+                        } else {
+                          resolve(result);
+                        }
+                      });
                     });
-                    
+                  });
 
-                      Promise.all(updateStockPromises)
-                        .then(() => {
-                          // Commit the transaction
-                          connection.commit((err) => {
-                            if (err) {
-                              console.error(
-                                "Error committing transaction: ",
-                                err
-                              );
-                              return connection.rollback(() => {
-                                connection.release(); // Release the connection back to the pool
-                                res
-                                  .status(500)
-                                  .json({ error: "Internal server error" });
-                              });
-                            }
-
-                            console.log(
-                              "Sale, payment, and product sales created successfully"
-                            );
+                  Promise.all(updateStockPromises)
+                    .then(() => {
+                      // Update the pre_order_status of pre_order table
+                      const updatePreOrderQuery = `UPDATE pre_order SET pre_order_status = 'completed' WHERE preorderID = ?`;
+                      connection.query(updatePreOrderQuery, [preorderID], (err, result) => {
+                        if (err) {
+                          console.error("Error updating pre_order_status: ", err);
+                          return connection.rollback(() => {
                             connection.release(); // Release the connection back to the pool
-                            res.status(200).json({
-                              message:
-                                "Sale, payment, and product sales created successfully",
-                              saleID: saleID,
-                              paymentID: paymentID,
-                              specificSaleID: specificSaleResults.insertId,
-                            });
+                            res.status(500).json({ error: "Internal server error" });
                           });
-                        })
-                        .catch((err) => {
-                          console.error("Error updating stock totals: ", err);
-                          connection.rollback(() => {
-                            connection.release(); // Release the connection back to the pool
-                            res
-                              .status(500)
-                              .json({ error: "Internal server error" });
+                        }
+
+                        // Commit the transaction
+                        connection.commit((err) => {
+                          if (err) {
+                            console.error("Error committing transaction: ", err);
+                            return connection.rollback(() => {
+                              connection.release(); // Release the connection back to the pool
+                              res.status(500).json({ error: "Internal server error" });
+                            });
+                          }
+
+                          console.log("Sale, payment, and product sales created successfully");
+                          connection.release(); // Release the connection back to the pool
+                          res.status(200).json({
+                            message: "Sale, payment, and product sales created successfully",
+                            saleID: saleID,
+                            paymentID: paymentID,
+                            specificSaleID: specificSaleResults.insertId,
                           });
                         });
-                    }
-                  );
-                }
-              );
+                      });
+                    })
+                    .catch((err) => {
+                      console.error("Error updating stock totals: ", err);
+                      connection.rollback(() => {
+                        connection.release(); // Release the connection back to the pool
+                        res.status(500).json({ error: "Internal server error" });
+                      });
+                    });
+                });
+              });
             }
           );
         }
@@ -545,6 +510,7 @@ const addSaleDelivery = (req, res) => {
     });
   });
 };
+
 
 module.exports = {
   addSale,
