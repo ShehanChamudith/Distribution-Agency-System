@@ -39,7 +39,6 @@ import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-
 const generatePDF = (invoiceData, addedItems, shop_name, username, saleID) => {
   const doc = new jsPDF();
 
@@ -229,7 +228,15 @@ function a11yProps(index) {
   };
 }
 
-function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restock, setRestock }) {
+function ItemCard({
+  item,
+  setAddedItems,
+  addedItems,
+  restore,
+  setRestore,
+  restock,
+  setRestock,
+}) {
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [alert, setAlert] = useState({
@@ -482,27 +489,35 @@ const DeliveryBill = ({ userID, username }) => {
   const handleProceedToCheckout = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
-  
+
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
       // Check stock totals before proceeding to the payment tab
-      const productIDs = addedItems.map(item => item.productID);
-  
-      axios.post("http://localhost:3001/getproductstocksloading", { loadingId, productIDs })
-        .then(response => {
+      const productIDs = addedItems.map((item) => item.productID);
+
+      axios
+        .post("http://localhost:3001/getproductstocksloading", {
+          loadingId,
+          productIDs,
+        })
+        .then((response) => {
           const stockData = response.data;
-  
+
           // Check if any product's stock total is 0
-          const unavailableProducts = addedItems.filter(item => {
-            const stockItem = stockData.find(stock => stock.productID === item.productID);
+          const unavailableProducts = addedItems.filter((item) => {
+            const stockItem = stockData.find(
+              (stock) => stock.productID === item.productID
+            );
             return stockItem && stockItem.stock_total === 0;
           });
-  
+
           if (unavailableProducts.length > 0) {
             // Alert the user if any product is not available in the loading
-            const unavailableProductNames = unavailableProducts.map(item => item.product_name).join(", ");
+            const unavailableProductNames = unavailableProducts
+              .map((item) => item.product_name)
+              .join(", ");
             Swal.fire({
               icon: "error",
               title: "Products Not Available",
@@ -511,19 +526,24 @@ const DeliveryBill = ({ userID, username }) => {
                 popup: "z-50",
               },
               didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
               },
             });
           } else {
             // Check if any product exceeds the stock total
-            const exceededProducts = addedItems.filter(item => {
-              const stockItem = stockData.find(stock => stock.productID === item.productID);
+            const exceededProducts = addedItems.filter((item) => {
+              const stockItem = stockData.find(
+                (stock) => stock.productID === item.productID
+              );
               return stockItem && item.quantity > stockItem.stock_total;
             });
-  
+
             if (exceededProducts.length > 0) {
               // Alert the user if any product exceeds the stock total
-              const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+              const exceededProductNames = exceededProducts
+                .map((item) => item.product_name)
+                .join(", ");
               Swal.fire({
                 icon: "error",
                 title: "Stock Limit Exceeded",
@@ -532,7 +552,8 @@ const DeliveryBill = ({ userID, username }) => {
                   popup: "z-50",
                 },
                 didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
                 },
               });
             } else {
@@ -547,13 +568,12 @@ const DeliveryBill = ({ userID, username }) => {
             }
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching product stocks:", error);
           alert("Error fetching product stocks. Please try again.");
         });
     }
   };
-  
 
   useEffect(() => {
     let creditedValue;
@@ -637,66 +657,66 @@ const DeliveryBill = ({ userID, username }) => {
     console.log(paidAmountFormatted, chequeValueFormatted);
 
     if (paymentType === "cash") {
-        Swal.fire({
-            title: "Confirm Invoice Creation",
-            text: "Are you sure you want to create the invoice for cash payment?",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (paidAmountFormatted >= subtotalNumber) {
-                    createInvoice(subtotal, "cash", "fully paid");
-                } else {
-                    createInvoice(subtotal, "cash", "partially paid");
-                }
-            } else {
-                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
-            }
-        });
+      Swal.fire({
+        title: "Confirm Invoice Creation",
+        text: "Are you sure you want to create the invoice for cash payment?",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (paidAmountFormatted >= subtotalNumber) {
+            createInvoice(subtotal, "cash", "fully paid");
+          } else {
+            createInvoice(subtotal, "cash", "partially paid");
+          }
+        } else {
+          Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+        }
+      });
     } else if (paymentType === "cheque") {
-        Swal.fire({
-            title: "Confirm Invoice Creation",
-            text: "Are you sure you want to create the invoice for cheque payment?",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (chequeValueFormatted == subtotalNumber) {
-                    createInvoice(subtotal, "cheque", "fully paid");
-                } else {
-                    createInvoice(subtotal, "cheque", "partially paid");
-                }
-            } else {
-                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
-            }
-        });
+      Swal.fire({
+        title: "Confirm Invoice Creation",
+        text: "Are you sure you want to create the invoice for cheque payment?",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (chequeValueFormatted == subtotalNumber) {
+            createInvoice(subtotal, "cheque", "fully paid");
+          } else {
+            createInvoice(subtotal, "cheque", "partially paid");
+          }
+        } else {
+          Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+        }
+      });
     } else if (paymentType === "credit") {
-        Swal.fire({
-            title: "Confirm Invoice Creation",
-            text: "Are you sure you want to create the invoice for credit payment?",
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonText: "Yes",
-            cancelButtonText: "No",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                createInvoice(subtotal, "credit", "not paid");
-            } else {
-                Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
-            }
-        });
+      Swal.fire({
+        title: "Confirm Invoice Creation",
+        text: "Are you sure you want to create the invoice for credit payment?",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          createInvoice(subtotal, "credit", "not paid");
+        } else {
+          Swal.fire("Cancelled", "Invoice creation cancelled.", "info");
+        }
+      });
     } else {
-        Swal.fire(
-            "Invalid Payment",
-            "The paid amount or cheque value does not match the subtotal.",
-            "error"
-        );
+      Swal.fire(
+        "Invalid Payment",
+        "The paid amount or cheque value does not match the subtotal.",
+        "error"
+      );
     }
-};
+  };
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
@@ -726,7 +746,13 @@ const DeliveryBill = ({ userID, username }) => {
         console.log(saleID);
 
         if (printBill) {
-          generatePDF(invoiceData, addedItems, selectedCustomer.shop_name, username, saleID);
+          generatePDF(
+            invoiceData,
+            addedItems,
+            selectedCustomer.shop_name,
+            username,
+            saleID
+          );
         }
 
         Swal.fire({
@@ -996,7 +1022,7 @@ const DeliveryBill = ({ userID, username }) => {
       const value = e.target.value;
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setQuantity(value);
-        setRestock({ productID: item.productID, amount: value-basequantity });
+        setRestock({ productID: item.productID, amount: value - basequantity });
         setbaseQuantity(value);
         onQuantityChange(item.productID, parseFloat(value) || 0);
       }
@@ -1118,7 +1144,6 @@ const DeliveryBill = ({ userID, username }) => {
         console.error("Error fetching data:", error);
       });
   }, []);
-
 
   return (
     <div className="flex w-screen gap-4">
@@ -1414,8 +1439,8 @@ const DeliveryBill = ({ userID, username }) => {
                 addedItems={addedItems}
                 restore={stock}
                 setRestore={setStock}
-                restock = {restock}
-                setRestock = {setRestock}
+                restock={restock}
+                setRestock={setRestock}
               />
             ))}
           </div>
@@ -1475,7 +1500,7 @@ const DeliveryBill = ({ userID, username }) => {
                     item={item}
                     onQuantityChange={handleQuantityChange}
                     onRemoveItem={handleRemoveItem}
-                    setRestock = {setRestock}
+                    setRestock={setRestock}
                   />
                 ))}
               </div>
@@ -1600,13 +1625,16 @@ const DeliveryBill = ({ userID, username }) => {
                   <div className="flex flex-col justify-between">
                     <div className="flex justify-between">
                       <p>Balance:</p>
-                      <p>{Math.max(calculateBalance(), 0)} LKR</p>
+                      <p>{Math.max(calculateBalance(), 0).toFixed(2)} LKR</p>
                     </div>
 
                     <div className="flex justify-between">
                       <p>Credited Amount:</p>
                       <p>
-                        {calculateBalance() < 0 ? -calculateBalance() : 0} LKR{" "}
+                        {calculateBalance() < 0
+                          ? (-calculateBalance()).toFixed(2)
+                          : (0).toFixed(2)}{" "}
+                        LKR{" "}
                       </p>
                     </div>
                   </div>
@@ -1672,8 +1700,8 @@ const DeliveryBill = ({ userID, username }) => {
                     <p>Credited Value:</p>
                     <p>
                       {calculateBalance() < 0
-                        ? -calculateBalance()
-                        : calculateBalance()}{" "}
+                        ? (-calculateBalance()).toFixed(2)
+                        : calculateBalance().toFixed(2)}{" "}
                       LKR
                     </p>
                   </div>
