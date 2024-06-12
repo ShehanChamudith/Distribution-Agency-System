@@ -3,8 +3,6 @@ import axios from "axios";
 import {
   Box,
   Button,
-  ToggleButton,
-  ToggleButtonGroup,
   TextField,
   Card,
   Modal,
@@ -44,10 +42,6 @@ const generatePDF = (preOrderData, addedItems) => {
 
   const currentDate = new Date();
   const orderDate = currentDate.toLocaleDateString();
-  const orderTime = currentDate.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
   const shopNameFontSize = 20;
   const addressFontSize = 16;
@@ -187,7 +181,6 @@ function ItemCard({
     severity: "",
     message: "",
   });
-  const [stock, setStock] = useState(item.stock_total);
 
   const handleOpen = () => {
     setOpen(true);
@@ -196,26 +189,24 @@ function ItemCard({
   useEffect(() => {
     if (restore.productID !== "") {
       if (item.productID === restore.productID) {
-        setStock((prevStock) => prevStock + restore.amount);
         setRestore({
           productID: "",
           amount: "",
         }); // Update restore state to null using setRestore
       }
     }
-  }, [restore]);
+  }, [restore, setRestore,item.productID]);
 
   useEffect(() => {
     if (restock.productID !== "") {
       if (item.productID === restock.productID) {
-        setStock((prevStock) => prevStock - restock.amount);
         setRestock({
           productID: "",
           amount: "",
-        }); // Update restore state to null using setRestore
+        }); 
       }
     }
-  }, [restock]);
+  }, [restock, item.productID,setRestock]);
 
   const handleClose = () => {
     setOpen(false);
@@ -249,7 +240,6 @@ function ItemCard({
     }
 
     setAddedItems((prevItems) => [...prevItems, newItem]);
-    setStock((prevStock) => prevStock - enteredQuantity); // Update the stock
 
     setAlert({
       show: true,
@@ -367,7 +357,6 @@ function ItemCard({
 
 const StockReq = ({ userID }) => {
   const [data, setData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [addedItems, setAddedItems] = useState([]);
   const [stock, setStock] = useState({
     productID: "",
@@ -383,11 +372,8 @@ const StockReq = ({ userID }) => {
   const [lName, setLName] = useState("");
   const [supplierID, setsupplierID] = useState(1);
   const [supplier, setSupplier] = useState([]);
-  const [alignment, setAlignment] = useState("");
-
   const [openNote, setOpenNote] = useState(false);
   const [additionalNote, setAdditionalNote] = useState("");
-  const [proceedWithNote, setProceedWithNote] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(true);
 
   const handleCreateLoading = () => {
@@ -407,7 +393,6 @@ const StockReq = ({ userID }) => {
   };
 
   const handleProceedWithNote = () => {
-    setProceedWithNote(true);
     setOpen(false);
     createPreOrder();
   };
@@ -416,7 +401,7 @@ const StockReq = ({ userID }) => {
     const preOrderData = {
       addedItems: addedItems,
       supplierID: supplierID,
-      note: additionalNote, // Include additional note in pre-order data
+      note: additionalNote, 
     };
 
     console.log(preOrderData);
@@ -427,7 +412,7 @@ const StockReq = ({ userID }) => {
         console.log("Stock Req Invoice created successfully:", response.data);
         Swal.fire({
           icon: "success",
-          title: "Stock Request Invoice Created Successfully!",
+          title: "Stock Request Invoice Created and Request Sent to the Supplier Successfully!",
           customClass: { 
             popup: "z-50",
           },
@@ -468,24 +453,14 @@ const StockReq = ({ userID }) => {
           );
         }
 
-        // Filter items based on search query
-        if (searchQuery) {
-          filteredData = filteredData.filter((item) =>
-            item.product_name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-        }
-
-        setData(filteredData); // Set the filtered data to the state
+        setData(filteredData); 
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
-  }, [supplierID, searchQuery]);
+  }, [supplierID]);
 
-  const handleChange = (event, newAlignment) => {
-    setAlignment(newAlignment);
-    setsupplierID(newAlignment);
-  };
+
 
   function BillingItem({ item, onQuantityChange, onRemoveItem }) {
     const [quantity, setQuantity] = useState(item.quantity);
@@ -501,9 +476,6 @@ const StockReq = ({ userID }) => {
       }
     };
 
-    const totalPrice = (quantity * item.selling_price).toFixed(2);
-
-    
 
     return (
       <div className="w-full flex items-center justify-between p-2 border-b border-gray-300 hover:bg-gray-100 hover:scale-105 transition-transform duration-300 hover:rounded-lg hover:border-cyan-700">
@@ -565,7 +537,7 @@ const StockReq = ({ userID }) => {
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString();
 
-  const [currentTime, setCurrentTime] = useState(() => {
+  const [setCurrentTime] = useState(() => {
     const now = new Date();
     return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   });
@@ -580,7 +552,7 @@ const StockReq = ({ userID }) => {
     }, 1000); // Update every minute
 
     return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, []);
+  }, [setCurrentTime]);
 
   const handleRemoveItem = (productId, amount) => {
     setAddedItems((prevItems) =>
