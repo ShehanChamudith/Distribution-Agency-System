@@ -106,8 +106,7 @@ const addUser = (req, res) => {
       );
     } else {
       // Insert new user
-      const insertUserQuery =
-        "INSERT INTO user (usertypeID, username, password, firstname, lastname, email, phone, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+      const insertUserQuery = `INSERT INTO user (usertypeID, username, password, firstname, lastname, email, phone, address, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'yes');`;
 
       DBconnect.query(
         insertUserQuery,
@@ -220,8 +219,7 @@ const checkUserExistance2 = (req, res) => {
   let queryParams;
 
   // If userID is not provided, it's a new user addition
-  checkUserQuery =
-    "SELECT COUNT(*) AS count FROM user WHERE userID = ?";
+  checkUserQuery = "SELECT COUNT(*) AS count FROM user WHERE userID = ?";
   queryParams = [userID];
 
   DBconnect.query(checkUserQuery, queryParams, (err, result) => {

@@ -99,6 +99,7 @@ export const Admin = () => {
   const [selectedUserType, setselectedUserType] = useState("");
   const [usertypeID, setUsertypeID] = useState("");
   const [openEditUserDialog, setOpenEditUserDialog] = useState(false);
+  const [openDeleteUserDialog, setOpenDeleteUserDialog] = useState(false);
   const [editUserID, setEditUserID] = useState("");
   const [areaID, setSelectedArea] = useState('');
 
@@ -445,6 +446,12 @@ export const Admin = () => {
                   onClick={() => setOpenEditUserDialog(true)}
                 >
                   Edit User
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenDeleteUserDialog(true)}
+                >
+                  Delete User
                 </Button>
               </FilterBox>
               <ScrollableTableContainer
@@ -1079,6 +1086,35 @@ export const Admin = () => {
               </Button>
               <Button onClick={handleEditUser} color="primary">
                 Edit
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog
+            open={openDeleteUserDialog}
+            onClose={() => setOpenDeleteUserDialog(false)}
+          >
+            <DialogTitle>Enter User ID to Delete</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="User ID"
+                type="text"
+                fullWidth
+                value={editUserID}
+                onChange={(e) => setEditUserID(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setOpenDeleteUserDialog(false)}
+                color="primary"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleEditUser} color="primary">
+                Delete
               </Button>
             </DialogActions>
           </Dialog>

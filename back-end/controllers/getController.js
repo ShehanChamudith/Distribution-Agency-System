@@ -471,7 +471,7 @@ const getPreOrderTotal = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const query = "SELECT * FROM user";
+  const query = "SELECT * FROM user WHERE active = 'yes' ";
 
   DBconnect.query(query, (err, results) => {
     if (err) {
