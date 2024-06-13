@@ -41,6 +41,7 @@ const FilterSales = () => {
     userID: "",
     productID: "",
     supplierID: "",
+    payment_type: "",
   });
   const [salesData, setSalesData] = useState([]);
   const [inventoryData, setInventoryData] = useState([]);
@@ -50,6 +51,7 @@ const FilterSales = () => {
   const [user, setUser] = useState([]);
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [logData, setLogData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +75,11 @@ const FilterSales = () => {
           "http://localhost:3001/getsupplier"
         );
         setSuppliers(supplierResponse.data);
+
+        const logResponse = await axios.get(
+          "http://localhost:3001/getsupplier"
+        );
+        setLogData(logResponse.data);
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -216,9 +223,7 @@ const FilterSales = () => {
 
       autoTable(doc, {
         startY: 90,
-        head: [
-          ["Date", "Product", "Stock Arrival", "Supplier", "Batch No"],
-        ],
+        head: [["Date", "Product", "Stock Arrival", "Supplier", "Batch No"]],
         body: inventoryData.map((inventory) => [
           inventory.purchase_date.substring(0, 10),
           inventory.product_name,
@@ -601,6 +606,94 @@ const FilterSales = () => {
           </Grid>
         </Grid>
       )}
+
+      <div>
+        {reportType === "Payment Log" && (
+          <>
+            <div className="mb-2">
+              <Typography variant="h6">Filtering Options</Typography>
+            </div>
+            <div className="mt-4">
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    label="Start Date"
+                    type="date"
+                    name="startDate"
+                    value={filters.startDate}
+                    onChange={handleChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    label="End Date"
+                    type="date"
+                    name="endDate"
+                    value={filters.endDate}
+                    onChange={handleChange}
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    label="Customer"
+                    select
+                    name="customerID"
+                    value={filters.customerID}
+                    onChange={handleChange}
+                    fullWidth
+                  >
+                    {customers.map((customer) => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    label="Payment Type"
+                    select
+                    name="paymentType"
+                    value={filters.paymentType}
+                    onChange={handleChange}
+                    fullWidth
+                  >
+                    <MenuItem value="">All</MenuItem>
+                    <MenuItem value="cash">Cash</MenuItem>
+                    <MenuItem value="credit">Credit</MenuItem>
+                    <MenuItem value="cheque">Cheque</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} container spacing={2}>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleSubmit}
+                    >
+                      Filter
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={generatePDF}
+                      disabled={logData.length === 0}
+                    >
+                      Export to PDF
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
