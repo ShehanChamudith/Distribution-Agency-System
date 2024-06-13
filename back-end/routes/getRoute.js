@@ -36,6 +36,7 @@ const { getTotalofMonth } = require('../controllers/getController');
 const { getTotalCounts } = require('../controllers/getController');
 const { paymentLog } = require('../controllers/getController');
 const { getRepandWare } = require('../controllers/getController');
+const { getVehicleActive } = require('../controllers/getController');
 
 
 
@@ -64,6 +65,7 @@ router.get('/getcreditsales', getCreditSales);
 router.get('/getpaymentstatus/:paymentID', getPaymentStatus);
 router.get('/getarea', getArea);
 router.get('/getareaactive', getAreaActive);
+router.get('/getvehicleactive', getVehicleActive);
 router.get('/getstockrequests', getStockRequests);
 router.get('/getuserdel/:deleteUserID', getUserbyIDdel);
 router.get('/getloadingstatus/:repID', getLoadingStatus);

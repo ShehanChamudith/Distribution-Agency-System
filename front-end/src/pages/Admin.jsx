@@ -83,7 +83,9 @@ export const Admin = () => {
   const [value, setValue] = React.useState(0);
   const [users, setUsers] = useState([]);
   const [area, setArea] = useState([]);
+  const [vehicle, setVehicle] = useState([]);
   const [areaActive, setAreaActive] = useState([]);
+  const [vehicleActive, setVehicleActive] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [customerData, setcustomerData] = useState({
@@ -112,9 +114,13 @@ export const Admin = () => {
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [areas, setAreas] = useState([]);
   const [openAddAreaDialog, setOpenAddAreaDialog] = useState(false);
+  const [openAddVehicleDialog, setOpenAddVehicleDialog] = useState(false);
   const [openEditAreaDialog, setOpenEditAreaDialog] = useState(false);
+  const [openEditVehicleDialog, setOpenEditVehicleDialog] = useState(false);
   const [areaName, setAreaName] = useState("");
+  const [vehicleName, setVehicleName] = useState("");
   const [editArea, setEditArea] = useState(null);
+  const [editVehicle, setEditVehicle] = useState(null);
 
   useEffect(() => {
     const fetchTopProducts = async () => {
@@ -324,11 +330,23 @@ export const Admin = () => {
       });
   };
 
+  const fetchVehicleActive = () => {
+    axios
+      .get("http://localhost:3001/getvehicleactive")
+      .then((response) => {
+        setVehicleActive(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  };
+
   // Call the fetchUserData function inside useEffect
   useEffect(() => {
     fetchUserData();
     fetchArea();
     fetchAreaActive();
+    fetchVehicleActive();
   }, []);
 
   const ScrollableTableContainer = styled(TableContainer)({
@@ -563,6 +581,14 @@ export const Admin = () => {
     setOpenEditAreaDialog(false);
   };
 
+  const handleCloseAddVehicleDialog = () => {
+    // Reset the areaName state variable
+    setVehicleName("");
+    // Close both add and edit dialogs
+    setOpenAddVehicleDialog(false);
+    setOpenEditVehicleDialog(false);
+  };
+
   const handleCloseEditAreaDialog = () => {
     setOpenEditAreaDialog(false);
   };
@@ -633,6 +659,72 @@ export const Admin = () => {
     });
   };
 
+  const handleAddVehicle = () => {
+    // Make sure areaName is not empty
+    if (!vehicleName.trim()) {
+      alert("Vehicle Number cannot be empty");
+      return;
+    }
+
+    // Show a confirmation dialog
+    Swal.fire({
+      icon: "info",
+      title: "Add Vehicle",
+      text: "Are you sure you want to add this Vehicle?",
+      showCancelButton: true,
+      confirmButtonText: "Add",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // User confirmed, proceed with adding the area
+        axios
+          .post("http://localhost:3001/addvehicle", { vehicle_number: vehicleName })
+          .then((response) => {
+            if (response.status === 201) {
+              // Area added successfully
+              fetchVehicleActive();
+              Swal.fire({
+                icon: "success",
+                title: "Vehicle Added",
+                text: "The Vehicle has been successfully added.",
+                timer: 2000, // Show alert for 3 seconds
+                showConfirmButton: false, // Hide the "OK" button
+              });
+              handleCloseAddVehicleDialog();
+            }
+          })
+          .catch((error) => {
+            if (error.response && error.response.status === 409) {
+              // Area already exists
+              Swal.fire({
+                icon: "error",
+                title: "Vehicle Already Exists",
+                text: "The Vehicle you are trying to add already exists.",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              });
+            } else {
+              console.error("Error adding Vehicle:", error);
+              alert("Failed to add Vehicle");
+            }
+          });
+      }
+    });
+  };
+
   const handleEditArea = (areaID) => {
     // Find the area to edit
     const areaToEdit = area.find((a) => a.areaID === areaID);
@@ -643,6 +735,19 @@ export const Admin = () => {
       setEditArea(areaID);
       // Open the edit dialog
       setOpenEditAreaDialog(true);
+    }
+  };
+
+  const handleEditVehicle = (vehicleID) => {
+    // Find the area to edit
+    const vehicleToEdit = vehicle.find((a) => a.vehicleID === vehicleID);
+    if (vehicleToEdit) {
+      // Set the areaName state variable to the existing area's name
+      setVehicleName(vehicleToEdit.vehicle_number);
+      // Set the editArea state variable to the areaID
+      setEditVehicle(vehicleID);
+      // Open the edit dialog
+      setOpenEditVehicleDialog(true);
     }
   };
 
@@ -698,6 +803,59 @@ export const Admin = () => {
         }
       });
   };
+
+  const handleEditVehicleSubmit = () => {
+    const url = `http://localhost:3001/editvehicle/${editVehicle}`;
+    axios.put(url, { vehicle_number: vehicleName })
+      .then((response) => {
+        console.log(response.data); // Handle response from the server
+  
+        // Close the edit dialog
+        setOpenEditVehicleDialog(false);
+        fetchVehicleActive();
+        // Show success alert
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Vehicle updated successfully',
+        });
+  
+        // Optionally, update the areas list or notify the user
+      })
+      .catch((error) => {
+        console.error('Error updating vehicle:', error);
+  
+        // Check if error is due to existing area
+        if (error.response && error.response.status === 409) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Vehicle with the same name already exists',
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex =
+                "9999";
+            },
+          });
+        } else {
+          // Handle other errors
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update vehicle',
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex =
+                "9999";
+            },
+          });
+        }
+      });
+  };
   
 
   const handleDeleteArea = (areaID) => {
@@ -719,7 +877,7 @@ export const Admin = () => {
           .then((response) => {
             if (response.status === 200) {
               // Area deleted successfully
-              fetchArea();
+              fetchAreaActive();
               Swal.fire({
                 icon: "success",
                 title: "Area Deleted",
@@ -732,6 +890,43 @@ export const Admin = () => {
           .catch((error) => {
             console.error("Error deleting area:", error);
             alert("Failed to delete area");
+          });
+      }
+    });
+  };
+
+  const handleDeleteVehicle = (vehicleID) => {
+    // Show a confirmation dialog before deleting the area
+    Swal.fire({
+      icon: "warning",
+      title: "Delete Vehicle",
+      text: "Are you sure you want to delete this vehicle?",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // User confirmed, proceed with deleting the area
+        axios
+          .put(`http://localhost:3001/deletevehicle/${vehicleID}`)
+          .then((response) => {
+            if (response.status === 200) {
+              // Area deleted successfully
+              fetchVehicleActive();
+              Swal.fire({
+                icon: "success",
+                title: "Vehicle Deleted",
+                text: "The vehicle has been successfully deleted.",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting vehicle:", error);
+            alert("Failed to delete vehicle");
           });
       }
     });
@@ -750,6 +945,7 @@ export const Admin = () => {
               <Tab label="Overview" {...a11yProps(0)} />
               <Tab label="Users" {...a11yProps(1)} />
               <Tab label="Selling Areas" {...a11yProps(2)} />
+              <Tab label="Vehicles of the Agency" {...a11yProps(3)} />
             </Tabs>
           </Box>
           <CustomTabPanel value={value} index={0}>
@@ -1379,6 +1575,65 @@ export const Admin = () => {
             </Paper>
           </CustomTabPanel>
 
+          <CustomTabPanel value={value} index={3}>
+            <Paper>
+              <FilterBox className="w-full p-3 justify-end">
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenAddVehicleDialog(true)}
+                >
+                  Add Vehicle
+                </Button>
+              </FilterBox>
+              <ScrollableTableContainer
+                style={{ maxHeight: "calc(80vh - 160px)" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                      Vehicle ID
+                      </StyledTableCell>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                      Vehicle Number
+                      </StyledTableCell>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                        Actions
+                      </StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {vehicleActive.map((vehicle) => (
+                      <TableRow key={vehicle.vehicleID}>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {vehicle.vehicleID}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {vehicle.vehicle_number}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleEditVehicle(vehicle.vehicleID)}
+                            sx={{ marginRight: 1 }} // Add margin to the right of the Edit button
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleDeleteVehicle(vehicle.vehicleID)}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollableTableContainer>
+            </Paper>
+          </CustomTabPanel>
+
           <Dialog
             open={openNewCustomerDialog}
             onClose={handleNewCustomerDialogClose}
@@ -1650,6 +1905,38 @@ export const Admin = () => {
               </Button>
               <Button
                 onClick={openEditAreaDialog ? handleEditAreaSubmit : handleAddArea}
+                color="primary"
+              >
+                {openEditAreaDialog ? "Edit" : "Add"}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+
+          <Dialog
+            open={openAddVehicleDialog || openEditVehicleDialog}
+            onClose={handleCloseAddVehicleDialog}
+          >
+            <DialogTitle>
+              {openEditVehicleDialog ? "Edit Vehicle" : "Add Vehicle"}
+            </DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Vehicle Number"
+                type="text"
+                fullWidth
+                value={vehicleName}
+                onChange={(e) => setVehicleName(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseAddVehicleDialog} color="secondary">
+                Cancel
+              </Button>
+              <Button
+                onClick={openEditVehicleDialog ? handleEditVehicleSubmit : handleAddVehicle}
                 color="primary"
               >
                 {openEditAreaDialog ? "Edit" : "Add"}
