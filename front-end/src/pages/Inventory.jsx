@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import Box from '@mui/material/Box';
-import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import Box from "@mui/material/Box";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import TextField from "@mui/material/TextField";
@@ -19,13 +19,11 @@ import Swal from "sweetalert2";
 import { DatePicker, Space } from "antd";
 const { RangePicker } = DatePicker;
 
-
-
 const deleteRow = (inventoryID) => {
   axios
     .delete(`http://localhost:3001/deletestock/${inventoryID}`)
     .then((response) => {
-      console.log(inventoryID,"Row deleted successfully");
+      console.log(inventoryID, "Row deleted successfully");
     })
     .catch((error) => {
       console.error("Error deleting row:", error);
@@ -62,12 +60,46 @@ const deletePopup = (inventoryID) => {
   });
 };
 
-
-function DataGridDemo(userInfo) {
+function Inventory({ userInfo }) {
+  const [open, setOpen] = React.useState(false);
+  const [openEdit, setOpenEdit] = React.useState(false);
+  const [productS, setProductS] = React.useState("");
+  const [supplierS, setsupplierS] = React.useState("");
+  const [product, setProduct] = useState([]);
+  const [supplier, setSupplier] = useState([]);
+  const [formData, setFormData] = useState({ wstaffID: 2 });
+  //const [dateRange, setDateRange] = useState([]);
   const [rows, setRows] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
+
+  const getDataForRow = (rowId) => {
+    return rows.find((row) => row.id === rowId);
+  };
   
+
+  const handleEditClick = (rowId) => {
+    const rowData = getDataForRow(rowId);
   
+    setFormData({
+      id: rowData.id,
+      productname: rowData.Product_Name,
+      supplier: rowData.Supplier,
+      stock_arrival: rowData.Stock_Arrival.replace(" kg", ""),
+      purchase_date: rowData.Purchase_Date.toISOString().split("T")[0],
+      expire_date: rowData.Expire_Date.toISOString().split("T")[0],
+      batch_no: rowData.Batch_No,
+    });
+  
+    setProductS(rowData.Product_Name);
+    setsupplierS(rowData.Supplier);
+    setIsEditMode(true);
+    setOpenEdit(true);
+  };
+  
+
+  const userRole = userInfo;
+
   useEffect(() => {
     axios
       .get("http://localhost:3001/getstock")
@@ -75,8 +107,8 @@ function DataGridDemo(userInfo) {
         //console.log("Response Data:", response.data);
         const mappedRows = response.data.map((item) => ({
           id: item.inventoryID,
-          Product_Name: item.product_name, 
-          Stock_Arrival: item.stock_arrival + ' kg',
+          Product_Name: item.product_name,
+          Stock_Arrival: item.stock_arrival + " kg",
           Supplier: item.supplier_company,
           Purchase_Date: new Date(item.formatted_purchase_date),
           Expire_Date: new Date(item.formatted_expire_date),
@@ -88,68 +120,6 @@ function DataGridDemo(userInfo) {
         console.error("Error fetching data:", error);
       });
   }, []);
-
-  const handleEditClick = (rowId) => {
-    // Implement edit logic here
-    console.log("Edit clicked for row ID:", rowId);
-  };
-
-  const userRole = userInfo.userInfo;
-
-  
-  const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    { field: 'Product_Name', headerName: 'Product Name', width: 200 },
-    { field: 'Stock_Arrival', headerName: 'Stock Arrival', width: 200 },
-    { field: 'Supplier', headerName: 'Supplier', width: 150 },
-    { field: 'Purchase_Date', headerName: 'Received Date', type: 'date', width: 150 },
-    { field: 'Expire_Date', headerName: 'Expire Date', type: 'date', width: 150 },
-    { field: 'Batch_No', headerName: 'Batch Number', width: 150 },
-    { 
-      field: 'actions', 
-      headerName: '', 
-      width: 300, 
-      disableColumnMenu: true, 
-      renderCell: (params) => (
-        userRole === 1 && (
-          <Box display="flex" justifyContent="flex-end" width="100%">
-            <Button variant="outlined" onClick={() => handleEditClick(params.row.id)}>Edit</Button>
-            <Button variant="outlined" onClick={() => deletePopup(params.row.id)} style={{ marginLeft: 8 }}>Delete</Button>
-          </Box>
-        )
-      )
-    }
-  ];
-
-  return (
-    <Box sx={{ height: 480, width: '100%' }}>
-      <style>{styles}</style>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        pageSize={5}
-        disableSelectionOnClick
-        slots={{
-          toolbar: GridToolbar,
-        }}
-        slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-          },
-        }}
-      />
-    </Box>
-  );
-}
-
-function Inventory({userInfo}) {
-  const [open, setOpen] = React.useState(false);
-  const [productS, setProductS] = React.useState("");
-  const [supplierS, setsupplierS] = React.useState("");
-  const [product, setProduct] = useState([]);
-  const [supplier, setSupplier] = useState([]);
-  const [formData, setFormData] = useState({ wstaffID: 2 });
-  //const [dateRange, setDateRange] = useState([]);
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
@@ -178,16 +148,65 @@ function Inventory({userInfo}) {
     }
   };
 
+  const columns = [
+    { field: "id", headerName: "ID", width: 90 },
+    { field: "Product_Name", headerName: "Product Name", width: 200 },
+    { field: "Stock_Arrival", headerName: "Stock Arrival", width: 200 },
+    { field: "Supplier", headerName: "Supplier", width: 150 },
+    {
+      field: "Purchase_Date",
+      headerName: "Received Date",
+      type: "date",
+      width: 150,
+    },
+    {
+      field: "Expire_Date",
+      headerName: "Expire Date",
+      type: "date",
+      width: 150,
+    },
+    { field: "Batch_No", headerName: "Batch Number", width: 150 },
+    {
+      field: "actions",
+      headerName: "",
+      width: 300,
+      disableColumnMenu: true,
+      renderCell: (params) =>
+        userRole === 1 && (
+          <Box display="flex" justifyContent="flex-end" width="100%">
+            <Button
+              variant="outlined"
+              onClick={() => handleEditClick(params.row.id)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => deletePopup(params.row.id)}
+              style={{ marginLeft: 8 }}
+            >
+              Delete
+            </Button>
+          </Box>
+        ),
+    },
+  ];
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    axios
-      .post("http://localhost:3001/addstock", formData)
+  
+    const apiUrl = isEditMode ? `http://localhost:3001/updatestock/${formData.id}` : "http://localhost:3001/addstock";
+    const method = isEditMode ? "put" : "post";
+  
+    axios({
+      method: method,
+      url: apiUrl,
+      data: formData,
+    })
       .then((response) => {
         console.log("Form Data:", formData);
-        console.log("Stock added successfully:", response.data);
-        //console.log("Selected File:", selectedFile);
-
+        console.log(isEditMode ? "Stock updated successfully:" : "Stock added successfully:", response.data);
+  
         setFormData({
           stock_arrival: "",
           supplierID: "",
@@ -197,9 +216,11 @@ function Inventory({userInfo}) {
           batch_no: "",
         });
         setProductS("");
+        setsupplierS("");
+        setIsEditMode(false);
         Swal.fire({
           icon: "success",
-          title: "Stock Added Successfully!",
+          title: isEditMode ? "Stock Updated Successfully!" : "Stock Added Successfully!",
           customClass: {
             popup: "z-50",
           },
@@ -207,14 +228,15 @@ function Inventory({userInfo}) {
             document.querySelector(".swal2-container").style.zIndex = "9999";
           },
         }).then(() => {
-          handleClose();
+          isEditMode ? handleCloseEdit() : handleClose();
           window.location.reload();
         });
       })
       .catch((error) => {
-        console.error("Error adding stock:", error);
+        console.error(isEditMode ? "Error updating stock:" : "Error adding stock:", error);
       });
   };
+  
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -222,6 +244,13 @@ function Inventory({userInfo}) {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleCloseEdit = () => {
+    setProductS('');
+    setsupplierS('');
+    setOpenEdit(false);
+   
   };
 
   useEffect(() => {
@@ -264,8 +293,6 @@ function Inventory({userInfo}) {
   //   }
   // };
 
- 
-
   return (
     <div className=" w-screen">
       <div className="flex w-screen py-10 ">
@@ -307,165 +334,6 @@ function Inventory({userInfo}) {
               >
                 Add Stock <AddCircleOutlineIcon />
               </Button>
-              <Dialog
-                open={open}
-                onClose={handleClose}
-                PaperProps={{
-                  component: "form",
-                  onSubmit: handleSubmit,
-                }}
-              >
-                <DialogTitle>Add Stock</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    To add a stock arrival, please enter the details here.
-                  </DialogContentText>
-
-                  <div className="flex mt-3 mb-1 gap-4">
-                    {/* Product Select */}
-                    <div>
-                      <FormControl sx={{ minWidth: 200 }}>
-                        <InputLabel id="demo-simple-select-label">
-                          Select the Product
-                        </InputLabel>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="demo-simple-select"
-                          value={productS}
-                          autoWidth
-                          label="Select the Product"
-                          onChange={handleChangeSelectP}
-                        >
-                          {product.map((item) => (
-                            <MenuItem
-                              key={item.productID}
-                              value={item.product_name}
-                            >
-                              {item.product_name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </div>
-
-                    {/* Supplier Select */}
-                    <div>
-                      <FormControl sx={{ minWidth: 200 }}>
-                        <InputLabel id="demo-simple-select-label">
-                          Select the Supplier
-                        </InputLabel>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="demo-simple-select"
-                          value={supplierS}
-                          autoWidth
-                          label="Select the Supplier"
-                          onChange={handleChangeSelectS}
-                        >
-                          {supplier.map((item) => (
-                            <MenuItem
-                              key={item.supplierID}
-                              value={item.supplier_company}
-                            >
-                              {item.supplier_company}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </div>
-                  </div>
-
-                  {/* Stock Arrival Input */}
-                  <div className="mt-5">
-                    <TextField
-                      autoFocus
-                      required
-                      margin="dense"
-                      id="sarrival"
-                      name="stock_arrival"
-                      label="Stock Arrival"
-                      type="number"
-                      fullWidth
-                      variant="filled"
-                      size="small"
-                      value={formData.productname}
-                      onChange={handleChangeForm}
-                    />
-                  </div>
-
-                  {/* Received Date */}
-                  <div className="mt-3">
-                    <InputLabel id="demo-simple-select-label">
-                      Received Date
-                    </InputLabel>
-                    <TextField
-                      autoFocus
-                      required
-                      margin="dense"
-                      id="pdate"
-                      name="purchase_date"
-                      label=""
-                      type="date"
-                      fullWidth
-                      variant="filled"
-                      size="small"
-                      value={formData.date}
-                      onChange={handleChangeForm}
-                      // Set min attribute to current date
-                      inputProps={{
-                        min: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-                      }}
-                    />
-                  </div>
-
-                  {/* Expire Date */}
-                  <div className="mt-3">
-                    <InputLabel id="demo-simple-select-label">
-                      Expire Date
-                    </InputLabel>
-                    <TextField
-                      autoFocus
-                      required
-                      margin="dense"
-                      id="edate"
-                      name="expire_date"
-                      label=""
-                      type="date"
-                      fullWidth
-                      variant="filled"
-                      size="small"
-                      value={formData.date}
-                      onChange={handleChangeForm}
-                      // Set min attribute to current date
-                      inputProps={{
-                        min: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-                      }}
-                    />
-                  </div>
-
-                  {/* Batch Number Input */}
-                  <div className="mt-4">
-                    <TextField
-                      autoFocus
-                      required
-                      margin="dense"
-                      id="batchno"
-                      name="batch_no"
-                      label="Batch Number"
-                      type="text"
-                      fullWidth
-                      variant="filled"
-                      size="small"
-                      value={formData.date}
-                      onChange={handleChangeForm}
-                    />
-                  </div>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={handleClose}>Cancel</Button>
-                  <Button type="submit">Add Item</Button>
-                </DialogActions>
-              </Dialog>
             </React.Fragment>
           </div>
         </div>
@@ -473,10 +341,329 @@ function Inventory({userInfo}) {
 
       <div className="w-screen flex ">
         <div className="w-screen px-10 overflow-y-auto h-[70vh]">
-          {/* Inventory Table */}
-          <DataGridDemo userInfo={userInfo}/>
+          <Box sx={{ height: 480, width: "100%" }}>
+            <style>{styles}</style>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              pageSize={5}
+              disableSelectionOnClick
+              slots={{
+                toolbar: GridToolbar,
+              }}
+              slotProps={{
+                toolbar: {
+                  showQuickFilter: true,
+                },
+              }}
+            />
+          </Box>
         </div>
       </div>
+
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleSubmit,
+        }}
+      >
+        <DialogTitle>Add Stock</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To add a stock arrival, please enter the details here.
+          </DialogContentText>
+
+          <div className="flex mt-3 mb-1 gap-4">
+            {/* Product Select */}
+            <div>
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel id="demo-simple-select-label">
+                  Select the Product
+                </InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={productS}
+                  autoWidth
+                  label="Select the Product"
+                  onChange={handleChangeSelectP}
+                >
+                  {product.map((item) => (
+                    <MenuItem key={item.productID} value={item.product_name}>
+                      {item.product_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* Supplier Select */}
+            <div>
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel id="demo-simple-select-label">
+                  Select the Supplier
+                </InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={supplierS}
+                  autoWidth
+                  label="Select the Supplier"
+                  onChange={handleChangeSelectS}
+                >
+                  {supplier.map((item) => (
+                    <MenuItem
+                      key={item.supplierID}
+                      value={item.supplier_company}
+                    >
+                      {item.supplier_company}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+
+          {/* Stock Arrival Input */}
+          <div className="mt-5">
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="sarrival"
+              name="stock_arrival"
+              label="Stock Arrival"
+              type="number"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.productname}
+              onChange={handleChangeForm}
+            />
+          </div>
+
+          {/* Received Date */}
+          <div className="mt-3">
+            <InputLabel id="demo-simple-select-label">Received Date</InputLabel>
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="pdate"
+              name="purchase_date"
+              label=""
+              type="date"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.date}
+              onChange={handleChangeForm}
+              // Set min attribute to current date
+              inputProps={{
+                min: new Date(Date.now() + 86400000)
+                  .toISOString()
+                  .split("T")[0],
+              }}
+            />
+          </div>
+
+          {/* Expire Date */}
+          <div className="mt-3">
+            <InputLabel id="demo-simple-select-label">Expire Date</InputLabel>
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="edate"
+              name="expire_date"
+              label=""
+              type="date"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.date}
+              onChange={handleChangeForm}
+              // Set min attribute to current date
+              inputProps={{
+                min: new Date(Date.now() + 86400000)
+                  .toISOString()
+                  .split("T")[0],
+              }}
+            />
+          </div>
+
+          {/* Batch Number Input */}
+          <div className="mt-4">
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="batchno"
+              name="batch_no"
+              label="Batch Number"
+              type="text"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.date}
+              onChange={handleChangeForm}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button type="submit" variant="contained">Add Item</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Item */}
+      <Dialog
+        open={openEdit}
+        onClose={handleCloseEdit}
+        PaperProps={{
+          component: "form",
+          onSubmit: handleSubmit,
+        }}
+      >
+        <DialogTitle>Edit Stock</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To edit a stock arrival, please enter the details here.
+          </DialogContentText>
+
+          <div className="flex mt-3 mb-1 gap-4">
+            {/* Product Select */}
+            <div>
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel id="product-select-label">
+                  Select the Product
+                </InputLabel>
+                <Select
+                  labelId="product-select-label"
+                  id="product-select"
+                  value={productS}
+                  autoWidth
+                  label="Select the Product"
+                  onChange={handleChangeSelectP}
+                >
+                  {product.map((item) => (
+                    <MenuItem key={item.productID} value={item.product_name}>
+                      {item.product_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+
+            {/* Supplier Select */}
+            <div>
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel id="supplier-select-label">
+                  Select the Supplier
+                </InputLabel>
+                <Select
+                  labelId="supplier-select-label"
+                  id="supplier-select"
+                  value={supplierS}
+                  autoWidth
+                  label="Select the Supplier"
+                  onChange={handleChangeSelectS}
+                >
+                  {supplier.map((item) => (
+                    <MenuItem
+                      key={item.supplierID}
+                      value={item.supplier_company}
+                    >
+                      {item.supplier_company}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+
+          {/* Stock Arrival Input */}
+          <div className="mt-5">
+            <TextField
+              autoFocus
+              required
+              margin="dense"
+              id="sarrival"
+              name="stock_arrival"
+              label="Stock Arrival"
+              type="number"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.stock_arrival}
+              onChange={handleChangeForm}
+            />
+          </div>
+
+          {/* Received Date */}
+          <div className="mt-3">
+            <InputLabel id="received-date-label">Received Date</InputLabel>
+            <TextField
+              required
+              margin="dense"
+              id="pdate"
+              name="purchase_date"
+              type="date"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.purchase_date}
+              onChange={handleChangeForm}
+              inputProps={{
+                min: new Date().toISOString().split("T")[0],
+              }}
+            />
+          </div>
+
+          {/* Expire Date */}
+          <div className="mt-3">
+            <InputLabel id="expire-date-label">Expire Date</InputLabel>
+            <TextField
+              required
+              margin="dense"
+              id="edate"
+              name="expire_date"
+              type="date"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.expire_date}
+              onChange={handleChangeForm}
+              inputProps={{
+                min: new Date().toISOString().split("T")[0],
+              }}
+            />
+          </div>
+
+          {/* Batch Number Input */}
+          <div className="mt-4">
+            <TextField
+              required
+              margin="dense"
+              id="batchno"
+              name="batch_no"
+              label="Batch Number"
+              type="text"
+              fullWidth
+              variant="filled"
+              size="small"
+              value={formData.batch_no}
+              onChange={handleChangeForm}
+            />
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEdit}>Cancel</Button>
+          <Button type="submit" variant="contained">Update Item</Button>
+        </DialogActions> 
+      </Dialog>
     </div>
   );
 }

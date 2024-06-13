@@ -27,12 +27,14 @@ import SaleHistory from "./pages/SaleHistory";
 import StockReq from "./pages/StockReq";
 import SentStockRequests from "./pages/SentStockRequests";
 import BillPreOrders from "./pages/BillPreOrders";
+import FilterSales from "./pages/Reports";
 
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [userID, setUserID] = useState(null);
+  const [username, setUsername] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,6 +49,7 @@ function App() {
         const decodedToken = jwtDecode(token);
         setUserInfo(decodedToken.usertypeID);
         setUserID(decodedToken.userID);
+        setUsername(decodedToken.firstname);
         setIsAuthenticated(true); // Set authentication state to true
         //console.log(decodedToken);
       } catch (error) {
@@ -90,21 +93,20 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[]} />}>
-              
-              <Route path="/product-catalog" element={<ProductCatalog />} />
+              <Route path="/product-catalog" element={<ProductCatalog userID= {userID} userInfo={userInfo}/>} />
               <Route path="/inventory" element={<Inventory userID= {userID} userInfo={userInfo} />} />
             </Route>
 
             {/* Billing */}
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,4]} />}>
-              <Route path="/bill" element={<Bill userID= {userID} />} />
+              <Route path="/bill" element={<Bill userID= {userID} username={username} />} />
             </Route>
 
             {/* Sales History */}
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,2,3,4]} />}>
-              <Route path="/sales" element={<SaleHistory userID= {userID} />} />
+              <Route path="/sales" element={<SaleHistory userID= {userID} userInfo={userInfo}/>} />
             </Route>
 
             {/* Warehouse */}
@@ -126,6 +128,7 @@ function App() {
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
               <Route path="/stock-request" element={<StockReq userID={userID} />} />
               <Route path="/get-stock-request" element={<SentStockRequests userID={userID} />} />
+              <Route path="/reports" element={<FilterSales userID={userID} />} />
             </Route>
 
             {/* Pre Orders */}
@@ -149,8 +152,8 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,3]} />}>
-              <Route path="/delivary-bill" element={<DeliveryBill userID={userID}/>} />
-              <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID}/>} />
+              <Route path="/delivary-bill" element={<DeliveryBill userID={userID} username={username}/>} />
+              <Route path="/pre-delivery-bill" element={<BillPreOrders userID={userID} userInfo={userInfo}/>} />
             </Route>
           </Routes>
         </div>

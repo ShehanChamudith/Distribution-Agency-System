@@ -32,7 +32,6 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { useLocation } from "react-router-dom";
 
-
 const generatePDF = (invoiceData, addedItems, saleID) => {
   const doc = new jsPDF();
 
@@ -457,7 +456,6 @@ const BillPreOrders = ({ userID }) => {
   const [billpreorderID, setbillpreorderID] = useState("");
   const navigate = useNavigate();
 
-
   const location = useLocation();
   const preorderData = location.state?.preorderData?.preorderData || {};
 
@@ -465,19 +463,17 @@ const BillPreOrders = ({ userID }) => {
   const [openDialog, setOpenDialog] = useState(!fromEditLoading);
 
   useEffect(() => {
-    console.log("loadingData:", preorderData); // Log loadingData for debugging
-  
+    console.log("Pre-order data:", preorderData); // Log loadingData for debugging
+
     if (preorderData) {
       // Update selectedRep state
       setSelectedCustomer({
         customerID: preorderData.customerID,
-        shop_name: preorderData.shop_name
+        shop_name: preorderData.shop_name,
       });
-  
-      setbillpreorderID(
-        preorderData.preorderID
-      );
-  
+
+      setbillpreorderID(preorderData.preorderID);
+
       // Update addedItems state
       if (preorderData.addedItems) {
         setAddedItems(preorderData.addedItems);
@@ -486,33 +482,39 @@ const BillPreOrders = ({ userID }) => {
     }
   }, [preorderData]);
 
-  
-
   const handleProceedToCheckout = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
-  
+
     if (addedItems.length === 0 || hasZeroQuantity) {
       setAlertMessage("Please add items with a quantity greater than 0.");
       setOpen(true);
     } else {
       // Check stock totals before proceeding to the payment tab
-      const productIDs = addedItems.map(item => item.productID);
-  
-      axios.post("http://localhost:3001/getproductstocksloading", { loadingId, productIDs })
-        .then(response => {
+      const productIDs = addedItems.map((item) => item.productID);
+
+      axios
+        .post("http://localhost:3001/getproductstocksloading", {
+          loadingId,
+          productIDs,
+        })
+        .then((response) => {
           const stockData = response.data;
           console.log(stockData);
-    
+
           // Check if any product's stock total is 0
-          const unavailableProducts = addedItems.filter(item => {
-            const stockItem = stockData.find(stock => stock.productID === item.productID); 
+          const unavailableProducts = addedItems.filter((item) => {
+            const stockItem = stockData.find(
+              (stock) => stock.productID === item.productID
+            );
             return stockItem && stockItem.stock_total === 0;
           });
 
           if (unavailableProducts.length > 0) {
             // Alert the user if any product is not available in the loading
-            const unavailableProductNames = unavailableProducts.map(item => item.product_name).join(", ");
+            const unavailableProductNames = unavailableProducts
+              .map((item) => item.product_name)
+              .join(", ");
             Swal.fire({
               icon: "error",
               title: "Products Not Available",
@@ -521,19 +523,24 @@ const BillPreOrders = ({ userID }) => {
                 popup: "z-50",
               },
               didOpen: () => {
-                document.querySelector(".swal2-container").style.zIndex = "9999";
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
               },
             });
           } else {
             // Check if any product exceeds the stock total
-            const exceededProducts = addedItems.filter(item => {
-              const stockItem = stockData.find(stock => stock.productID === item.productID); 
+            const exceededProducts = addedItems.filter((item) => {
+              const stockItem = stockData.find(
+                (stock) => stock.productID === item.productID
+              );
               return stockItem && item.quantity > stockItem.stock_total;
             });
-    
+
             if (exceededProducts.length > 0) {
               // Alert the user if any product exceeds the stock total
-              const exceededProductNames = exceededProducts.map(item => item.product_name).join(", ");
+              const exceededProductNames = exceededProducts
+                .map((item) => item.product_name)
+                .join(", ");
               Swal.fire({
                 icon: "error",
                 title: "Stock Limit Exceeded",
@@ -542,7 +549,8 @@ const BillPreOrders = ({ userID }) => {
                   popup: "z-50",
                 },
                 didOpen: () => {
-                  document.querySelector(".swal2-container").style.zIndex = "9999";
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
                 },
               });
             } else {
@@ -557,13 +565,12 @@ const BillPreOrders = ({ userID }) => {
             }
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching product stocks:", error);
           alert("Error fetching product stocks. Please try again.");
         });
     }
   };
-
 
   useEffect(() => {
     let creditedValue;
@@ -698,11 +705,11 @@ const BillPreOrders = ({ userID }) => {
   };
 
   const createInvoice = (saleAmount, paymentType, payment_status) => {
-    const itemsWithLoadingID = addedItems.map(item => ({
+    const itemsWithLoadingID = addedItems.map((item) => ({
       ...item,
-      loadingID: loadingId  // Add loadingID to each item
+      loadingID: loadingId, // Add loadingID to each item
     }));
-  
+
     const invoiceData = {
       sale_amount: saleAmount,
       payment_type: paymentType,
@@ -718,21 +725,22 @@ const BillPreOrders = ({ userID }) => {
       cheque_value: chequeValue,
       addedItems: itemsWithLoadingID,
       payment_status: payment_status,
+      preorderID: billpreorderID,
     };
-  
+
     console.log(invoiceData);
-  
+
     axios
       .post("http://localhost:3001/addsaledelivery", invoiceData)
       .then((response) => {
         console.log("Invoice created successfully:", response.data);
-  
+
         console.log(saleID);
-  
+
         if (printBill) {
           generatePDF(invoiceData, addedItems, saleID);
         }
-  
+
         Swal.fire({
           icon: "success",
           title: "Invoice Created Successfully!",
@@ -744,7 +752,7 @@ const BillPreOrders = ({ userID }) => {
           },
         }).then(() => {
           // Reset addedItems to initial state (empty)
-          navigate('/get-received-preorder')
+          navigate("/get-received-preorder");
           window.location.reload();
         });
       })
@@ -1122,10 +1130,8 @@ const BillPreOrders = ({ userID }) => {
       });
   }, []);
 
-
   return (
     <div className="flex w-screen gap-4">
-
       <div className="w-3/5 flex flex-col ">
         {/* Filtering Bar */}
         <div className="flex pl-10 py-10 gap-10  ">
@@ -1387,13 +1393,16 @@ const BillPreOrders = ({ userID }) => {
                   <div className="flex flex-col justify-between">
                     <div className="flex justify-between">
                       <p>Balance:</p>
-                      <p>{Math.max(calculateBalance(), 0)} LKR</p>
+                      <p>{Math.max(calculateBalance(), 0).toFixed(2)} LKR</p>
                     </div>
 
                     <div className="flex justify-between">
                       <p>Credited Amount:</p>
                       <p>
-                        {calculateBalance() < 0 ? -calculateBalance() : 0} LKR{" "}
+                        {calculateBalance() < 0
+                          ? (-calculateBalance()).toFixed(2)
+                          : (0).toFixed(2)}{" "}
+                        LKR{" "}
                       </p>
                     </div>
                   </div>
@@ -1459,8 +1468,8 @@ const BillPreOrders = ({ userID }) => {
                     <p>Credited Value:</p>
                     <p>
                       {calculateBalance() < 0
-                        ? -calculateBalance()
-                        : calculateBalance()}{" "}
+                        ? (-calculateBalance()).toFixed(2)
+                        : calculateBalance().toFixed(2)}{" "}
                       LKR
                     </p>
                   </div>

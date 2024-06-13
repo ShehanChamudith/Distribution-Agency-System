@@ -33,6 +33,8 @@ import {
 } from "@mui/material";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import Swal from "sweetalert2";
+import WhatshotIcon from "@mui/icons-material/Whatshot";
+import CountUp from "react-countup";
 
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -56,7 +58,7 @@ function CustomTabPanel(props) {
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: "#6573c3",
     color: theme.palette.common.white,
   },
   [`&.${tableCellClasses.body}`]: {
@@ -93,23 +95,47 @@ export const Admin = () => {
     address: "",
     supplier_company: "",
     shop_name: "",
-    
   });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedUserType, setselectedUserType] = useState("");
   const [usertypeID, setUsertypeID] = useState("");
   const [openEditUserDialog, setOpenEditUserDialog] = useState(false);
+  const [openDeleteUserDialog, setOpenDeleteUserDialog] = useState(false);
   const [editUserID, setEditUserID] = useState("");
-  const [areaID, setSelectedArea] = useState('');
+  const [deleteUserID, setDeleteUserID] = useState("");
+  const [areaID, setSelectedArea] = useState("");
+  const [topProducts, setTopProducts] = useState([]);
+  const [bestArea, setBestArea] = useState(null);
+  const [totalMonth, settotalMonth] = useState(null);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/gettopsales");
+        setTopProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching top selling products:", error);
+      }
+    };
+
+    fetchTopProducts();
+  }, []);
 
   const handleChangeForm = (event) => {
     const { name, value } = event.target;
+    let newValue = value;
+    // If the field is "phone", limit the input to 10 characters
+    if (name === "phone") {
+      newValue = value.slice(0, 10); // Only take the first 10 characters
+    }
     if (name === "confirmPassword") {
       setConfirmPassword(value);
     } else {
       setcustomerData((prevData) => ({
         ...prevData,
-        [name]: value,
+        [name]: newValue,
       }));
     }
   };
@@ -165,84 +191,84 @@ export const Admin = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
+      alert("Passwords do not match!");
+      return;
     }
 
     const newData = { ...customerData, usertypeID, areaID };
 
     const checkData = {
-        username: newData.username,
-        phone: newData.phone,
+      username: newData.username,
+      phone: newData.phone,
     };
 
     // Include userID if updating an existing user
     if (newData.userID) {
-        checkData.userID = newData.userID;
+      checkData.userID = newData.userID;
     }
 
     // Check if the username or phone number already exists
     axios
-        .post("http://localhost:3001/checkUserExistence", checkData)
-        .then((response) => {
-            if (response.data.exists) {
-                // If username or phone already exists, show an alert using SweetAlert
-                Swal.fire({
-                    icon: "error",
-                    title: "Username or phone number already exists!",
-                    customClass: {
-                        popup: "z-50",
-                    },
-                    didOpen: () => {
-                        document.querySelector(".swal2-container").style.zIndex = "9999";
-                    },
-                });
-            } else {
-                // If username and phone are unique, proceed with adding the user
-                // Handle form submission, e.g., send data to the server
-                axios
-                    .post("http://localhost:3001/adduser", newData)
-                    .then((response) => {
-                        console.log("Customer added successfully:", response.data);
-                        setOpenNewCustomerDialog(false);
-                        // Clear form fields
-                        setcustomerData({
-                            username: "",
-                            password: "",
-                            firstname: "",
-                            lastname: "",
-                            email: "",
-                            phone: "",
-                            address: "",
-                            areaID: "",
-                            shop_name: "",
-                            supplier_company: "",
-                        });
-                        setConfirmPassword("");
+      .post("http://localhost:3001/checkUserExistence", checkData)
+      .then((response) => {
+        if (response.data.exists) {
+          // If username or phone already exists, show an alert using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "Username or phone number already exists!",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        } else {
+          // If username and phone are unique, proceed with adding the user
+          // Handle form submission, e.g., send data to the server
+          axios
+            .post("http://localhost:3001/adduser", newData)
+            .then((response) => {
+              console.log("Customer added successfully:", response.data);
+              setOpenNewCustomerDialog(false);
+              // Clear form fields
+              setcustomerData({
+                username: "",
+                password: "",
+                firstname: "",
+                lastname: "",
+                email: "",
+                phone: "",
+                address: "",
+                areaID: "",
+                shop_name: "",
+                supplier_company: "",
+              });
+              setConfirmPassword("");
 
-                        Swal.fire({
-                            icon: "success",
-                            title: "User Added Successfully!",
-                            customClass: {
-                                popup: "z-50",
-                            },
-                            didOpen: () => {
-                                document.querySelector(".swal2-container").style.zIndex = "9999";
-                            },
-                        }).then(() => {
-                            fetchUserData();
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("Error adding customer:", error);
-                    });
-            }
-        })
-        .catch((error) => {
-            console.error("Error checking user existence:", error);
-        });
-};
-
+              Swal.fire({
+                icon: "success",
+                title: "User Added Successfully!",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              }).then(() => {
+                fetchUserData();
+              });
+            })
+            .catch((error) => {
+              console.error("Error adding customer:", error);
+            });
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking user existence:", error);
+      });
+  };
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -258,6 +284,7 @@ export const Admin = () => {
     );
   };
 
+  // Define a function to fetch user data
   const fetchUserData = () => {
     axios
       .get("http://localhost:3001/getuser")
@@ -269,15 +296,9 @@ export const Admin = () => {
       });
   };
 
+  // Call the fetchUserData function inside useEffect
   useEffect(() => {
-    axios
-      .get("http://localhost:3001/getuser")
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+    fetchUserData();
   }, []);
 
   useEffect(() => {
@@ -335,38 +356,186 @@ export const Admin = () => {
   const handleEditUser = (event) => {
     event.preventDefault();
 
+    // Check if the user exists by sending a request to the backend
     axios
-      .get(`http://localhost:3001/getuser/${editUserID}`)
+      .post("http://localhost:3001/checkUserExistence2", { userID: editUserID })
       .then((response) => {
-        const userData = response.data[0]; // Assuming response.data is an array
+        if (response.data.exists) {
+          // If the user exists, fetch their data for editing
+          axios
+            .get(`http://localhost:3001/getuser/${editUserID}`)
+            .then((userDataResponse) => {
+              const userData = userDataResponse.data[0]; // Assuming response.data is an array
 
-        // Map the fetched data to the state structure
-        setcustomerData({
-          userID: userData.userID,
-          username: userData.username,
-          password: "", // Usually, you wouldn't prefill the password for security reasons
-          firstname: userData.firstname,
-          lastname: userData.lastname,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address,
-          area: userData.area || "",
-          shop_name: userData.shop_name || "",
-          supplier_company: userData.supplier_company || "",
-        });
+              // Map the fetched data to the state structure
+              setcustomerData({
+                userID: userData.userID,
+                username: userData.username,
+                password: "", // Usually, you wouldn't prefill the password for security reasons
+                firstname: userData.firstname,
+                lastname: userData.lastname,
+                email: userData.email,
+                phone: userData.phone,
+                address: userData.address,
+                area: userData.area || "",
+                shop_name: userData.shop_name || "",
+                supplier_company: userData.supplier_company || "",
+              });
 
-        console.log(userData);
-        setOpenEditUserDialog(false);
-        setOpenNewCustomerDialog(true);
+              console.log(userData);
+              fetchUserData();
+              setOpenEditUserDialog(false);
+              setOpenNewCustomerDialog(true);
+            })
+            .catch((error) => {
+              console.error("Error fetching user data:", error);
+            });
+        } else {
+          // If the user doesn't exist, show an error message using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "User Not Found!",
+            text: "The user with the provided ID does not exist.",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        }
       })
       .catch((error) => {
-        console.error("Error fetching user data:", error);
+        console.error("Error checking user existence:", error);
       });
   };
 
+  const handleDeleteUser = (event) => {
+    event.preventDefault();
+
+    // Check if the user exists by sending a request to the backend
+    axios
+      .post("http://localhost:3001/checkUserExistence3", {
+        userID: deleteUserID,
+      })
+      .then((response) => {
+        if (response.data.exists) {
+          const { usertypeID, firstname } = response.data;
+
+          if (usertypeID === 1) {
+            // If usertypeID is 1, show an error message using SweetAlert
+            Swal.fire({
+              icon: "error",
+              title: "Admin Cannot Be Removed!",
+              text: "The user with admin privileges cannot be deleted.",
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
+              },
+            });
+          } else {
+            // Show confirmation dialog using SweetAlert
+            Swal.fire({
+              icon: "warning",
+              title: `Are you sure you want to delete ${firstname}?`,
+              text: "This action cannot be undone.",
+              showCancelButton: true,
+              confirmButtonText: "Yes, delete it!",
+              cancelButtonText: "Cancel",
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
+              },
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // If user confirms, proceed with deletion
+                axios
+                  .put(`http://localhost:3001/deleteuser/${deleteUserID}`)
+                  .then((response) => {
+                    // Show success alert
+                    Swal.fire({
+                      icon: "success",
+                      title: "User Deleted",
+                      text: "The user has been deleted successfully.",
+                    });
+
+                    fetchUserData();
+                    setOpenDeleteUserDialog(false);
+                  })
+                  .catch((error) => {
+                    console.error("Error deleting user:", error);
+                  });
+              }
+            });
+          }
+        } else {
+          // If the user doesn't exist, show an error message using SweetAlert
+          Swal.fire({
+            icon: "error",
+            title: "User Not Found!",
+            text: "The user with the provided ID does not exist.",
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex = "9999";
+            },
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking user existence:", error);
+      });
+  };
+
+  useEffect(() => {
+    const fetchBestArea = async () => {
+      try {
+        const response = await axios.get("http://localhost:3001/getbestarea"); // Replace with your actual endpoint
+        setBestArea(response.data);
+      } catch (error) {
+        console.error("Error fetching best area:", error);
+      }
+    };
+
+    fetchBestArea();
+  }, []);
+
+  useEffect(() => {
+    const fetchTotalMonth = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3001/gettotalofmonth"
+        ); // Replace with your actual endpoint
+        settotalMonth(response.data);
+      } catch (error) {
+        console.error("Error fetching best area:", error);
+      }
+    };
+
+    fetchTotalMonth();
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/getemp")
+      .then((response) => response.json())
+      .then((data) => {
+        setTotalEmployees(data.totalEmployees);
+        setTotalCustomers(data.totalCustomers);
+      })
+      .catch((error) => console.error("Error:", error));
+  }, []);
+
+
   return (
     <div>
-      <div className="w-screen px-20 py-5 h-[85vh]">
+      <div className="w-screen px-10 py-5 h-[85vh]">
         <Box sx={{ width: "100%" }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs
@@ -380,19 +549,126 @@ export const Admin = () => {
             </Tabs>
           </Box>
           <CustomTabPanel value={value} index={0}>
-            <div className="flex w-full ">
-              <div className="flex w-full -300 gap-4">
-                <div className="flex flex-col w-4/6 p-2 border rounded-xl ml-6 mt-5">
-                  <h1 className=" font-PoppinsM text-xl pl-2"> Sales </h1>
-                  <div>
-                    <LineGraph />
+            <div className="flex w-full  ">
+              <div className="flex flex-col w-full gap-4 ">
+                <div className="w-full h-[20vh] rounded-xl flex justify-between gap-14">
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Sales This Month
+                    </h2>
+                    {totalMonth !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        <CountUp
+                          end={totalMonth.total_amount}
+                          duration={2}
+                          separator=","
+                        />{" "}
+                        LKR
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Employees
+                    </h2>
+                    {totalEmployees !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        {totalEmployees}
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-lg w-1/4 flex flex-col justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Total Customers
+                    </h2>
+                    {totalCustomers !== null ? (
+                      <p className="text-center text-3xl font-PoppinsB">
+                        {totalCustomers}
+                      </p>
+                    ) : (
+                      <p className="text-center">Loading...</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col bg-white p-4 rounded-lg shadow-lg w-1/4 justify-center items-center">
+                    <h2 className="text-center font-PoppinsR">
+                      Best Sales Area
+                    </h2>
+                    {bestArea ? (
+                      <div>
+                        <p className="text-center font-PoppinsM">
+                          {bestArea.area}
+                        </p>
+                        <p className="text-center text-3xl font-PoppinsB">
+                          <CountUp
+                            end={bestArea.total_sale_amount}
+                            duration={2}
+                            separator=","
+                          />{" "}
+                          LKR
+                        </p>
+                      </div>
+                    ) : (
+                      <p>Loading...</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-col w-2/6 p-2 border rounded-xl mr-6 mt-5">
-                  <h1 className=" font-PoppinsM text-xl pl-2"> Inventory </h1>
-                  <div>
-                    <DoughnutGraph />
+                <div className="w-full flex h-[50vh] gap-5">
+                  <div className="flex w-4/6 border rounded-xl">
+                    <div className=" w-[70%] ">
+                      <h1 className=" font-PoppinsM text-md pl-6 pt-2">
+                        {" "}
+                        Sales of Last 7 Days{" "}
+                      </h1>
+                      <div>
+                        <LineGraph />
+                      </div>
+                    </div>
+
+                    <div className=" w-[30%] ">
+                      <div>
+                        <h1 className="font-PoppinsM text-md pt-2">
+                          Top Selling Products{" "}
+                          <WhatshotIcon
+                            style={{ fontSize: "16px", color: "red" }}
+                          />
+                        </h1>
+                      </div>
+                      <div className="h-[38vh] rounded-lg bg-slate-100 mt-5 mr-5 mb-96 p-5">
+                        <div className="flex justify-between text-sm font-PoppinsB pt-4">
+                          <span>Product Name</span>
+                          <span>Sold Quantity</span>
+                        </div>
+                        <ul className="font-PoppinsR space-y-2 pt-9">
+                          {topProducts.map((product) => (
+                            <li
+                              key={product.productID}
+                              className="flex justify-between"
+                            >
+                              <span>{product.product_name}</span>
+                              <span>
+                                {parseFloat(product.total_quantity).toFixed(2)}
+                                kg
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col w-2/6 border rounded-xl">
+                    <h1 className=" font-PoppinsM text-md pl-6 pt-2">
+                      {" "}
+                      Inventory{" "}
+                    </h1>
+                    <div className="flex justify-center h-[45vh]">
+                      <DoughnutGraph />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -414,6 +690,12 @@ export const Admin = () => {
                   onClick={() => setOpenEditUserDialog(true)}
                 >
                   Edit User
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenDeleteUserDialog(true)}
+                >
+                  Delete User
                 </Button>
               </FilterBox>
               <ScrollableTableContainer
@@ -1048,6 +1330,35 @@ export const Admin = () => {
               </Button>
               <Button onClick={handleEditUser} color="primary">
                 Edit
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          <Dialog
+            open={openDeleteUserDialog}
+            onClose={() => setOpenDeleteUserDialog(false)}
+          >
+            <DialogTitle>Enter User ID to Delete</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="User ID Delete"
+                type="text"
+                fullWidth
+                value={deleteUserID}
+                onChange={(e) => setDeleteUserID(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setOpenDeleteUserDialog(false)}
+                color="primary"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleDeleteUser} color="primary">
+                Delete
               </Button>
             </DialogActions>
           </Dialog>

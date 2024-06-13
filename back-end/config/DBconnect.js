@@ -6,6 +6,7 @@ const dbConfig = {
   user: "root",
   password: "",
   database: "development_project",
+  timezone: 'Z'
 };
 
 // Create a MySQL pool

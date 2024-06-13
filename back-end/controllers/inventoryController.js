@@ -77,8 +77,50 @@ const deleteStock = (req, res) => {
     });
 };
 
+const updateStock = (req, res) => {
+    const inventoryID = req.params.id;
+    const {
+      stock_arrival,
+      supplierID,
+      purchase_date,
+      expire_date,
+      productID,
+      batch_no,
+    } = req.body;
+
+    console.log(inventoryID);
+  
+    const query = `
+      UPDATE inventory
+      SET stock_arrival = ?, supplierID = ?, purchase_date = ?, expire_date = ?, productID = ?, batch_no = ?
+      WHERE inventoryID = ?
+    `;
+  
+    DBconnect.query(
+      query,
+      [
+        stock_arrival,
+        supplierID,
+        purchase_date,
+        expire_date,
+        productID,
+        batch_no,
+        inventoryID,
+      ],
+      (err, result) => {
+        if (err) {
+          console.error("Error updating stock:", err);
+          res.status(500).send("Error updating stock");
+          return;
+        }
+        res.status(200).send("Stock updated successfully");
+      }
+    );
+  };
+
 
 module.exports = {
   addInventory,
-  deleteStock
+  deleteStock,
+  updateStock
 };

@@ -3,7 +3,12 @@ const DBconnect = require("../config/DBconnect");
 //get product items from product table( to show items ) and relavant category from category table ( category for what - for filter based on category )
 const inventoryGet = (req, res) => {
   DBconnect.query(
-    "SELECT p.*, c.category, s.supplier_company FROM product p JOIN category c ON p.categoryID = c.categoryID JOIN supplier s ON p.supplierID = s.supplierID",
+    `SELECT p.*, c.category, s.supplier_company
+FROM product p
+JOIN category c ON p.categoryID = c.categoryID
+JOIN supplier s ON p.supplierID = s.supplierID
+WHERE p.active = 'yes';
+`,
     (err, results) => {
       if (err) {
         console.error("Error querying MySQL database:", err);
@@ -115,7 +120,7 @@ const getStock = (req, res) => {
 };
 
 const getSupplier = (req, res) => {
-  DBconnect.query("SELECT * FROM supplier", (err, results) => {
+  DBconnect.query("SELECT supplier.*, user.email FROM supplier JOIN user ON supplier.userID = user.userID;", (err, results) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
       res.status(500).send("Internal Server Error");
@@ -134,6 +139,24 @@ const getSupplier = (req, res) => {
 
 const getCustomer = (req, res) => {
   DBconnect.query("SELECT * FROM customer", (err, results) => {
+    if (err) {
+      console.error("Error querying MySQL database:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      console.warn("No data found in customer table");
+      res.status(404).send("No data found");
+      return;
+    }
+
+    res.json(results);
+  });
+};
+
+const getRepandWare = (req, res) => {
+  DBconnect.query("SELECT userID, firstname FROM user WHERE usertypeID = 3 OR usertypeID = 4", (err, results) => {
     if (err) {
       console.error("Error querying MySQL database:", err);
       res.status(500).send("Internal Server Error");
@@ -471,7 +494,7 @@ const getPreOrderTotal = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  const query = "SELECT * FROM user";
+  const query = "SELECT * FROM user WHERE active = 'yes' ";
 
   DBconnect.query(query, (err, results) => {
     if (err) {
@@ -559,8 +582,7 @@ INNER JOIN
     customer c ON s.customerID = c.customerID
 INNER JOIN 
     area a ON c.areaID = a.areaID  -- Join customer with area to get area information
-WHERE 
-    p.payment_status != 'fully paid';
+;
 
 
 
@@ -599,6 +621,27 @@ const getUserbyID = (req, res) => {
     if (results.length === 0) {
       res.status(200).send("No data in user table");
     } else {
+      res.json(results);
+    }
+  });
+};
+
+const getUserbyIDdel = (req, res) => {
+  userID = req.params.deleteUserID;
+  console.log(userID);
+  const query = "SELECT * FROM user WHERE userID = ?";
+
+  DBconnect.query(query, [userID], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in user table");
+    } else {
+      console.log(results);
       res.json(results);
     }
   });
@@ -753,6 +796,194 @@ const getStockRequests = (req, res) => {
   });
 };
 
+const getLoadingStatus = (req, res) => {
+  const { repID } = req.params;
+  console.log(repID);
+
+  // Query to get the latest loading status from the loading table for the given repID
+  const selectLoadingStatusQuery = `
+    SELECT 
+      loading_status 
+    FROM 
+      loading 
+    WHERE 
+      repID = ?
+    ORDER BY 
+      loadingID DESC  -- Ordering by loadingID in descending order
+    LIMIT 1
+  `;
+
+  DBconnect.query(selectLoadingStatusQuery, [repID], (err, loadingResults) => {
+    if (err) {
+      console.error("Error querying MySQL database for loading status:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    // Check if there is a result
+    if (loadingResults.length > 0) {
+      // Get the loading status from the first (and only) result
+      const loadingStatus = loadingResults[0].loading_status;
+      
+      // Check if the loading status is 'pending'
+      const hasPendingStatus = loadingStatus === "pending";
+
+      console.log(hasPendingStatus);
+      
+      // Respond with true if there is a pending loading status, otherwise false
+      res.json({ hasPendingStatus });
+    } else {
+      // If there are no results, respond with false
+      res.json({ hasPendingStatus: false });
+    }
+  });
+};
+
+const getSalesChart = (req, res) => {
+  const query = `SELECT DATE(date) AS date, SUM(sale_amount) AS sale_amount
+FROM sale
+WHERE date BETWEEN DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND CURDATE()
+GROUP BY DATE(date)
+ORDER BY date DESC;
+
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getTopSales = (req, res) => {
+  const query = `SELECT 
+    ps.productID, 
+    p.product_name, 
+    SUM(ps.quantity) AS total_quantity
+FROM 
+    productsale ps
+JOIN 
+    product p ON ps.productID = p.productID
+GROUP BY 
+    ps.productID, 
+    p.product_name
+ORDER BY 
+    total_quantity DESC
+LIMIT 5;
+
+`;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in sale table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getProductChart = (req, res) => {
+  const query = 'SELECT productID, product_name, stock_total FROM product';
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching product data:', err);
+      res.status(500).json({ error: 'Failed to fetch product data' });
+      return;
+    }
+    res.json(results);
+  });
+};
+
+const getBestArea = (req, res) => {
+  // Execute the SQL query
+  DBconnect.query(
+    'SELECT a.areaID, a.area, SUM(s.sale_amount) AS total_sale_amount FROM sale s JOIN customer c ON s.customerID = c.customerID JOIN area a ON c.areaID = a.areaID GROUP BY a.areaID, a.area ORDER BY total_sale_amount DESC LIMIT 1',
+    (error, results, fields) => {
+      if (error) {
+        console.error('Error executing query:', error);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      // Send the area with the highest total sale_amount to the frontend
+      res.json(results[0]);
+    }
+  );
+};
+
+const getTotalofMonth = (req, res) => {
+  const query = `
+    SELECT SUM(sale_amount) AS total_amount
+    FROM sale
+    WHERE MONTH(date) = MONTH(CURRENT_DATE())
+      AND YEAR(date) = YEAR(CURRENT_DATE());
+  `;
+
+  DBconnect.query(query, (err, result) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    res.json({ total_amount: result[0].total_amount });
+  });
+};
+
+
+const getTotalCounts = (req, res) => {
+  const queryEmployees = 'SELECT COUNT(*) AS total_employees FROM `user` WHERE `usertypeID` NOT IN (5, 6)';
+  const queryCustomers = 'SELECT COUNT(*) AS total_customers FROM `user` WHERE `usertypeID` = 6';
+
+  DBconnect.query(queryEmployees, (errorEmployees, resultsEmployees) => {
+    if (errorEmployees) throw errorEmployees;
+    const totalEmployees = resultsEmployees[0].total_employees;
+
+    DBconnect.query(queryCustomers, (errorCustomers, resultsCustomers) => {
+      if (errorCustomers) throw errorCustomers;
+      const totalCustomers = resultsCustomers[0].total_customers;
+
+      res.json({ totalEmployees, totalCustomers });
+    });
+  });
+};
+
+const paymentLog = (req, res) => {
+  const query = `
+    SELECT pl.*, c.shop_name 
+    FROM payment_log pl
+    JOIN customer c ON pl.customerID = c.customerID
+  `;
+
+  // Get a connection from the pool
+  DBconnect.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching data from payment_log:', error);
+      return res.status(500).json({ message: 'Error fetching data from payment_log' });
+    }
+
+    // Successfully fetched data
+    res.status(200).json(results);
+  });
+};
+
+
+
+
 
 
 
@@ -783,4 +1014,14 @@ module.exports = {
   getProductStocks,
   getStockRequests,
   getProductStocksLoading,
+  getUserbyIDdel,
+  getLoadingStatus,
+  getSalesChart,
+  getTopSales,
+  getProductChart,
+  getBestArea,
+  getTotalofMonth,
+  getTotalCounts,
+  paymentLog,
+  getRepandWare,
 };

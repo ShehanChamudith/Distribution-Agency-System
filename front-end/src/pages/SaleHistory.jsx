@@ -65,6 +65,7 @@ function TabPanel(props) {
 
 function SaleHistory() {
   const [preorders, setLoadings] = useState([]);
+  const [paymentlog, setpaymentlog] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [filter, setFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(null);
@@ -94,65 +95,107 @@ function SaleHistory() {
 
   const handleSettleUp = () => {
     if (selectedPaymentID && paymentAmount > 0) {
-      axios.get(`http://localhost:3001/getpaymentstatus/${selectedPaymentID}`)
-        .then(response => {
+      axios
+        .get(`http://localhost:3001/getpaymentstatus/${selectedPaymentID}`)
+        .then((response) => {
           const paymentStatus = response.data.payment_status;
           const creditAmount = response.data.credit_amount; // Ensure this matches the column name from your database
-  
+
           console.log("Payment Status:", paymentStatus);
           console.log("Credit Amount:", creditAmount);
           console.log("Entered Payment Amount:", paymentAmount);
-  
+
           if (paymentStatus !== "fully paid") {
             if (Number(paymentAmount) === Number(creditAmount)) {
               // Add a new row to the payment table
-              axios.post(`http://localhost:3001/updatepayment/${selectedPaymentID}`)
+              axios
+                .post(
+                  `http://localhost:3001/updatepayment/${selectedPaymentID}`
+                )
                 .then(() => {
                   Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Settled Successfully!',
+                    icon: "success",
+                    title: "Payment Settled Successfully!",
                     timer: 2000,
-                    showConfirmButton: false
+                    customClass: {
+                      popup: "z-50",
+                    },
+                    didOpen: () => {
+                      document.querySelector(".swal2-container").style.zIndex =
+                        "9999";
+                    },
+                    showConfirmButton: false,
                   });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after full payment
                 })
-                .catch(error => {
+                .catch((error) => {
                   console.error("Error adding payment:", error);
                 });
             } else if (Number(paymentAmount) < Number(creditAmount)) {
               // Deduct paymentAmount from credit_amount in credit_sale table
-              axios.post(`http://localhost:3001/deductcreditamount/${selectedPaymentID}`, { paymentAmount })
+              axios
+                .post(
+                  `http://localhost:3001/deductcreditamount/${selectedPaymentID}`,
+                  { paymentAmount }
+                )
                 .then(() => {
                   Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Partially Settled.',
+                    icon: "success",
+                    title: "Payment Partially Settled.",
                     timer: 2000,
-                    showConfirmButton: false
+                    showConfirmButton: false,
                   });
                   setOpenDialog(false);
                   fetchCreditSales(); // Fetch credit sales after partial payment
                 })
-                .catch(error => {
+                .catch((error) => {
                   console.error("Error deducting credit amount:", error);
                 });
             } else {
-              alert("Invalid payment amount or payment status.");
+              Swal.fire({
+                icon: "error",
+                title: "Invalid Payment Amount or Payment Status",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              });
             }
           } else {
-            alert("Payment is already fully settled.");
+            Swal.fire({
+              icon: "error",
+              title: "Payment is Already Fully Settled",
+              customClass: {
+                popup: "z-50",
+              },
+              didOpen: () => {
+                document.querySelector(".swal2-container").style.zIndex =
+                  "9999";
+              },
+            });
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error fetching payment status:", error);
         });
     } else {
-      alert("Please enter a valid payment amount.");
+      Swal.fire({
+        icon: "error",
+        title: "Please Enter a Valid Payment Amount",
+        customClass: {
+          popup: "z-50",
+        },
+        didOpen: () => {
+          document.querySelector(".swal2-container").style.zIndex = "9999";
+        },
+      });
     }
   };
-  
-  
-  
+
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
     if (token) {
@@ -176,6 +219,19 @@ function SaleHistory() {
       .then((response) => {
         const salesData = response.data;
         setLoadings(salesData);
+        //console.log(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3001/paymentlog")
+      .then((response) => {
+        const paymentData = response.data;
+        setpaymentlog(paymentData);
         //console.log(response.data);
       })
       .catch((error) => {
@@ -276,8 +332,6 @@ function SaleHistory() {
       paymentType.includes(filter.toLowerCase()) ||
       userName.includes(filter.toLowerCase());
 
-    
-
     if (userInfo === 3) {
       if (dateFilter) {
         const selectedDate = dayjs(dateFilter).startOf("day");
@@ -299,6 +353,24 @@ function SaleHistory() {
     }
   });
 
+  const filteredPayments = paymentlog.filter((pre) => {
+    const logID = pre.logID.toString().toLowerCase();
+    const customer = pre.shop_name.toLowerCase();
+    const paymentType = pre.payment_type.toLowerCase();
+
+    const matchesTextFilter =
+      logID.includes(filter.toLowerCase()) ||
+      customer.includes(filter.toLowerCase()) ||
+      paymentType.includes(filter.toLowerCase());
+
+    if (dateFilter) {
+      const selectedDate = dayjs(dateFilter).startOf("day");
+      const preorderDate = dayjs(new Date(pre.date)).startOf("day");
+      return matchesTextFilter && selectedDate.isSame(preorderDate);
+    }
+    return matchesTextFilter;
+  });
+
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: "#6573c3",
@@ -310,7 +382,8 @@ function SaleHistory() {
   }));
 
   const fetchCreditSales = () => {
-    return axios.get("http://localhost:3001/getcreditsales")
+    return axios
+      .get("http://localhost:3001/getcreditsales")
       .then((response) => {
         setCreditSales(response.data);
       })
@@ -319,11 +392,10 @@ function SaleHistory() {
         return [];
       });
   };
-  
+
   useEffect(() => {
-    fetchCreditSales()
+    fetchCreditSales();
   }, []);
-  
 
   return (
     <div>
@@ -331,6 +403,7 @@ function SaleHistory() {
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Cash and Cheque Sales" />
           <Tab label="Credit Sales" />
+          {userInfo === 1 && <Tab label="Payments Log" />}
         </Tabs>
         <TabPanel value={tabValue} index={0}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -538,8 +611,11 @@ function SaleHistory() {
                                 onClick={() => handleOpenDialog(pre.paymentID)}
                                 color="primary"
                                 variant="contained"
+                                disabled={pre.payment_status === "fully paid"}
                               >
-                                Settle Up
+                                {pre.payment_status === "fully paid"
+                                  ? "Settled"
+                                  : "Settle Up"}
                               </Button>
                             </Box>
                           </TableCell>
@@ -640,6 +716,69 @@ function SaleHistory() {
             </Paper>
           </LocalizationProvider>
         </TabPanel>
+
+        {userInfo === 1 && (
+          <TabPanel value={tabValue} index={2}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Paper>
+                <FilterBox className="w-full p-3 justify-end">
+                  <TextField
+                    className="w-72"
+                    label="Filter"
+                    variant="outlined"
+                    value={filter}
+                    onChange={handleFilterChange}
+                  />
+                  <DatePicker
+                    label="Filter by Date"
+                    value={dateFilter}
+                    onChange={handleDateFilterChange}
+                    slotProps={{
+                      textField: { style: { width: "200px" } },
+                    }}
+                  />
+                  <Button
+                    className="h-14"
+                    variant="outlined"
+                    onClick={handleClearFilters}
+                  >
+                    Clear Filters
+                  </Button>
+                </FilterBox>
+                <ScrollableTableContainer
+                  style={{ maxHeight: "calc(80vh - 160px)" }}
+                >
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <StyledTableCell>Date</StyledTableCell>
+                        <StyledTableCell>Log ID</StyledTableCell>
+                        <StyledTableCell>Payment Type</StyledTableCell>
+                        <StyledTableCell>Amount</StyledTableCell>
+                        <StyledTableCell>Customer</StyledTableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredPayments?.map((pay) => (
+                        <React.Fragment key={pay.logID}>
+                          <TableRow>
+                            <TableCell>
+                              {new Date(pay.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>{pay.logID}</TableCell>
+                            <TableCell>{pay.payment_type}</TableCell>
+                            <TableCell>{pay.amount}</TableCell>
+                            <TableCell>{pay.shop_name}</TableCell>
+                          </TableRow>
+                        </React.Fragment>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollableTableContainer>
+              </Paper>
+            </LocalizationProvider>
+          </TabPanel>
+        )}
       </div>
     </div>
   );

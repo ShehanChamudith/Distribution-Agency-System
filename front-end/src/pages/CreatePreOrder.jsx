@@ -1265,13 +1265,13 @@ const CreatePreOrder = ({ userID, userInfo }) => {
             </div>
             <div className="">
                 <h1 className="text-sm font-PoppinsL">
-                  Customer Name: {fName} {lName}
+                  Customer Name: {selectedCustomer.shop_name}
                 </h1>
               <h1 className="text-sm font-PoppinsL">
-                Loaded Date: {formattedDate}
+                Date: {formattedDate}
               </h1>
               <h1 className="text-sm font-PoppinsL">
-                Loaded Time: {currentTime}
+                Time: {currentTime}
               </h1>
             </div>
           </div>

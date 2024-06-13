@@ -7,7 +7,7 @@ const addItem = (req, res) => {
     // Check if req.file exists
     const imagePath = req.file ? req.file.path : null; // Path to the uploaded image, or null if no file is uploaded
 
-    const insertQuery = 'INSERT INTO product (product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, image_path, supplierID) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    const insertQuery = `INSERT INTO product (product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, image_path, supplierID, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'yes');`;
 
     DBconnect.query(insertQuery, [product_name, stock_total, categoryID, wholesale_price, selling_price, date_added, imagePath, supplierID], (err, result) => {
         if (err) {
@@ -24,7 +24,7 @@ const addItem = (req, res) => {
 
 const deleteItem = (req, res) => {
     const productId = req.params.productId;
-    const sql = 'DELETE FROM product WHERE productID = ?';
+    const sql = `UPDATE product SET active = 'no' WHERE productID = ?;`;
   
     DBconnect.query(sql, [productId], (err, result) => {
       if (err) {

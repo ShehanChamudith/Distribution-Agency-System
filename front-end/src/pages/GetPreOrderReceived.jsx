@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Swal from "sweetalert2";
 import { MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 
 const FilterBox = styled(Box)({
@@ -72,8 +73,8 @@ function GetPreOrderReceived() {
   const [tabValue, setTabValue] = useState(0);
   const [totals, setTotals] = useState([]);
   const [area, setArea] = useState([]);
-  const [areaID, setSelectedArea] = useState('');
-  
+  const [areaID, setSelectedArea] = useState("");
+  const [repID, setrepID] = useState(null);
 
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem("accessToken");
@@ -87,7 +88,6 @@ function GetPreOrderReceived() {
       }
     }
   };
-
 
   useEffect(() => {
     // Decode token when component mounts
@@ -136,7 +136,6 @@ function GetPreOrderReceived() {
     setSelectedArea(event.target.value);
   };
 
-
   // Extract unique loading IDs
   const uniquePreOrders = Array.from(
     new Set(preorders.map((pre) => pre.preorderID))
@@ -176,8 +175,6 @@ function GetPreOrderReceived() {
     setTabValue(newValue);
   };
 
-
-
   // Filter unique loadings based on the filter
   const filteredPreOrders = uniquePreOrders.filter((pre) => {
     const preorderID = pre.preorderID.toString().toLowerCase();
@@ -208,20 +205,22 @@ function GetPreOrderReceived() {
     }
   });
 
-  const handleCompleteLoading = (preorderID) => {
-    axios
-      .put("http://localhost:3001/update-loading-status", { preorderID })
-      .then((response) => {
-        console.log("Loading status updated successfully:", response.data);
-        // Handle success, such as updating UI or showing a confirmation message
-      })
-      .catch((error) => {
-        console.error("Error updating loading status:", error);
-        // Handle error
-      });
 
-    window.location.reload();
-  };
+
+  useEffect(() => {
+    // Fetch the repID based on the userID if userInfo equals 3
+    if (userInfo === 3) {
+      axios
+        .get(`http://localhost:3001/getrepID/${userID}`)
+        .then((response) => {
+          setrepID(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching repID:", error);
+          // Handle error
+        });
+    }
+  }, [userInfo]);
 
   const handleEditLoading = (preorderID) => {
     // Fetch the previously created loading information using the loadingID
@@ -229,17 +228,48 @@ function GetPreOrderReceived() {
       .get(`http://localhost:3001/getpreorderbyID/${preorderID}`)
       .then((response) => {
         const preorderData = response.data; // Assuming the response contains the loading data
-        console.log(preorderData);
-  
-        // Navigate to "/delivery-bill" and pass the data as state
-        navigate("/pre-delivery-bill", { state: { preorderData } });
+
+        if (userInfo === 3) {
+          if (repID) {
+            // Fetch the loading status based on the repID
+            axios
+              .get(`http://localhost:3001/getloadingstatus/${repID}`)
+              .then((response) => {
+                const loadingData = response.data.hasPendingStatus;
+                console.log(loadingData);
+
+                if (loadingData === true) {
+                  // If there is a pending loading status, navigate to "/pre-delivery-bill"
+                  navigate("/pre-delivery-bill", { state: { preorderData } });
+                } else {
+                  // Handle the case where there is no pending loading status
+                  console.error("No Active loading found!");
+                  // Optionally, show an alert or handle this case as needed
+                  Swal.fire({
+                    icon: "error",
+                    title: "No Pending Status",
+                    text: "No pending loading status found.",
+                  });
+                }
+              })
+              .catch((loadingError) => {
+                console.error(
+                  "Error fetching loading statuses:",
+                  loadingError
+                );
+                // Handle error
+              });
+          }
+        } else {
+          // For other userInfo values, navigate to "/bill"
+          navigate("/bill", { state: { preorderData } });
+        }
       })
       .catch((error) => {
         console.error("Error fetching preorder information:", error);
         // Handle error
       });
   };
-  
 
   const handleSearchPreOrders = () => {
     if (areaID) {
@@ -281,10 +311,10 @@ function GetPreOrderReceived() {
         .then((response) => {
           const preOrderData = response.data; // Assuming the response contains the loading data
           console.log(preOrderData);
-  
+
           // Navigate to "/create-loading-pre-orders" and pass the data as state
           navigate("/create-loading-pre-orders", {
-            state: { preOrderData, areaID }
+            state: { preOrderData, areaID },
           });
         })
         .catch((error) => {
@@ -296,16 +326,13 @@ function GetPreOrderReceived() {
     }
   };
 
-
-  
-
   return (
     <div className=" h-[85vh]">
       <div className="w-screen px-20 py-5 h-[85vh] border border-red-400">
-      <Tabs value={tabValue} onChange={handleTabChange}>
-  <Tab label="Pre Orders" />
-  {userInfo !== 3 && <Tab label="Totals of Pending Pre Orders" />}
-</Tabs>
+        <Tabs value={tabValue} onChange={handleTabChange}>
+          <Tab label="Pre Orders" />
+          {userInfo !== 3 && <Tab label="Totals of Pending Pre Orders" />}
+        </Tabs>
 
         <TabPanel value={tabValue} index={0}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -361,17 +388,17 @@ function GetPreOrderReceived() {
                           <TableCell>{pre.area}</TableCell>
                           <TableCell>{pre.pre_order_status}</TableCell>
                           <TableCell>
-                            
-                          <Button
-                              variant="contained"
-                              disabled={pre.pre_order_status === "completed"}
-                              onClick={() =>
-                                handleEditLoading(pre.preorderID)
-                              }
-                            >
-                              Bill
-                            </Button>
-                            
+                            {userInfo === 3 && (
+                              <Button
+                                variant="contained"
+                                disabled={pre.pre_order_status === "completed"}
+                                onClick={() =>
+                                  handleEditLoading(pre.preorderID)
+                                }
+                              >
+                                Bill
+                              </Button>
+                            )}
                           </TableCell>
                           <TableCell align="right">
                             <Button
@@ -449,119 +476,117 @@ function GetPreOrderReceived() {
         </TabPanel>
 
         {userInfo !== 3 && (
-        <TabPanel value={tabValue} index={1}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Paper>
-              <FilterBox className="w-full p-3 justify-between">
-                
-                <Box className="flex gap-4">
-                <FormControl>
-                  <InputLabel id="userarea-label">Select Area</InputLabel>
-                  <Select
-                  className="w-40"
-                    required
-                    labelId="userarea-label"
-                    value={areaID}
-                    onChange={handleAreaChange}
-                    label="Select Area"
-                  >
-                    {area.map((item) => (
-                      <MenuItem key={item.areaID} value={item.areaID}>
-                        {item.area}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Button
-                    className="h-14 w-70"
-                    variant="contained"
-                    onClick={handleSearchPreOrders}
-                    disabled={!areaID}
-                  >
-                    Search for Pre Orders
-                  </Button>
-                
-                  {/* <Button
+          <TabPanel value={tabValue} index={1}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Paper>
+                <FilterBox className="w-full p-3 justify-between">
+                  <Box className="flex gap-4">
+                    <FormControl>
+                      <InputLabel id="userarea-label">Select Area</InputLabel>
+                      <Select
+                        className="w-40"
+                        required
+                        labelId="userarea-label"
+                        value={areaID}
+                        onChange={handleAreaChange}
+                        label="Select Area"
+                      >
+                        {area.map((item) => (
+                          <MenuItem key={item.areaID} value={item.areaID}>
+                            {item.area}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Button
+                      className="h-14 w-70"
+                      variant="contained"
+                      onClick={handleSearchPreOrders}
+                      disabled={!areaID}
+                    >
+                      Search for Pre Orders
+                    </Button>
+
+                    {/* <Button
                     className="h-14 w-70"
                     variant="contained"
                     onClick={handleProcessPreOrders}
                   >
                     Create a Loading of Pre Orders
                   </Button> */}
-                </Box>
-               
-                
-                <Box className="flex gap-4">
-                  <TextField
-                    className="w-72"
-                    label="Filter by Product Name or Supplier"
-                    variant="outlined"
-                    value={filter}
-                    onChange={handleFilterChange}
-                  />
-                  <Button
-                    className="h-14"
-                    variant="outlined"
-                    onClick={handleClearFilters}
-                  >
-                    Clear Filters
-                  </Button>
-                </Box>
-              
-              </FilterBox>
-              <ScrollableTableContainer
-                style={{ maxHeight: "calc(80vh - 160px)" }}
+                  </Box>
+
+                  <Box className="flex gap-4">
+                    <TextField
+                      className="w-72"
+                      label="Filter by Product Name or Supplier"
+                      variant="outlined"
+                      value={filter}
+                      onChange={handleFilterChange}
+                    />
+                    <Button
+                      className="h-14"
+                      variant="outlined"
+                      onClick={handleClearFilters}
+                    >
+                      Clear Filters
+                    </Button>
+                  </Box>
+                </FilterBox>
+                <ScrollableTableContainer
+                  style={{ maxHeight: "calc(80vh - 160px)" }}
+                >
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <StyledTableCell>Product Name</StyledTableCell>
+                        <StyledTableCell align="center">
+                          Total Quantity ( kg )
+                        </StyledTableCell>
+                        <StyledTableCell align="right">
+                          Supplier
+                        </StyledTableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {totals
+                        .filter((row) => {
+                          const productName = row.product_name.toLowerCase();
+                          const supplierCompany =
+                            row.supplier_company.toLowerCase();
+                          const matchesFilter =
+                            productName.includes(filter.toLowerCase()) ||
+                            supplierCompany.includes(filter.toLowerCase());
+                          return matchesFilter;
+                        })
+                        .map((row) => (
+                          <StyledTableRow key={row.product_name}>
+                            <StyledTableCell component="th" scope="row">
+                              {row.product_name}
+                            </StyledTableCell>
+                            <StyledTableCell align="center">
+                              {row.total_quantity}
+                            </StyledTableCell>
+                            <StyledTableCell align="right">
+                              {row.supplier_company}
+                            </StyledTableCell>
+                          </StyledTableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </ScrollableTableContainer>
+              </Paper>
+              <Button
+                className="h-14 w-70"
+                variant="contained"
+                onClick={handleProcessPreOrders}
               >
-                <Table stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>Product Name</StyledTableCell>
-                      <StyledTableCell align="center">
-                        Total Quantity ( kg )
-                      </StyledTableCell>
-                      <StyledTableCell align="right">Supplier</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {totals
-                      .filter((row) => {
-                        const productName = row.product_name.toLowerCase();
-                        const supplierCompany =
-                          row.supplier_company.toLowerCase();
-                        const matchesFilter =
-                          productName.includes(filter.toLowerCase()) ||
-                          supplierCompany.includes(filter.toLowerCase());
-                        return matchesFilter;
-                      })
-                      .map((row) => (
-                        <StyledTableRow key={row.product_name}>
-                          <StyledTableCell component="th" scope="row">
-                            {row.product_name}
-                          </StyledTableCell>
-                          <StyledTableCell align="center">
-                            {row.total_quantity}
-                          </StyledTableCell>
-                          <StyledTableCell align="right">
-                            {row.supplier_company}
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </ScrollableTableContainer>
-            </Paper>
-            <Button
-                    className="h-14 w-70"
-                    variant="contained"
-                    onClick={handleProcessPreOrders}
-                  >
-                    Create a Loading of Pre Orders
-                  </Button>
-          </LocalizationProvider>
-        </TabPanel>
+                Create a Loading of Pre Orders
+              </Button>
+            </LocalizationProvider>
+          </TabPanel>
         )}
       </div>
-
     </div>
   );
 }
