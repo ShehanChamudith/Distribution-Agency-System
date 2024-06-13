@@ -2,35 +2,19 @@ const DBconnect = require("../config/DBconnect");
 
 const salesReport = (req, res) => {
     const { startDate, endDate, paymentType, customerID, userID } = req.body;
-    let query = 'SELECT * FROM sale WHERE 1=1';
+    let query = `
+      SELECT s.*, u.firstname, c.shop_name
+      FROM sale s
+      JOIN user u ON s.userID = u.userID
+      JOIN customer c ON s.customerID = c.customerID
+      WHERE 1=1
+    `;
   
-    if (startDate) query += ` AND date >= '${startDate}'`;
-    if (endDate) query += ` AND date <= '${endDate}'`;
-    if (paymentType) query += ` AND payment_type = '${paymentType}'`;
-    if (customerID) query += ` AND customerID = ${customerID}`;
-    if (userID) query += ` AND userID = ${userID}`;
-  
-    DBconnect.query(query, (err, results) => {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.json(results);
-      }
-    });
-  };
-
-  // Assuming you're using Express.js for your backend
-
-// Route for inventory report
-const inventoryReport = (req, res) => {
-    const { startDate, endDate, productID, supplierID } = req.body;
-    console.log(req.body);
-    let query = 'SELECT * FROM inventory WHERE 1=1';
-  
-    if (startDate) query += ` AND purchase_date >= '${startDate}'`;
-    if (endDate) query += ` AND purchase_date <= '${endDate}'`;
-    if (productID) query += ` AND productID IN (SELECT productID FROM product WHERE productID = '${productID}')`;
-    if (supplierID) query += ` AND supplierID = ${supplierID}`;
+    if (startDate) query += ` AND s.date >= '${startDate}'`;
+    if (endDate) query += ` AND s.date <= '${endDate}'`;
+    if (paymentType) query += ` AND s.payment_type = '${paymentType}'`;
+    if (customerID) query += ` AND s.customerID = ${customerID}`;
+    if (userID) query += ` AND s.userID = ${userID}`;
   
     DBconnect.query(query, (err, results) => {
       if (err) {
@@ -40,6 +24,35 @@ const inventoryReport = (req, res) => {
       }
     });
 };
+
+
+  // Assuming you're using Express.js for your backend
+
+// Route for inventory report
+const inventoryReport = (req, res) => {
+    const { startDate, endDate, productID, supplierID } = req.body;
+    let query = `
+      SELECT i.*, p.product_name, s.supplier_company
+      FROM inventory i
+      JOIN product p ON i.productID = p.productID
+      JOIN supplier s ON i.supplierID = s.supplierID
+      WHERE 1=1
+    `;
+  
+    if (startDate) query += ` AND i.purchase_date >= '${startDate}'`;
+    if (endDate) query += ` AND i.purchase_date <= '${endDate}'`;
+    if (productID) query += ` AND i.productID = '${productID}'`;
+    if (supplierID) query += ` AND i.supplierID = '${supplierID}'`;
+  
+    DBconnect.query(query, (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json(results);
+      }
+    });
+};
+
 
   
 

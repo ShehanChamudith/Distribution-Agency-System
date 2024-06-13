@@ -39,7 +39,7 @@ const FilterSales = () => {
     paymentType: "",
     customerID: "",
     userID: "",
-    productName: "",
+    productID: "",
     supplierID: "",
   });
   const [salesData, setSalesData] = useState([]);
@@ -119,99 +119,151 @@ const FilterSales = () => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-
     const shopInfo = {
       name: "Maleesha Distribution Agency",
       address: "Atakalanpanna, Kahawatta",
       tel: "077-4439693",
     };
-
     const pageWidth = doc.internal.pageSize.getWidth();
-
-    //doc.setFont("Courier", "bold");
     const shopNameWidth = doc.getTextDimensions(shopInfo.name).w;
     doc.text(shopInfo.name, (pageWidth - shopNameWidth) / 2, 15);
-
     const addressWidth = doc.getTextDimensions(shopInfo.address).w;
     doc.text(shopInfo.address, (pageWidth - addressWidth) / 2, 23);
-
     const telWidth = doc.getTextDimensions(`Tel: ${shopInfo.tel}`).w;
     doc.text(`Tel: ${shopInfo.tel}`, (pageWidth - telWidth) / 2, 31);
-
-    // Report title
     doc.setFontSize(16);
-    doc.text("Sales Report", 10, 50);
+    doc.text(reportType, 10, 50);
 
-    // Filtered options
     doc.setFontSize(12);
-    const selectedCustomer = customers.find(
-      (customer) => customer.customerID === filters.customerID
-    );
-    const customerName = selectedCustomer
-      ? selectedCustomer.shop_name
-      : "All Customers";
-    const paymentType = filters.paymentType || "All";
     const dateRange = `${filters.startDate ? filters.startDate : "N/A"} to ${
       filters.endDate ? filters.endDate : "N/A"
     }`;
-
-    doc.text(`Customer: ${customerName}`, 10, 60);
     doc.text(`Date Range: ${dateRange}`, 10, 68);
-    doc.text(`Payment Type: ${paymentType}`, 10, 76);
 
-    // Add table
-    autoTable(doc, {
-      startY: 90,
-      head: [["Date", "Customer ID", "Sale Amount", "Payment Type", "User ID"]],
-      body: salesData.map((sale) => [
-        sale.date.substring(0, 10),
-        sale.customerID,
-        sale.sale_amount,
-        sale.payment_type,
-        sale.userID,
-      ]),
-    });
+    if (reportType === "Sales Report") {
+      const selectedCustomer = customers.find(
+        (customer) => customer.customerID === filters.customerID
+      );
+      const customerName = selectedCustomer
+        ? selectedCustomer.shop_name
+        : "All Customers";
+      const paymentType = filters.paymentType || "All";
+      doc.text(`Customer: ${customerName}`, 10, 60);
+      doc.text(`Payment Type: ${paymentType}`, 10, 76);
 
-    const finalY = doc.lastAutoTable.finalY + 10; // The y position after the table
+      autoTable(doc, {
+        startY: 90,
+        head: [
+          ["Date", "Customer", "Sale Amount", "Payment Type", "Billed by"],
+        ],
+        body: salesData.map((sale) => [
+          sale.date.substring(0, 10),
+          sale.shop_name,
+          sale.sale_amount,
+          sale.payment_type,
+          sale.firstname,
+        ]),
+      });
 
-    const chartData = {
-      labels: salesData.map((sale) => sale.date.substring(0, 10)),
-      datasets: [
-        {
-          label: "Sales Amount",
-          data: salesData.map((sale) => sale.sale_amount),
-          backgroundColor: "rgba(75, 192, 192, 0.6)",
-        },
-      ],
-    };
+      const finalY = doc.lastAutoTable.finalY + 10;
+      const chartData = {
+        labels: salesData.map((sale) => sale.date.substring(0, 10)),
+        datasets: [
+          {
+            label: "Sales Amount",
+            data: salesData.map((sale) => sale.sale_amount),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+          },
+        ],
+      };
 
-    const chartCanvas = canvasRef.current;
-    const ctx = chartCanvas.getContext("2d");
+      const chartCanvas = canvasRef.current;
+      const ctx = chartCanvas.getContext("2d");
 
-    // Ensure previous chart is destroyed
-    if (window.chartInstance) {
-      window.chartInstance.destroy();
-    }
+      if (window.chartInstance) {
+        window.chartInstance.destroy();
+      }
 
-    window.chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: chartData,
-      options: {
-        responsive: true,
-        animation: {
-          onComplete: () => {
-            // Convert canvas to image
-            const imageUrl = chartCanvas.toDataURL();
-
-            // Add image to PDF
-            doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
-
-            // Save PDF
-            doc.save("sales_report.pdf");
+      window.chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: chartData,
+        options: {
+          responsive: true,
+          animation: {
+            onComplete: () => {
+              const imageUrl = chartCanvas.toDataURL();
+              doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
+              doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
+            },
           },
         },
-      },
-    });
+      });
+    } else if (reportType === "Inventory Report") {
+      const selectedProduct = products.find(
+        (product) => product.productID === filters.productID
+      );
+      const productName = selectedProduct
+        ? selectedProduct.product_name
+        : "All Products";
+      const selectedSupplier = suppliers.find(
+        (supplier) => supplier.supplierID === filters.supplierID
+      );
+      const supplierName = selectedSupplier
+        ? selectedSupplier.supplier_name
+        : "All Suppliers";
+      doc.text(`Product: ${productName}`, 10, 60);
+      doc.text(`Supplier: ${supplierName}`, 10, 76);
+
+      autoTable(doc, {
+        startY: 90,
+        head: [
+          ["Date", "Product", "Stock Arrival", "Supplier", "Batch No"],
+        ],
+        body: inventoryData.map((inventory) => [
+          inventory.purchase_date.substring(0, 10),
+          inventory.product_name,
+          inventory.stock_arrival,
+          inventory.supplier_company,
+          inventory.batch_no,
+        ]),
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      const chartData = {
+        labels: inventoryData.map((inventory) =>
+          inventory.purchase_date.substring(0, 10)
+        ),
+        datasets: [
+          {
+            label: "Stock Arrival",
+            data: inventoryData.map((inventory) => inventory.stock_arrival),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+          },
+        ],
+      };
+
+      const chartCanvas = canvasRef.current;
+      const ctx = chartCanvas.getContext("2d");
+
+      if (window.chartInstance) {
+        window.chartInstance.destroy();
+      }
+
+      window.chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: chartData,
+        options: {
+          responsive: true,
+          animation: {
+            onComplete: () => {
+              const imageUrl = chartCanvas.toDataURL();
+              doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
+              doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
+            },
+          },
+        },
+      });
+    }
   };
 
   return (
@@ -304,7 +356,7 @@ const FilterSales = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <TextField
-                    label="User"
+                    label="Billed by"
                     select
                     name="userID"
                     value={filters.userID}
@@ -354,20 +406,20 @@ const FilterSales = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
-                    <TableCell>Customer ID</TableCell>
+                    <TableCell>Customer</TableCell>
                     <TableCell>Sale Amount</TableCell>
                     <TableCell>Payment Type</TableCell>
-                    <TableCell>User ID</TableCell>
+                    <TableCell>Billed by</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {salesData.map((sale) => (
                     <TableRow key={sale.id}>
                       <TableCell>{sale.date.substring(0, 10)}</TableCell>
-                      <TableCell>{sale.customerID}</TableCell>
+                      <TableCell>{sale.shop_name}</TableCell>
                       <TableCell>{sale.sale_amount}</TableCell>
                       <TableCell>{sale.payment_type}</TableCell>
-                      <TableCell>{sale.userID}</TableCell>
+                      <TableCell>{sale.firstname}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -432,8 +484,8 @@ const FilterSales = () => {
                   <TextField
                     label="Product Name"
                     select
-                    name="productName"
-                    value={filters.productName}
+                    name="productID"
+                    value={filters.productID}
                     onChange={handleChange}
                     fullWidth
                   >
@@ -494,7 +546,6 @@ const FilterSales = () => {
       </div>
 
       {/* Inventory Report */}
-      {/* Inventory Report */}
       {inventoryData.length > 0 && reportType === "Inventory Report" && (
         <Grid container spacing={2} className="mt-6">
           <Grid item xs={12} md={6}>
@@ -503,25 +554,24 @@ const FilterSales = () => {
                 <TableHead>
                   <TableRow>
                     <TableCell>Stock Arrival</TableCell>
-                    <TableCell>Supplier ID</TableCell>
+                    <TableCell>Supplier</TableCell>
                     <TableCell>Purchase Date</TableCell>
                     <TableCell>Expire Date</TableCell>
-                    <TableCell>Product ID</TableCell>
-                    <TableCell>Warehouse Staff ID</TableCell>
-                    <TableCell>Batch No</TableCell>
+                    <TableCell>Product</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {inventoryData.map((item) => (
                     <TableRow key={item.inventoryID}>
                       <TableCell>{item.stock_arrival}</TableCell>
-                      <TableCell>{item.supplierID}</TableCell>
-                      <TableCell>{new Date(item.purchase_date).toLocaleDateString()}</TableCell>
-<TableCell>{new Date(item.expire_date).toLocaleDateString()}</TableCell>
-
-                      <TableCell>{item.productID}</TableCell>
-                      <TableCell>{item.wstaffID}</TableCell>
-                      <TableCell>{item.batch_no}</TableCell>
+                      <TableCell>{item.supplier_company}</TableCell>
+                      <TableCell>
+                        {new Date(item.purchase_date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(item.expire_date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{item.product_name}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
