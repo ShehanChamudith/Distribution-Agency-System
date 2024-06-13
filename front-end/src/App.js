@@ -105,7 +105,7 @@ function App() {
             {/* Sales History */}
 
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1,2,3,4]} />}>
-              <Route path="/sales" element={<SaleHistory userID= {userID} />} />
+              <Route path="/sales" element={<SaleHistory userID= {userID} userInfo={userInfo}/>} />
             </Route>
 
             {/* Warehouse */}

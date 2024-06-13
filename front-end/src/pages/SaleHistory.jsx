@@ -353,6 +353,24 @@ function SaleHistory() {
     }
   });
 
+  const filteredPayments = paymentlog.filter((pre) => {
+    const logID = pre.logID.toString().toLowerCase();
+    const customer = pre.shop_name.toLowerCase();
+    const paymentType = pre.payment_type.toLowerCase();
+
+    const matchesTextFilter =
+      logID.includes(filter.toLowerCase()) ||
+      customer.includes(filter.toLowerCase()) ||
+      paymentType.includes(filter.toLowerCase());
+
+    if (dateFilter) {
+      const selectedDate = dayjs(dateFilter).startOf("day");
+      const preorderDate = dayjs(new Date(pre.date)).startOf("day");
+      return matchesTextFilter && selectedDate.isSame(preorderDate);
+    }
+    return matchesTextFilter;
+  });
+
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: "#6573c3",
@@ -379,15 +397,13 @@ function SaleHistory() {
     fetchCreditSales();
   }, []);
 
-  
-
   return (
     <div>
       <div className="w-screen px-20 py-5 h-[85vh]">
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Cash and Cheque Sales" />
           <Tab label="Credit Sales" />
-          <Tab label="Payments Log" />
+          {userInfo === 1 && <Tab label="Payments Log" />}
         </Tabs>
         <TabPanel value={tabValue} index={0}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -701,68 +717,68 @@ function SaleHistory() {
           </LocalizationProvider>
         </TabPanel>
 
-        <TabPanel value={tabValue} index={2}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Paper>
-              <FilterBox className="w-full p-3 justify-end">
-                <TextField
-                  className="w-72"
-                  label="Filter"
-                  variant="outlined"
-                  value={filter}
-                  onChange={handleFilterChange}
-                />
-                <DatePicker
-                  label="Filter by Date"
-                  value={dateFilter}
-                  onChange={handleDateFilterChange}
-                  slotProps={{
-                    textField: { style: { width: "200px" } },
-                  }}
-                />
-                <Button
-                  className="h-14"
-                  variant="outlined"
-                  onClick={handleClearFilters}
+        {userInfo === 1 && (
+          <TabPanel value={tabValue} index={2}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Paper>
+                <FilterBox className="w-full p-3 justify-end">
+                  <TextField
+                    className="w-72"
+                    label="Filter"
+                    variant="outlined"
+                    value={filter}
+                    onChange={handleFilterChange}
+                  />
+                  <DatePicker
+                    label="Filter by Date"
+                    value={dateFilter}
+                    onChange={handleDateFilterChange}
+                    slotProps={{
+                      textField: { style: { width: "200px" } },
+                    }}
+                  />
+                  <Button
+                    className="h-14"
+                    variant="outlined"
+                    onClick={handleClearFilters}
+                  >
+                    Clear Filters
+                  </Button>
+                </FilterBox>
+                <ScrollableTableContainer
+                  style={{ maxHeight: "calc(80vh - 160px)" }}
                 >
-                  Clear Filters
-                </Button>
-              </FilterBox>
-              <ScrollableTableContainer
-                style={{ maxHeight: "calc(80vh - 160px)" }}
-              >
-                <Table stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <StyledTableCell>Date</StyledTableCell>
-                      <StyledTableCell>Log ID</StyledTableCell>
-                      <StyledTableCell>Payment Type</StyledTableCell>
-                      <StyledTableCell>Amount</StyledTableCell>
-                      <StyledTableCell>Customer</StyledTableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paymentlog?.map((pay) => (
-                      <React.Fragment key={pay.logID}>
-                        <TableRow>
-                          <TableCell>
-                            {new Date(pay.date).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>{pay.logID}</TableCell>
-                          <TableCell>{pay.payment_type}</TableCell>
-                          <TableCell>{pay.amount}</TableCell>
-                          <TableCell>
-                            {pay.shop_name} 
-                          </TableCell>
-                        </TableRow>
-                      </React.Fragment>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollableTableContainer>
-            </Paper>
-          </LocalizationProvider>
-        </TabPanel>
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <StyledTableCell>Date</StyledTableCell>
+                        <StyledTableCell>Log ID</StyledTableCell>
+                        <StyledTableCell>Payment Type</StyledTableCell>
+                        <StyledTableCell>Amount</StyledTableCell>
+                        <StyledTableCell>Customer</StyledTableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredPayments?.map((pay) => (
+                        <React.Fragment key={pay.logID}>
+                          <TableRow>
+                            <TableCell>
+                              {new Date(pay.date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>{pay.logID}</TableCell>
+                            <TableCell>{pay.payment_type}</TableCell>
+                            <TableCell>{pay.amount}</TableCell>
+                            <TableCell>{pay.shop_name}</TableCell>
+                          </TableRow>
+                        </React.Fragment>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollableTableContainer>
+              </Paper>
+            </LocalizationProvider>
+          </TabPanel>
+        )}
       </div>
     </div>
   );
