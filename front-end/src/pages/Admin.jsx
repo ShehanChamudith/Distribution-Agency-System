@@ -109,6 +109,14 @@ export const Admin = () => {
   const [totalMonth, settotalMonth] = useState(null);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [totalCustomers, setTotalCustomers] = useState(0);
+  const [areas, setAreas] = useState([]);
+  const [openAddAreaDialog, setOpenAddAreaDialog] = useState(false);
+  const [openEditAreaDialog, setOpenEditAreaDialog] = useState(false);
+  const [openDeleteAreaDialog, setOpenDeleteAreaDialog] = useState(false);
+  const [areaName, setAreaName] = useState("");
+  const [editArea, setEditArea] = useState(null);
+
+
 
   useEffect(() => {
     const fetchTopProducts = async () => {
@@ -296,12 +304,7 @@ export const Admin = () => {
       });
   };
 
-  // Call the fetchUserData function inside useEffect
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  useEffect(() => {
+  const fetchArea = () => {
     axios
       .get("http://localhost:3001/getarea")
       .then((response) => {
@@ -310,6 +313,12 @@ export const Admin = () => {
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
+  };
+
+  // Call the fetchUserData function inside useEffect
+  useEffect(() => {
+    fetchUserData();
+    fetchArea();
   }, []);
 
   const ScrollableTableContainer = styled(TableContainer)({
@@ -532,6 +541,123 @@ export const Admin = () => {
       .catch((error) => console.error("Error:", error));
   }, []);
 
+  const handleOpenAddAreaDialog = () => {
+    setOpenAddAreaDialog(true);
+  };
+
+  const handleCloseAddAreaDialog = () => {
+    setOpenAddAreaDialog(false);
+  };
+
+  const handleAddArea = () => {
+    // Make sure areaName is not empty
+    if (!areaName.trim()) {
+      alert("Area Name cannot be empty");
+      return;
+    }
+
+    // Show a confirmation dialog
+    Swal.fire({
+      icon: "info",
+      title: "Add Area",
+      text: "Are you sure you want to add this area?",
+      showCancelButton: true,
+      confirmButtonText: "Add",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      customClass: {
+        popup: "z-50",
+      },
+      didOpen: () => {
+        document.querySelector(".swal2-container").style.zIndex = "9999";
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // User confirmed, proceed with adding the area
+        axios
+          .post("http://localhost:3001/addarea", { area: areaName })
+          .then((response) => {
+            if (response.status === 201) {
+              // Area added successfully
+              fetchArea();
+              Swal.fire({
+                icon: "success",
+                title: "Area Added",
+                text: "The area has been successfully added.",
+                timer: 2000, // Show alert for 3 seconds
+                showConfirmButton: false, // Hide the "OK" button
+              });
+              handleCloseAddAreaDialog();
+            }
+          })
+          .catch((error) => {
+            if (error.response && error.response.status === 409) {
+              // Area already exists
+              Swal.fire({
+                icon: "error",
+                title: "Area Already Exists",
+                text: "The area you are trying to add already exists.",
+                customClass: {
+                  popup: "z-50",
+                },
+                didOpen: () => {
+                  document.querySelector(".swal2-container").style.zIndex =
+                    "9999";
+                },
+              });
+            } else {
+              console.error("Error adding area:", error);
+              alert("Failed to add area");
+            }
+          });
+      }
+    });
+  };
+
+  const handleEditArea = (area) => {
+    // Open edit dialog with the selected area's details
+    setEditArea(area);
+    setOpenEditAreaDialog(true);
+  };
+  
+  const handleDeleteArea = (areaID) => {
+    // Show a confirmation dialog before deleting the area
+    Swal.fire({
+      icon: "warning",
+      title: "Delete Area",
+      text: "Are you sure you want to delete this area?",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // User confirmed, proceed with deleting the area
+        axios
+          .put(`http://localhost:3001/deletearea/${areaID}`)
+          .then((response) => {
+            if (response.status === 200) {
+              // Area deleted successfully
+              fetchArea();
+              Swal.fire({
+                icon: "success",
+                title: "Area Deleted",
+                text: "The area has been successfully deleted.",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting area:", error);
+            alert("Failed to delete area");
+          });
+      }
+    });
+  };
+  
 
   return (
     <div>
@@ -545,7 +671,7 @@ export const Admin = () => {
             >
               <Tab label="Overview" {...a11yProps(0)} />
               <Tab label="Users" {...a11yProps(1)} />
-              {/* <Tab label="Item Three" {...a11yProps(2)} /> */}
+              <Tab label="Selling Areas" {...a11yProps(2)} />
             </Tabs>
           </Box>
           <CustomTabPanel value={value} index={0}>
@@ -1116,6 +1242,73 @@ export const Admin = () => {
             </Paper>
           </CustomTabPanel>
 
+          <CustomTabPanel value={value} index={2}>
+            <Paper>
+              <FilterBox className="w-full p-3 justify-end">
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenAddAreaDialog(true)}
+                >
+                  Add Area
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenEditAreaDialog(true)}
+                >
+                  Edit Area
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setOpenDeleteAreaDialog(true)}
+                >
+                  Delete Area
+                </Button>
+              </FilterBox>
+              <ScrollableTableContainer
+                style={{ maxHeight: "calc(80vh - 160px)" }}
+              >
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                        Area ID
+                      </StyledTableCell>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                        Area Name
+                      </StyledTableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {area.map((area) => (
+                      <TableRow key={area.areaID}>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {area.areaID}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          {area.area}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: "center" }}>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleEditArea(area)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleDeleteArea(area.areaID)}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollableTableContainer>
+            </Paper>
+          </CustomTabPanel>
+
           <Dialog
             open={openNewCustomerDialog}
             onClose={handleNewCustomerDialogClose}
@@ -1363,9 +1556,28 @@ export const Admin = () => {
             </DialogActions>
           </Dialog>
 
-          {/* <CustomTabPanel value={value} index={2}>
-          Item Three
-        </CustomTabPanel> */}
+          <Dialog open={openAddAreaDialog} onClose={handleCloseAddAreaDialog}>
+            <DialogTitle>Add Area</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Area Name"
+                type="text"
+                fullWidth
+                value={areaName}
+                onChange={(e) => setAreaName(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseAddAreaDialog} color="secondary">
+                Cancel
+              </Button>
+              <Button onClick={handleAddArea} color="primary">
+                Add
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </div>
     </div>

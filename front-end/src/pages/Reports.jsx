@@ -379,9 +379,6 @@ const FilterSales = () => {
                 <MenuItem value="Sales Report">Sales Report</MenuItem>
                 <MenuItem value="Inventory Report">Inventory Report</MenuItem>
                 <MenuItem value="Payment Log">Payment Log</MenuItem>
-                <MenuItem value="Stock Requests Report">
-                  Stock Requests Report
-                </MenuItem>
               </TextField>
             </div>
           </Grid>

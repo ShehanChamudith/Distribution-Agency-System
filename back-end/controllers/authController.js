@@ -41,8 +41,6 @@ WHERE BINARY user.username = ? AND BINARY user.password = ? AND user.active = 'y
     }
   );
 };
-
-
 const verifyPassword = (req, res) => {
   const { password } = req.body;
   const query = "SELECT password FROM user WHERE usertypeID = 1 LIMIT 1";
@@ -77,7 +75,72 @@ const verifyPassword = (req, res) => {
   });
 };
 
+const addArea = (req, res) => {
+  const { area } = req.body;
+
+  // Check if the area name is provided
+  if (!area || area.trim() === '') {
+    return res.status(400).json({ message: 'Area Name cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM area WHERE area = ?';
+  DBconnect.query(checkQuery, [area.trim()], (err, existingAreas) => {
+    if (err) {
+      console.error('Error checking area in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingAreas.length > 0) {
+      // Area already exists, return a 409 status code
+      return res.status(409).json({ message: 'Area already exists' });
+    }
+
+    const insertQuery = 'INSERT INTO area (area, availability) VALUES (?, "yes")';
+    DBconnect.query(insertQuery, [area.trim()], (err, result) => {
+      if (err) {
+        console.error('Error inserting area into the database:', err);
+        return res.status(500).send('Internal Server Error');
+      }
+
+      if (result.affectedRows === 1) {
+        return res.status(201).json({ message: 'Area added successfully' });
+      } else {
+        return res.status(500).json({ message: 'Failed to add area' });
+      }
+    });
+  });
+};
+
+const deactivateArea = (req, res) => {
+  const { areaID } = req.params;
+  
+
+  // Check if the areaID is provided
+  if (!areaID) {
+      return res.status(400).json({ message: 'Area ID is required' });
+  }
+
+  const updateQuery = 'UPDATE area SET active = "no" WHERE areaID = ?';
+  DBconnect.query(updateQuery, [areaID], (err, result) => {
+      if (err) {
+          console.error('Error updating area in the database:', err);
+          return res.status(500).send('Internal Server Error');
+      }
+
+      if (result.affectedRows === 1) {
+          return res.status(200).json({ message: 'Area deactivated successfully' });
+      } else {
+          return res.status(404).json({ message: 'Area not found' });
+      }
+  });
+};
+
+
+
+
 module.exports = {
   login,
   verifyPassword,
+  addArea,
+  deactivateArea,
 };
