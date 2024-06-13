@@ -27,6 +27,7 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 
 // Register Chart.js components
 Chart.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
@@ -41,7 +42,6 @@ const FilterSales = () => {
     userID: "",
     productID: "",
     supplierID: "",
-    payment_type: "",
   });
   const [salesData, setSalesData] = useState([]);
   const [inventoryData, setInventoryData] = useState([]);
@@ -75,11 +75,6 @@ const FilterSales = () => {
           "http://localhost:3001/getsupplier"
         );
         setSuppliers(supplierResponse.data);
-
-        const logResponse = await axios.get(
-          "http://localhost:3001/getsupplier"
-        );
-        setLogData(logResponse.data);
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -101,10 +96,26 @@ const FilterSales = () => {
 
   const handleSubmit = async () => {
     try {
-      const url =
-        reportType === "Sales Report"
-          ? "http://localhost:3001/salesreport"
-          : "http://localhost:3001/inventoryreport";
+      let url = "";
+      let setData = null;
+
+      switch (reportType) {
+        case "Sales Report":
+          url = "http://localhost:3001/salesreport";
+          setData = setSalesData;
+          break;
+        case "Inventory Report":
+          url = "http://localhost:3001/inventoryreport";
+          setData = setInventoryData;
+          break;
+        case "Payment Log":
+          url = "http://localhost:3001/paymentlogreport";
+          setData = setLogData;
+          break;
+        default:
+          break;
+      }
+
       const response = await axios.post(url, filters);
 
       if (response.data.length === 0) {
@@ -112,12 +123,8 @@ const FilterSales = () => {
           icon: "error",
           title: "No matching data found!",
         });
-      }
-
-      if (reportType === "Sales Report") {
-        setSalesData(response.data);
       } else {
-        setInventoryData(response.data);
+        setData(response.data);
       }
     } catch (error) {
       console.error("Error fetching report data", error);
@@ -198,9 +205,18 @@ const FilterSales = () => {
           responsive: true,
           animation: {
             onComplete: () => {
-              const imageUrl = chartCanvas.toDataURL();
-              doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
-              doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
+                const imageUrl = chartCanvas.toDataURL();
+                const remainingPageSpace = doc.internal.pageSize.getHeight() - finalY;
+                const imageHeight = 90; // Height of the chart image
+    
+                if (imageHeight > remainingPageSpace) {
+                  doc.addPage(); // Add new page if current page space is not enough
+                  doc.addImage(imageUrl, "PNG", 10, 10, 190, 90);
+                } else {
+                  doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
+                }
+    
+                doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
             },
           },
         },
@@ -261,9 +277,82 @@ const FilterSales = () => {
           responsive: true,
           animation: {
             onComplete: () => {
-              const imageUrl = chartCanvas.toDataURL();
-              doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
-              doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
+                const imageUrl = chartCanvas.toDataURL();
+                const remainingPageSpace = doc.internal.pageSize.getHeight() - finalY;
+                const imageHeight = 90; // Height of the chart image
+    
+                if (imageHeight > remainingPageSpace) {
+                  doc.addPage(); // Add new page if current page space is not enough
+                  doc.addImage(imageUrl, "PNG", 10, 10, 190, 90);
+                } else {
+                  doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
+                }
+    
+                doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
+            },
+          },
+        },
+      });
+    } else if (reportType === "Payment Log") {
+      const selectedCustomer = customers.find(
+        (customer) => customer.customerID === filters.customerID
+      );
+      const customerName = selectedCustomer
+        ? selectedCustomer.shop_name
+        : "All Customers";
+      const paymentType = filters.paymentType || "All";
+      doc.text(`Customer: ${customerName}`, 10, 60);
+      doc.text(`Payment Type: ${paymentType}`, 10, 76);
+
+      autoTable(doc, {
+        startY: 90,
+        head: [["Date", "Customer", "Payment Type", "Amount"]],
+        body: logData.map((log) => [
+          new Date(log.date).toLocaleDateString(),
+          log.shop_name,
+          log.payment_type,
+          log.amount,
+        ]),
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 10;
+      const chartData = {
+        labels: logData.map((log) => new Date(log.date).toLocaleDateString()),
+        datasets: [
+          {
+            label: "Amount",
+            data: logData.map((log) => log.amount),
+            backgroundColor: "rgba(75, 192, 192, 0.6)",
+          },
+        ],
+      };
+
+      const chartCanvas = canvasRef.current;
+      const ctx = chartCanvas.getContext("2d");
+
+      if (window.chartInstance) {
+        window.chartInstance.destroy();
+      }
+
+      window.chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: chartData,
+        options: {
+          responsive: true,
+          animation: {
+            onComplete: () => {
+                const imageUrl = chartCanvas.toDataURL();
+                const remainingPageSpace = doc.internal.pageSize.getHeight() - finalY;
+                const imageHeight = 90; // Height of the chart image
+    
+                if (imageHeight > remainingPageSpace) {
+                  doc.addPage(); // Add new page if current page space is not enough
+                  doc.addImage(imageUrl, "PNG", 10, 10, 190, 90);
+                } else {
+                  doc.addImage(imageUrl, "PNG", 10, finalY, 190, 90);
+                }
+    
+                doc.save(`${reportType.toLowerCase().replace(" ", "_")}.pdf`);
             },
           },
         },
@@ -647,8 +736,8 @@ const FilterSales = () => {
                     fullWidth
                   >
                     {customers.map((customer) => (
-                      <MenuItem key={customer.id} value={customer.id}>
-                        {customer.name}
+                      <MenuItem key={customer.id} value={customer.customerID}>
+                        {customer.shop_name}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -694,6 +783,77 @@ const FilterSales = () => {
           </>
         )}
       </div>
+
+      {/* Payment Log */}
+      {logData.length > 0 && reportType === "Payment Log" && (
+        <Grid container spacing={2} className="mt-6">
+          <Grid item xs={12} md={6}>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Customer</TableCell>
+                    <TableCell>Payment Type</TableCell>
+                    <TableCell>Amount</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {logData.map((log) => (
+                    <TableRow key={log.logID}>
+                      <TableCell>
+                        {new Date(log.date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{log.shop_name}</TableCell>
+                      <TableCell>{log.payment_type}</TableCell>
+                      <TableCell>{log.amount}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Bar
+              ref={chartRef}
+              data={{
+                labels: logData.map((log) =>
+                  new Date(log.date).toLocaleDateString()
+                ),
+                datasets: [
+                  {
+                    label: "Amount",
+                    data: logData.map((log) => log.amount),
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                  },
+                ],
+              }}
+              options={{
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Date",
+                    },
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: "Amount",
+                    },
+                  },
+                },
+              }}
+            />
+            <canvas
+              ref={canvasRef}
+              width={1000} // Increased width for better resolution
+              height={600} // Increased height for better resolution
+              style={{ display: "none" }}
+            />
+          </Grid>
+        </Grid>
+      )}
     </div>
   );
 };

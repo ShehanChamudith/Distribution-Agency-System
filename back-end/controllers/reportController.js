@@ -25,10 +25,7 @@ const salesReport = (req, res) => {
     });
 };
 
-
-  // Assuming you're using Express.js for your backend
-
-// Route for inventory report
+// Controller for inventory report
 const inventoryReport = (req, res) => {
     const { startDate, endDate, productID, supplierID } = req.body;
     let query = `
@@ -53,10 +50,35 @@ const inventoryReport = (req, res) => {
     });
 };
 
+const paymentLogReport = (req, res) => {
+    const { startDate, endDate, paymentType, customerID } = req.body;
+    console.log(req.body);
+    let query = `
+      SELECT pl.*, c.shop_name
+      FROM payment_log pl
+      JOIN customer c ON pl.customerID = c.customerID
+      WHERE 1=1
+    `;
+  
+    if (startDate) query += ` AND pl.date >= '${startDate}'`;
+    if (endDate) query += ` AND pl.date <= '${endDate}'`;
+    if (paymentType) query += ` AND pl.payment_type = '${paymentType}'`;
+    if (customerID) query += ` AND pl.customerID = '${customerID}'`;
+  
+    DBconnect.query(query, (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json(results);
+      }
+    });
+  };
+  
 
   
 
   module.exports = {
     salesReport,
-    inventoryReport
+    inventoryReport,
+    paymentLogReport,
   }
