@@ -19,6 +19,7 @@ const FilterSales = () => {
   });
   const [salesData, setSalesData] = useState([]);
   const chartRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const handleReportTypeChange = (e) => {
     setReportType(e.target.value);
@@ -55,7 +56,7 @@ const FilterSales = () => {
       ],
     };
 
-    const chartCanvas = document.createElement('canvas');
+    const chartCanvas = canvasRef.current;
     const ctx = chartCanvas.getContext('2d');
 
     // Ensure previous chart is destroyed
@@ -66,16 +67,22 @@ const FilterSales = () => {
     window.chartInstance = new Chart(ctx, {
       type: 'bar',
       data: chartData,
+      options: {
+        responsive: false, // Disable responsiveness to get a fixed size
+        animation: {
+          onComplete: () => {
+            // Convert canvas to image
+            const imageUrl = chartCanvas.toDataURL();
+            
+            // Add image to PDF
+            doc.addImage(imageUrl, 'PNG', 10, 20, 190, 150);
+
+            // Save PDF
+            doc.save('sales_report.pdf');
+          }
+        }
+      }
     });
-
-    // Convert canvas to image
-    const imageUrl = chartCanvas.toDataURL();
-
-    // Add image to PDF
-    doc.addImage(imageUrl, 'PNG', 10, 20, 180, 100);
-
-    // Save PDF
-    doc.save('sales_report.pdf');
   };
 
   return (
@@ -191,19 +198,27 @@ const FilterSales = () => {
       </div>
 
       {salesData.length > 0 && reportType === "Sales Report" && (
-        <Bar
-          ref={chartRef}
-          data={{
-            labels: salesData.map((sale) => sale.date),
-            datasets: [
-              {
-                label: "Sales Amount",
-                data: salesData.map((sale) => sale.sale_amount),
-                backgroundColor: "rgba(75, 192, 192, 0.6)",
-              },
-            ],
-          }}
-        />
+        <>
+          <Bar
+            ref={chartRef}
+            data={{
+                labels: salesData.map((sale) => sale.date.substring(0, 10)), 
+              datasets: [
+                {
+                  label: "Sales Amount",
+                  data: salesData.map((sale) => sale.sale_amount),
+                  backgroundColor: "rgba(75, 192, 192, 0.6)",
+                },
+              ],
+            }}
+          />
+          <canvas
+            ref={canvasRef}
+            width={1000} // Increased width for better resolution
+            height={600} // Increased height for better resolution
+            style={{ display: 'none' }}
+          />
+        </>
       )}
     </div>
   );
