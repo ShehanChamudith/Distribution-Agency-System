@@ -83,6 +83,7 @@ export const Admin = () => {
   const [value, setValue] = React.useState(0);
   const [users, setUsers] = useState([]);
   const [area, setArea] = useState([]);
+  const [areaActive, setAreaActive] = useState([]);
   const [openRow, setOpenRow] = useState(null);
   const [openNewCustomerDialog, setOpenNewCustomerDialog] = useState(false);
   const [customerData, setcustomerData] = useState({
@@ -112,11 +113,8 @@ export const Admin = () => {
   const [areas, setAreas] = useState([]);
   const [openAddAreaDialog, setOpenAddAreaDialog] = useState(false);
   const [openEditAreaDialog, setOpenEditAreaDialog] = useState(false);
-  const [openDeleteAreaDialog, setOpenDeleteAreaDialog] = useState(false);
   const [areaName, setAreaName] = useState("");
   const [editArea, setEditArea] = useState(null);
-
-
 
   useEffect(() => {
     const fetchTopProducts = async () => {
@@ -315,10 +313,22 @@ export const Admin = () => {
       });
   };
 
+  const fetchAreaActive = () => {
+    axios
+      .get("http://localhost:3001/getareaactive")
+      .then((response) => {
+        setAreaActive(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  };
+
   // Call the fetchUserData function inside useEffect
   useEffect(() => {
     fetchUserData();
     fetchArea();
+    fetchAreaActive();
   }, []);
 
   const ScrollableTableContainer = styled(TableContainer)({
@@ -615,12 +625,20 @@ export const Admin = () => {
     });
   };
 
-  const handleEditArea = (area) => {
-    // Open edit dialog with the selected area's details
-    setEditArea(area);
-    setOpenEditAreaDialog(true);
+  const handleEditArea = (areaID) => {
+    // Find the area to edit
+    const areaToEdit = area.find((a) => a.areaID === areaID);
+    if (areaToEdit) {
+      // Set the areaName state variable to the existing area's name
+      setAreaName(areaToEdit.area);
+      // Set the editArea state variable to the areaID
+      setEditArea(areaID);
+      // Open the edit dialog
+      setOpenEditAreaDialog(true);
+    }
   };
   
+
   const handleDeleteArea = (areaID) => {
     // Show a confirmation dialog before deleting the area
     Swal.fire({
@@ -657,7 +675,6 @@ export const Admin = () => {
       }
     });
   };
-  
 
   return (
     <div>
@@ -1251,18 +1268,6 @@ export const Admin = () => {
                 >
                   Add Area
                 </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => setOpenEditAreaDialog(true)}
-                >
-                  Edit Area
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => setOpenDeleteAreaDialog(true)}
-                >
-                  Delete Area
-                </Button>
               </FilterBox>
               <ScrollableTableContainer
                 style={{ maxHeight: "calc(80vh - 160px)" }}
@@ -1276,10 +1281,13 @@ export const Admin = () => {
                       <StyledTableCell sx={{ textAlign: "center" }}>
                         Area Name
                       </StyledTableCell>
+                      <StyledTableCell sx={{ textAlign: "center" }}>
+                        Actions
+                      </StyledTableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {area.map((area) => (
+                    {areaActive.map((area) => (
                       <TableRow key={area.areaID}>
                         <TableCell sx={{ textAlign: "center" }}>
                           {area.areaID}
@@ -1290,7 +1298,8 @@ export const Admin = () => {
                         <TableCell sx={{ textAlign: "center" }}>
                           <Button
                             variant="contained"
-                            onClick={() => handleEditArea(area)}
+                            onClick={() => handleEditArea(area.areaID)}
+                            sx={{ marginRight: 1 }} // Add margin to the right of the Edit button
                           >
                             Edit
                           </Button>
@@ -1556,8 +1565,13 @@ export const Admin = () => {
             </DialogActions>
           </Dialog>
 
-          <Dialog open={openAddAreaDialog} onClose={handleCloseAddAreaDialog}>
-            <DialogTitle>Add Area</DialogTitle>
+          <Dialog
+            open={openAddAreaDialog || openEditAreaDialog}
+            onClose={handleCloseAddAreaDialog}
+          >
+            <DialogTitle>
+              {openEditAreaDialog ? "Edit Area" : "Add Area"}
+            </DialogTitle>
             <DialogContent>
               <TextField
                 autoFocus
@@ -1573,8 +1587,11 @@ export const Admin = () => {
               <Button onClick={handleCloseAddAreaDialog} color="secondary">
                 Cancel
               </Button>
-              <Button onClick={handleAddArea} color="primary">
-                Add
+              <Button
+                onClick={openEditAreaDialog ? handleEditArea : handleAddArea}
+                color="primary"
+              >
+                {openEditAreaDialog ? "Edit" : "Add"}
               </Button>
             </DialogActions>
           </Dialog>

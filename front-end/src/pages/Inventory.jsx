@@ -88,7 +88,6 @@ function Inventory({ userInfo }) {
       stock_arrival: rowData.Stock_Arrival.replace(" kg", ""),
       purchase_date: rowData.Purchase_Date.toISOString().split("T")[0],
       expire_date: rowData.Expire_Date.toISOString().split("T")[0],
-      batch_no: rowData.Batch_No,
     });
   
     setProductS(rowData.Product_Name);
@@ -112,7 +111,6 @@ function Inventory({ userInfo }) {
           Supplier: item.supplier_company,
           Purchase_Date: new Date(item.formatted_purchase_date),
           Expire_Date: new Date(item.formatted_expire_date),
-          Batch_No: item.batch_no,
         }));
         setRows(mappedRows);
       })
@@ -165,7 +163,6 @@ function Inventory({ userInfo }) {
       type: "date",
       width: 150,
     },
-    { field: "Batch_No", headerName: "Batch Number", width: 150 },
     {
       field: "actions",
       headerName: "",
@@ -213,7 +210,6 @@ function Inventory({ userInfo }) {
           purchase_date: "",
           expire_date: "",
           productID: "",
-          batch_no: "",
         });
         setProductS("");
         setsupplierS("");
@@ -307,9 +303,9 @@ function Inventory({ userInfo }) {
               color: "white",
             }}
           >
-            Filter by Date
+            Stock Arrivals
           </Button>
-          <div className="">
+          {/* <div className="">
             <Space direction="vertical" size={12}>
               <RangePicker
                 className="h-12"
@@ -321,7 +317,7 @@ function Inventory({ userInfo }) {
                 // onChange={handleDateChange}
               />
             </Space>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex w-1/2 pr-10 justify-end ">
@@ -495,7 +491,7 @@ function Inventory({ userInfo }) {
           </div>
 
           {/* Batch Number Input */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <TextField
               autoFocus
               required
@@ -510,7 +506,7 @@ function Inventory({ userInfo }) {
               value={formData.date}
               onChange={handleChangeForm}
             />
-          </div>
+          </div> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
@@ -643,7 +639,7 @@ function Inventory({ userInfo }) {
           </div>
 
           {/* Batch Number Input */}
-          <div className="mt-4">
+          {/* <div className="mt-4">
             <TextField
               required
               margin="dense"
@@ -657,7 +653,7 @@ function Inventory({ userInfo }) {
               value={formData.batch_no}
               onChange={handleChangeForm}
             />
-          </div>
+          </div> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEdit}>Cancel</Button>

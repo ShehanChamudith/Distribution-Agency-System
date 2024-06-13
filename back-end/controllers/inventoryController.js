@@ -2,13 +2,13 @@ const DBconnect = require('../config/DBconnect');
 
 
 const addInventory = (req, res) => {
-    const { stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID, batch_no } = req.body;
+    const { stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID} = req.body;
 
     // Define the insert query for the inventory table
-    const insertQuery = 'INSERT INTO inventory (stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID, batch_no) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const insertQuery = 'INSERT INTO inventory (stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID) VALUES (?, ?, ?, ?, ?, ?)';
 
     // Execute the insert query for the inventory table
-    DBconnect.query(insertQuery, [stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID, batch_no], (err, result) => {
+    DBconnect.query(insertQuery, [stock_arrival, supplierID, purchase_date, expire_date, productID, wstaffID], (err, result) => {
         if (err) {
             console.error('Error inserting stock into database:', err);
             res.status(500).send('Internal Server Error');
@@ -85,14 +85,13 @@ const updateStock = (req, res) => {
       purchase_date,
       expire_date,
       productID,
-      batch_no,
     } = req.body;
 
-    console.log(inventoryID);
+    console.log(req.body);
   
     const query = `
       UPDATE inventory
-      SET stock_arrival = ?, supplierID = ?, purchase_date = ?, expire_date = ?, productID = ?, batch_no = ?
+      SET stock_arrival = ?, supplierID = ?, purchase_date = ?, expire_date = ?, productID = ?
       WHERE inventoryID = ?
     `;
   
@@ -104,7 +103,6 @@ const updateStock = (req, res) => {
         purchase_date,
         expire_date,
         productID,
-        batch_no,
         inventoryID,
       ],
       (err, result) => {
