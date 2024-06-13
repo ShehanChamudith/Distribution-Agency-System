@@ -1,0 +1,323 @@
+[
+{"type":"header","version":"5.2.1","comment":"Export to JSON plugin for PHPMyAdmin"},
+{"type":"database","name":"development_project"},
+{"type":"table","name":"area","database":"development_project","data":
+[
+{"areaID":"1","area":"Kahawatta","availability":"yes"},
+{"areaID":"2","area":"Balangoda","availability":"yes"},
+{"areaID":"3","area":"Embilipitiya","availability":"yes"}
+]
+}
+,{"type":"table","name":"cash_sale","database":"development_project","data":
+[
+{"cash_saleID":"13","paymentID":"153","cash_amount":"16000","balance":"300"},
+{"cash_saleID":"14","paymentID":"159","cash_amount":"600","balance":"0"},
+{"cash_saleID":"15","paymentID":"164","cash_amount":"1200","balance":"100"},
+{"cash_saleID":"16","paymentID":"166","cash_amount":"7000","balance":"849.89"},
+{"cash_saleID":"17","paymentID":"168","cash_amount":"1200","balance":"50"},
+{"cash_saleID":"18","paymentID":"170","cash_amount":"9000","balance":"600"},
+{"cash_saleID":"19","paymentID":"171","cash_amount":"1100","balance":"50"},
+{"cash_saleID":"20","paymentID":"172","cash_amount":"1020","balance":"0.8"},
+{"cash_saleID":"23","paymentID":"175","cash_amount":"600","balance":"0"}
+]
+}
+,{"type":"table","name":"category","database":"development_project","data":
+[
+{"categoryID":"1","category":"Chicken"},
+{"categoryID":"3","category":"Pork"},
+{"categoryID":"4","category":"Sausages"},
+{"categoryID":"5","category":"Chicken Parts"}
+]
+}
+,{"type":"table","name":"cheque_sale","database":"development_project","data":
+[
+{"cheque_saleID":"13","paymentID":"160","cheque_number":"1","cheque_value":"600","bank_name":"h"},
+{"cheque_saleID":"14","paymentID":"161","cheque_number":"12","cheque_value":"600","bank_name":"hnb"},
+{"cheque_saleID":"15","paymentID":"162","cheque_number":"12","cheque_value":"1400","bank_name":"hnb"},
+{"cheque_saleID":"16","paymentID":"167","cheque_number":"12","cheque_value":"600","bank_name":"hnb"},
+{"cheque_saleID":"17","paymentID":"169","cheque_number":"1234","cheque_value":"1200","bank_name":"HNB"}
+]
+}
+,{"type":"table","name":"credit_sale","database":"development_project","data":
+[
+{"credit_saleID":"107","paymentID":"154","credit_amount":"1400"},
+{"credit_saleID":"108","paymentID":"155","credit_amount":"600"},
+{"credit_saleID":"109","paymentID":"156","credit_amount":"7000"},
+{"credit_saleID":"110","paymentID":"157","credit_amount":"1200"},
+{"credit_saleID":"111","paymentID":"158","credit_amount":"2400"},
+{"credit_saleID":"112","paymentID":"163","credit_amount":"600"},
+{"credit_saleID":"113","paymentID":"165","credit_amount":"600"}
+]
+}
+,{"type":"table","name":"customer","database":"development_project","data":
+[
+{"customerID":"15","userID":"22","shop_name":"Keels Super","areaID":"2"},
+{"customerID":"16","userID":"29","shop_name":"Kahawatta Grocery ","areaID":"1"},
+{"customerID":"17","userID":"21","shop_name":"Sarathchandra Mart","areaID":"3"},
+{"customerID":"24","userID":"51","shop_name":"Meat Super","areaID":"1"}
+]
+}
+,{"type":"table","name":"expenses","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"inventory","database":"development_project","data":
+[
+{"inventoryID":"39","stock_arrival":"1000","supplierID":"1","purchase_date":"2024-06-12","expire_date":"2024-06-29","productID":"145","wstaffID":"2","batch_no":"1"},
+{"inventoryID":"40","stock_arrival":"500","supplierID":"1","purchase_date":"2024-06-12","expire_date":"2024-06-29","productID":"146","wstaffID":"2","batch_no":"1"},
+{"inventoryID":"41","stock_arrival":"100","supplierID":"1","purchase_date":"2024-06-12","expire_date":"2024-06-12","productID":"150","wstaffID":"2","batch_no":"1"},
+{"inventoryID":"42","stock_arrival":"15","supplierID":"1","purchase_date":"2024-06-13","expire_date":"2024-12-10","productID":"154","wstaffID":"2","batch_no":"2"},
+{"inventoryID":"43","stock_arrival":"3","supplierID":"1","purchase_date":"2024-06-14","expire_date":"2024-06-29","productID":"154","wstaffID":"2","batch_no":"3"},
+{"inventoryID":"44","stock_arrival":"30","supplierID":"1","purchase_date":"2024-06-14","expire_date":"2024-06-29","productID":"145","wstaffID":"2","batch_no":"3"}
+]
+}
+,{"type":"table","name":"loading","database":"development_project","data":
+[
+{"loadingID":"102","repID":"1","date":"2024-06-11","vehicleID":"1","total_value":"18000","userID":"15","loading_status":"completed","areaID":"1"},
+{"loadingID":"103","repID":"1","date":"2024-06-11","vehicleID":"1","total_value":"30000","userID":"15","loading_status":"pending","areaID":"1"}
+]
+}
+,{"type":"table","name":"loading_products","database":"development_project","data":
+[
+{"loadingID":"102","productID":"145","quantity":"10"},
+{"loadingID":"102","productID":"149","quantity":"10"},
+{"loadingID":"103","productID":"145","quantity":"5"},
+{"loadingID":"103","productID":"149","quantity":"0"}
+]
+}
+,{"type":"table","name":"officestaff","database":"development_project","data":
+[
+
+]
+}
+,{"type":"table","name":"payment","database":"development_project","data":
+[
+{"paymentID":"153","payment_type":"cash","customerID":"15","saleID":"178","discount":"0","payment_status":"fully paid"},
+{"paymentID":"154","payment_type":"credit","customerID":"16","saleID":"179","discount":"0","payment_status":"fully paid"},
+{"paymentID":"155","payment_type":"credit","customerID":"15","saleID":"180","discount":"0","payment_status":"fully paid"},
+{"paymentID":"156","payment_type":"credit","customerID":"17","saleID":"181","discount":"0","payment_status":"not paid"},
+{"paymentID":"157","payment_type":"credit","customerID":"15","saleID":"182","discount":"0","payment_status":"fully paid"},
+{"paymentID":"158","payment_type":"credit","customerID":"15","saleID":"183","discount":"0","payment_status":"not paid"},
+{"paymentID":"159","payment_type":"cash","customerID":"15","saleID":"184","discount":"0","payment_status":"fully paid"},
+{"paymentID":"160","payment_type":"cheque","customerID":"16","saleID":"185","discount":"0","payment_status":"fully paid"},
+{"paymentID":"161","payment_type":"cheque","customerID":"16","saleID":"186","discount":"0","payment_status":"fully paid"},
+{"paymentID":"162","payment_type":"cheque","customerID":"15","saleID":"187","discount":"0","payment_status":"fully paid"},
+{"paymentID":"163","payment_type":"credit","customerID":"15","saleID":"188","discount":"0","payment_status":"not paid"},
+{"paymentID":"164","payment_type":"cash","customerID":"15","saleID":"189","discount":"100","payment_status":"fully paid"},
+{"paymentID":"165","payment_type":"credit","customerID":"15","saleID":"190","discount":"0","payment_status":"not paid"},
+{"paymentID":"166","payment_type":"cash","customerID":"15","saleID":"191","discount":"149.89","payment_status":"fully paid"},
+{"paymentID":"167","payment_type":"cheque","customerID":"15","saleID":"192","discount":"0","payment_status":"fully paid"},
+{"paymentID":"168","payment_type":"cash","customerID":"15","saleID":"193","discount":"50","payment_status":"fully paid"},
+{"paymentID":"169","payment_type":"cheque","customerID":"15","saleID":"194","discount":"0","payment_status":"fully paid"},
+{"paymentID":"170","payment_type":"cash","customerID":"15","saleID":"195","discount":"0","payment_status":"fully paid"},
+{"paymentID":"171","payment_type":"cash","customerID":"17","saleID":"196","discount":"0","payment_status":"fully paid"},
+{"paymentID":"172","payment_type":"cash","customerID":"16","saleID":"197","discount":"0","payment_status":"fully paid"},
+{"paymentID":"175","payment_type":"cash","customerID":"15","saleID":"200","discount":"0","payment_status":"fully paid"}
+]
+}
+,{"type":"table","name":"payment_log","database":"development_project","data":
+[
+{"logID":"4","payment_type":"cash","amount":"1200","customerID":"15","date":"2024-06-12"},
+{"logID":"5","payment_type":"cash","amount":"5000","customerID":"17","date":"2024-06-12"}
+]
+}
+,{"type":"table","name":"pre_order","database":"development_project","data":
+[
+{"preorderID":"35","total_value":"18000","date":"2024-06-11","customerID":"17","pre_order_status":"pending"},
+{"preorderID":"36","total_value":"6000","date":"2024-06-12","customerID":"15","pre_order_status":"completed"}
+]
+}
+,{"type":"table","name":"pre_order_products","database":"development_project","data":
+[
+{"preorderID":"35","productID":"145","quantity":"10"},
+{"preorderID":"35","productID":"149","quantity":"10"},
+{"preorderID":"36","productID":"149","quantity":"10"}
+]
+}
+,{"type":"table","name":"product","database":"development_project","data":
+[
+{"productID":"145","product_name":"Full Chicken","stock_total":"293","categoryID":"1","wholesale_price":"1000","selling_price":"1200","date_added":"2024-06-11","image_path":"uploads\\1718088532730-892716327.jpg","supplierID":"1","active":"yes"},
+{"productID":"146","product_name":"Half Chicken","stock_total":"41.9","categoryID":"1","wholesale_price":"800","selling_price":"1000","date_added":"2024-06-11","image_path":"uploads\\1718088560826-808800141.jpg","supplierID":"1","active":"yes"},
+{"productID":"147","product_name":"Home Pack 400g","stock_total":"92.544","categoryID":"1","wholesale_price":"500","selling_price":"700","date_added":"2024-06-11","image_path":"uploads\\1718088619294-278816751.jpg","supplierID":"1","active":"yes"},
+{"productID":"149","product_name":"Quarter Chicken","stock_total":"180.89","categoryID":"1","wholesale_price":"400","selling_price":"600","date_added":"2024-06-11","image_path":"uploads\\1718088678959-467655845.jpg","supplierID":"1","active":"yes"},
+{"productID":"150","product_name":"Chicken Breast","stock_total":"95","categoryID":"5","wholesale_price":"1000","selling_price":"1300","date_added":"2024-06-11","image_path":"uploads\\1718088735317-948981312.jpg","supplierID":"1","active":"yes"},
+{"productID":"151","product_name":"Chicken Skinless","stock_total":"98","categoryID":"1","wholesale_price":"1300","selling_price":"1600","date_added":"2024-06-10","image_path":"uploads\\1718088774786-461985344.jpg","supplierID":"1","active":"yes"},
+{"productID":"152","product_name":"Chicken Gizzard","stock_total":"5.7","categoryID":"5","wholesale_price":"500","selling_price":"700","date_added":"2024-06-11","image_path":"uploads\\1718088845795-821183960.jpg","supplierID":"1","active":"yes"},
+{"productID":"153","product_name":"Precut","stock_total":"24","categoryID":"5","wholesale_price":"800","selling_price":"1100","date_added":"2024-06-11","image_path":"uploads\\1718088891289-340293998.jpg","supplierID":"1","active":"yes"},
+{"productID":"154","product_name":"Sasuage 500g","stock_total":"53","categoryID":"4","wholesale_price":"800","selling_price":"1000","date_added":"2024-06-11","image_path":"uploads\\1718089036046-112750840.jpg","supplierID":"3","active":"yes"},
+{"productID":"156","product_name":"Pork","stock_total":"0","categoryID":"3","wholesale_price":"900","selling_price":"1300","date_added":"2024-06-11","image_path":"uploads\\1718089733590-979783119.jpg","supplierID":"3","active":"yes"},
+{"productID":"158","product_name":"Chicken Thigs","stock_total":"0","categoryID":"5","wholesale_price":"300","selling_price":"500","date_added":"2024-06-11","image_path":"uploads\\1718211816161-197890584.jpg","supplierID":"2","active":"yes"},
+{"productID":"159","product_name":"Chicken Breast","stock_total":"0","categoryID":"5","wholesale_price":"800","selling_price":"1200","date_added":"2024-06-13","image_path":"uploads\\1718211893797-749596178.jpg","supplierID":"2","active":"yes"}
+]
+}
+,{"type":"table","name":"productsale","database":"development_project","data":
+[
+{"saleID":"178","productID":"145","quantity":"5"},
+{"saleID":"178","productID":"150","quantity":"5"},
+{"saleID":"178","productID":"151","quantity":"2"},
+{"saleID":"179","productID":"147","quantity":"2"},
+{"saleID":"180","productID":"149","quantity":"1"},
+{"saleID":"181","productID":"145","quantity":"10"},
+{"saleID":"181","productID":"149","quantity":"10"},
+{"saleID":"182","productID":"145","quantity":"1"},
+{"saleID":"183","productID":"145","quantity":"2"},
+{"saleID":"184","productID":"149","quantity":"1"},
+{"saleID":"185","productID":"149","quantity":"1"},
+{"saleID":"186","productID":"149","quantity":"1"},
+{"saleID":"187","productID":"147","quantity":"2"},
+{"saleID":"188","productID":"149","quantity":"1"},
+{"saleID":"189","productID":"149","quantity":"2"},
+{"saleID":"190","productID":"149","quantity":"1"},
+{"saleID":"191","productID":"145","quantity":"3"},
+{"saleID":"191","productID":"146","quantity":"2"},
+{"saleID":"191","productID":"147","quantity":"1"},
+{"saleID":"192","productID":"149","quantity":"1"},
+{"saleID":"193","productID":"145","quantity":"1"},
+{"saleID":"194","productID":"145","quantity":"1"},
+{"saleID":"195","productID":"145","quantity":"7"},
+{"saleID":"196","productID":"147","quantity":"1.5"},
+{"saleID":"197","productID":"147","quantity":"1.456"},
+{"saleID":"200","productID":"149","quantity":"1"}
+]
+}
+,{"type":"table","name":"request_products","database":"development_project","data":
+[
+{"requestID":"31","productID":"149","quantity":"10"},
+{"requestID":"32","productID":"147","quantity":"40"},
+{"requestID":"32","productID":"149","quantity":"10"},
+{"requestID":"33","productID":"149","quantity":"1"},
+{"requestID":"34","productID":"149","quantity":"1"},
+{"requestID":"35","productID":"149","quantity":"2"},
+{"requestID":"36","productID":"149","quantity":"1"},
+{"requestID":"37","productID":"149","quantity":"1"},
+{"requestID":"38","productID":"151","quantity":"1"},
+{"requestID":"39","productID":"151","quantity":"1"},
+{"requestID":"40","productID":"151","quantity":"1"},
+{"requestID":"41","productID":"151","quantity":"1"},
+{"requestID":"42","productID":"151","quantity":"1"},
+{"requestID":"43","productID":"151","quantity":"1"},
+{"requestID":"44","productID":"145","quantity":"30"},
+{"requestID":"44","productID":"149","quantity":"50"},
+{"requestID":"44","productID":"150","quantity":"10"},
+{"requestID":"45","productID":"145","quantity":"30"},
+{"requestID":"45","productID":"149","quantity":"50"},
+{"requestID":"45","productID":"150","quantity":"10"},
+{"requestID":"46","productID":"145","quantity":"30"},
+{"requestID":"46","productID":"149","quantity":"50"},
+{"requestID":"46","productID":"150","quantity":"10"},
+{"requestID":"47","productID":"149","quantity":"1"},
+{"requestID":"48","productID":"149","quantity":"1"},
+{"requestID":"49","productID":"149","quantity":"1"},
+{"requestID":"50","productID":"145","quantity":"2"},
+{"requestID":"50","productID":"146","quantity":"2"},
+{"requestID":"50","productID":"147","quantity":"3"},
+{"requestID":"50","productID":"149","quantity":"3"},
+{"requestID":"50","productID":"150","quantity":"2"},
+{"requestID":"50","productID":"151","quantity":"3"},
+{"requestID":"50","productID":"152","quantity":"4"},
+{"requestID":"50","productID":"153","quantity":"2"}
+]
+}
+,{"type":"table","name":"sale","database":"development_project","data":
+[
+{"saleID":"178","sale_amount":"15700","payment_type":"cash","date":"2024-06-02","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"179","sale_amount":"1400","payment_type":"credit","date":"2024-06-02","note":"Your note here","userID":"15","customerID":"16"},
+{"saleID":"180","sale_amount":"600","payment_type":"credit","date":"2024-06-02","note":"Your note here","userID":"12","customerID":"15"},
+{"saleID":"181","sale_amount":"18000","payment_type":"credit","date":"2024-06-06","note":"Your note here","userID":"32","customerID":"17"},
+{"saleID":"182","sale_amount":"1200","payment_type":"credit","date":"2024-06-06","note":"Your note here","userID":"32","customerID":"15"},
+{"saleID":"183","sale_amount":"2400","payment_type":"credit","date":"2024-06-08","note":"Your note here","userID":"32","customerID":"15"},
+{"saleID":"184","sale_amount":"600","payment_type":"cash","date":"2024-06-09","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"185","sale_amount":"600","payment_type":"cheque","date":"2024-06-09","note":"Your note here","userID":"15","customerID":"16"},
+{"saleID":"186","sale_amount":"600","payment_type":"cheque","date":"2024-06-09","note":"Your note here","userID":"15","customerID":"16"},
+{"saleID":"187","sale_amount":"1400","payment_type":"cheque","date":"2024-06-10","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"188","sale_amount":"600","payment_type":"credit","date":"2024-06-10","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"189","sale_amount":"1200","payment_type":"cash","date":"2024-06-11","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"190","sale_amount":"600","payment_type":"credit","date":"2024-06-11","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"191","sale_amount":"6300","payment_type":"cash","date":"2024-06-11","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"192","sale_amount":"600","payment_type":"cheque","date":"2024-06-12","note":"Your note here","userID":"15","customerID":"15"},
+{"saleID":"193","sale_amount":"1200","payment_type":"cash","date":"2024-06-12","note":"Your note here","userID":"32","customerID":"15"},
+{"saleID":"194","sale_amount":"1200","payment_type":"cheque","date":"2024-06-12","note":"Your note here","userID":"32","customerID":"15"},
+{"saleID":"195","sale_amount":"8400","payment_type":"cash","date":"2024-06-12","note":"Your note here","userID":"12","customerID":"15"},
+{"saleID":"196","sale_amount":"1050","payment_type":"cash","date":"2024-06-12","note":"Your note here","userID":"12","customerID":"17"},
+{"saleID":"197","sale_amount":"1019.2","payment_type":"cash","date":"2024-06-12","note":"Your note here","userID":"12","customerID":"16"},
+{"saleID":"200","sale_amount":"600","payment_type":"cash","date":"2024-06-12","note":"Your note here","userID":"12","customerID":"15"}
+]
+}
+,{"type":"table","name":"salesrep","database":"development_project","data":
+[
+{"repID":"1","userID":"32","hired_date":"2024-06-01","availability":"no"},
+{"repID":"2","userID":"14","hired_date":"2024-06-01","availability":"yes"}
+]
+}
+,{"type":"table","name":"stock_request","database":"development_project","data":
+[
+{"requestID":"31","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"32","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"33","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"34","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"35","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"36","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"37","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"38","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"39","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"40","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"41","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"42","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"43","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"44","date":"2024-06-11","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"45","date":"2024-06-12","supplierID":"1","notes":"Need chicken parts also"},
+{"requestID":"46","date":"2024-06-12","supplierID":"1","notes":"Give me some updates about newly arrived products of your company"},
+{"requestID":"47","date":"2024-06-12","supplierID":"1","notes":"Need some new variants of chicken parts also"},
+{"requestID":"48","date":"2024-06-12","supplierID":"1","notes":"i need some chicken parts also"},
+{"requestID":"49","date":"2024-06-12","supplierID":"1","notes":"i need some chicken parts also"},
+{"requestID":"50","date":"2024-06-12","supplierID":"1","notes":"Need some new variants of chicken parts also"}
+]
+}
+,{"type":"table","name":"supplier","database":"development_project","data":
+[
+{"supplierID":"1","userID":"18","supplier_company":"Crysbro"},
+{"supplierID":"2","userID":"16","supplier_company":"Tops Chicken"},
+{"supplierID":"3","userID":"17","supplier_company":"Nelna"}
+]
+}
+,{"type":"table","name":"user","database":"development_project","data":
+[
+{"userID":"12","usertypeID":"1","username":"shehan","password":"1234","firstname":"Shehan","lastname":"Chamudith","email":"schamudith@gmail.com","phone":"0774439693","address":"Ratnapura","active":"yes"},
+{"userID":"13","usertypeID":"2","username":"achila","password":"1234","firstname":"Achila","lastname":"Dilshan","email":"achila@gmail.com","phone":"0767439893","address":"Kandy","active":"yes"},
+{"userID":"14","usertypeID":"3","username":"zafry","password":"1234","firstname":"Zafry","lastname":"Mubharak","email":"john.doe@example.com","phone":"123456789","address":"New York","active":"yes"},
+{"userID":"15","usertypeID":"4","username":"theeka","password":"1234","firstname":"Theekshana","lastname":"Fernando","email":"jane.smith@example.com","phone":"9876543210","address":"Los Angeles","active":"yes"},
+{"userID":"16","usertypeID":"5","username":"Tops","password":"1234","firstname":"Tops","lastname":"Chicken","email":"shehanchamuscc@gmail.com","phone":"0887736782","address":"Colombo","active":"yes"},
+{"userID":"17","usertypeID":"5","username":"Nelna","password":"1234","firstname":"Nelna","lastname":"Pork","email":"shehanchamu@gmail.com","phone":"0774439693","address":"Colombo","active":"yes"},
+{"userID":"18","usertypeID":"5","username":"Crysbro","password":"1234","firstname":"Crysbro","lastname":"Chicken","email":"ukshehanchamudith@gmail.com","phone":"0774439693","address":"Kahawatta","active":"yes"},
+{"userID":"21","usertypeID":"6","username":"spar","password":"1234","firstname":"Spar","lastname":"Supermarket","email":"sparsuper@gmail.com","phone":"0774439693","address":"Dalugama,Kelaniya","active":"yes"},
+{"userID":"22","usertypeID":"6","username":"keels","password":"1234","firstname":"Keels","lastname":"Super","email":"keels@gmail.com","phone":"0775185791","address":"Colombo","active":"yes"},
+{"userID":"29","usertypeID":"6","username":"kmart","password":"1234","firstname":"Kelani","lastname":"Mart","email":"kelanimart@gmail.com","phone":"0775185791","address":"Dalugama","active":"yes"},
+{"userID":"32","usertypeID":"3","username":"aadil","password":"1234","firstname":"Aadil","lastname":"Nazli","email":"aadil@gmail.com","phone":"0774439693","address":"Galle","active":"yes"},
+{"userID":"38","usertypeID":"4","username":"upeak","password":"1234","firstname":"Upeak","lastname":"Amiru","email":"upeak@gmail.com","phone":"0775185792","address":"Panadura","active":"yes"},
+{"userID":"50","usertypeID":"2","username":"sudeera","password":"$2b$10$\/wWCFMg3VIpIWOh2hRrN4Ocll5p.bxSpXXaYUJwL8nuCdmiIVwA1G","firstname":"Sudheera","lastname":"Gamalath","email":"sgamalath06@gmail.com","phone":"0774439560","address":"Padukka","active":"yes"},
+{"userID":"51","usertypeID":"6","username":"meat","password":"$2b$10$Magqo\/CYnfaYq2ozTvy\/DutG6XTgCj1qe.hEcaXCBnIpriJaseGyO","firstname":"Meat","lastname":"Super","email":"meat@gmail.com","phone":"0774439645","address":"Pelmadulla","active":"yes"}
+]
+}
+,{"type":"table","name":"usertype","database":"development_project","data":
+[
+{"usertypeID":"1","usertype_name":"Admin"},
+{"usertypeID":"2","usertype_name":"Office"},
+{"usertypeID":"3","usertype_name":"SalesRep"},
+{"usertypeID":"4","usertype_name":"Warehouse"},
+{"usertypeID":"5","usertype_name":"Supplier"},
+{"usertypeID":"6","usertype_name":"Customer"}
+]
+}
+,{"type":"table","name":"vehicle","database":"development_project","data":
+[
+{"vehicleID":"1","vehicle_number":"LA-9999","availability":"no"},
+{"vehicleID":"2","vehicle_number":"LD-8888","availability":"yes"}
+]
+}
+,{"type":"table","name":"warehousestaff","database":"development_project","data":
+[
+{"wstaffID":"2","userID":"15","hired_date":"2024-05-01"}
+]
+}
+]
