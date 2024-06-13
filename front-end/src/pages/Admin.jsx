@@ -598,7 +598,7 @@ export const Admin = () => {
           .then((response) => {
             if (response.status === 201) {
               // Area added successfully
-              fetchArea();
+              fetchAreaActive();
               Swal.fire({
                 icon: "success",
                 title: "Area Added",
@@ -654,7 +654,7 @@ export const Admin = () => {
   
         // Close the edit dialog
         setOpenEditAreaDialog(false);
-  
+        fetchAreaActive();
         // Show success alert
         Swal.fire({
           icon: 'success',

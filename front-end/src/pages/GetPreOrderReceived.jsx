@@ -247,8 +247,8 @@ function GetPreOrderReceived() {
                   // Optionally, show an alert or handle this case as needed
                   Swal.fire({
                     icon: "error",
-                    title: "No Pending Status",
-                    text: "No pending loading status found.",
+                    title: "No Active loading found!",
+                    text: "The sales representative must have a active loading to bill!",
                   });
                 }
               })

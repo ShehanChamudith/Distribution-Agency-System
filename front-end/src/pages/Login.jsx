@@ -12,26 +12,6 @@ function Login({ setIsAuthenticated,setUserInfo }) {
   const [error, setError] = useState("");
 
 
-  const popup = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: "Deleted!",
-          text: "Your file has been deleted.",
-          icon: "success",
-        });
-      }
-    });
-  };
-
   const login = () => {
     const data = { username: username, password: password };
 
@@ -107,17 +87,7 @@ function Login({ setIsAuthenticated,setUserInfo }) {
             />
           </div>
         </form>
-        <div className="ml-[385px] mt-[15px]">
-          <button
-            className="border-0  font-PoppinsR text-[13px] text-[#172445]"
-            onClick={() => {
-              //setOpenPopup(true);
-              popup();
-            }}
-          >
-            Forgot Password?
-          </button>
-        </div>
+        
         <div className="text-red-500 ml-[100px] mb-[20px]">{error}</div>{" "}
         {/* Error message */}
         <div className=" ml-[100px] mt-[50px]">

@@ -2,9 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const app = express();
-
+const cron = require('node-cron');
 const multer = require("multer");
 const nodemailer = require("nodemailer");
+const DBconnect = require('./config/DBconnect');
+
 
 
 // Multer setup
@@ -15,7 +17,7 @@ const storage = multer.diskStorage({
     filename: function (req, file, cb) {
       cb(null, file.originalname);
     },
-  });
+  }); 
 
   const upload = multer({ storage: storage });
 
@@ -33,47 +35,41 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Email options
-// const mailOptions = {
-//   from: "schamudith66@gmail.com",
-//   to: "ukshehanchamudith@gmail.com",
-//   subject: "Stock Request Invoice",
-//   text: "Please find attached the stock request invoice.",
-// };
+const checkQuantities = () => {
+  DBconnect.query('SELECT * FROM product WHERE stock_total < threshold', (err, results) => {
+    if (err) throw err;
 
-// Send email
-// transporter.sendMail(mailOptions, (error, info) => {
-//   if (error) {
-//     console.error("Error sending email:", error);
-//     res.status(500).send("Error sending email");
-//   } else {
-//     console.log("Email sent:", info.response);
-//     res.send("Email sent successfully");
-//   }
-// });
+    results.forEach(product => {
+      // Send email notification
+      const mailOptions = {
+        from: 'schamudith66@gmail.com',
+        to: 'ukshehanchamudith@gmail.com',
+        subject: `Low Stock Alert: ${product.product_name}`,
+        text: `The quantity of ${product.product_name} is below the threshold. Current quantity: ${product.total_stock}`
+      };
 
-
-app.post("/sendemail", (req, res) => {
-    const { to, subject, body, attachment } = req.body;
-  
-    const mailOptions = {
-      from: "schamudith66@gmail.com",
-      to: to,
-      subject: subject,
-      text: body,
-      attachments: [{ path: attachment }],
-    };
-  
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-        res.status(500).json({ error: "Failed to send email" });
-      } else {
-        console.log("Email sent:", info.response);
-        res.json({ message: "Email sent successfully" });
-      }
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email: ', error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
     });
   });
+};
+
+// Schedule the checkQuantities function to run every hour
+// cron.schedule('0 * * * *', () => {
+//   console.log('Running scheduled task to check product quantities.');
+//   checkQuantities();
+// });
+
+// Schedule the checkQuantities function to run every minute
+// cron.schedule('* * * * *', () => {
+//   console.log('Running scheduled task to check product quantities.');
+//   checkQuantities();
+// });
 
 
 
