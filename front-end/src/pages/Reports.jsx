@@ -46,7 +46,7 @@ const FilterSales = () => {
     doc.text('Sales Report', 10, 10);
 
     const chartData = {
-      labels: salesData.map((sale) => sale.date),
+        labels: salesData.map((sale) => sale.date.substring(0, 10)),
       datasets: [
         {
           label: 'Sales Amount',
@@ -68,7 +68,7 @@ const FilterSales = () => {
       type: 'bar',
       data: chartData,
       options: {
-        responsive: false, // Disable responsiveness to get a fixed size
+        responsive: true, // Disable responsiveness to get a fixed size
         animation: {
           onComplete: () => {
             // Convert canvas to image
