@@ -91,7 +91,7 @@ export const SideBarData = [
     title: "Reports",
     icon: <AssessmentIcon />,
     link: "/reports",
-    roles: [],
+    roles: [1],
   },
 
   {

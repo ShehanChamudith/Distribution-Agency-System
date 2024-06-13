@@ -109,6 +109,10 @@ app.use("/", preOrderRoute);
 const paymentRoute = require("./routes/paymentRoute");
 app.use("/", paymentRoute);
 
+const reportRoute = require("./routes/reportsRoute");
+app.use("/", reportRoute); 
+
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Start the Express server

@@ -27,6 +27,7 @@ import SaleHistory from "./pages/SaleHistory";
 import StockReq from "./pages/StockReq";
 import SentStockRequests from "./pages/SentStockRequests";
 import BillPreOrders from "./pages/BillPreOrders";
+import FilterSales from "./pages/Reports";
 
 
 function App() {
@@ -127,6 +128,7 @@ function App() {
             <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} userRole={userInfo} roles={[1]} />}>
               <Route path="/stock-request" element={<StockReq userID={userID} />} />
               <Route path="/get-stock-request" element={<SentStockRequests userID={userID} />} />
+              <Route path="/reports" element={<FilterSales userID={userID} />} />
             </Route>
 
             {/* Pre Orders */}
