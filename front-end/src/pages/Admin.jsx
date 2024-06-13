@@ -556,7 +556,15 @@ export const Admin = () => {
   };
 
   const handleCloseAddAreaDialog = () => {
+    // Reset the areaName state variable
+    setAreaName("");
+    // Close both add and edit dialogs
     setOpenAddAreaDialog(false);
+    setOpenEditAreaDialog(false);
+  };
+
+  const handleCloseEditAreaDialog = () => {
+    setOpenEditAreaDialog(false);
   };
 
   const handleAddArea = () => {
@@ -636,6 +644,59 @@ export const Admin = () => {
       // Open the edit dialog
       setOpenEditAreaDialog(true);
     }
+  };
+
+  const handleEditAreaSubmit = () => {
+    const url = `http://localhost:3001/editarea/${editArea}`;
+    axios.put(url, { area_name: areaName })
+      .then((response) => {
+        console.log(response.data); // Handle response from the server
+  
+        // Close the edit dialog
+        setOpenEditAreaDialog(false);
+  
+        // Show success alert
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Area updated successfully',
+        });
+  
+        // Optionally, update the areas list or notify the user
+      })
+      .catch((error) => {
+        console.error('Error updating area:', error);
+  
+        // Check if error is due to existing area
+        if (error.response && error.response.status === 409) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Area with the same name already exists',
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex =
+                "9999";
+            },
+          });
+        } else {
+          // Handle other errors
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update area',
+            customClass: {
+              popup: "z-50",
+            },
+            didOpen: () => {
+              document.querySelector(".swal2-container").style.zIndex =
+                "9999";
+            },
+          });
+        }
+      });
   };
   
 
@@ -1588,7 +1649,7 @@ export const Admin = () => {
                 Cancel
               </Button>
               <Button
-                onClick={openEditAreaDialog ? handleEditArea : handleAddArea}
+                onClick={openEditAreaDialog ? handleEditAreaSubmit : handleAddArea}
                 color="primary"
               >
                 {openEditAreaDialog ? "Edit" : "Add"}

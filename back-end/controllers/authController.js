@@ -95,7 +95,7 @@ const addArea = (req, res) => {
       return res.status(409).json({ message: 'Area already exists' });
     }
 
-    const insertQuery = 'INSERT INTO area (area, availability) VALUES (?, "yes")';
+    const insertQuery = 'INSERT INTO area (area, availability,active) VALUES (?, "yes","yes")';
     DBconnect.query(insertQuery, [area.trim()], (err, result) => {
       if (err) {
         console.error('Error inserting area into the database:', err);
@@ -135,6 +135,42 @@ const deactivateArea = (req, res) => {
   });
 };
 
+const editArea = (req, res) => {
+  const areaID = req.params.areaID;
+  const { area_name } = req.body;
+
+  // Check if the area name is provided
+  if (!area_name || area_name.trim() === '') {
+    return res.status(400).json({ message: 'Area Name cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM area WHERE area = ? AND areaID != ?';
+  DBconnect.query(checkQuery, [area_name.trim(), areaID], (err, existingAreas) => {
+    if (err) {
+      console.error('Error checking area in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingAreas.length > 0) {
+      // Area with the same name already exists, return a 409 status code
+      return res.status(409).json({ message: 'Area with the same name already exists' });
+    }
+
+    // SQL UPDATE query
+    const updateQuery = 'UPDATE area SET area = ? WHERE areaID = ?';
+
+    DBconnect.query(updateQuery, [area_name, areaID], (err, result) => {
+      if (err) {
+        console.error('Error updating area in the database:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      } 
+      res.json({ message: 'Area updated successfully' }); // Send response indicating successful update
+    });
+  });
+};
+
+
 
 
 
@@ -143,4 +179,5 @@ module.exports = {
   verifyPassword,
   addArea,
   deactivateArea,
+  editArea,
 };
