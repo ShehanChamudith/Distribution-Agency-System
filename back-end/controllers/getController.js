@@ -155,6 +155,24 @@ const getCustomer = (req, res) => {
   });
 };
 
+const getRepandWare = (req, res) => {
+  DBconnect.query("SELECT userID, firstname FROM user WHERE usertypeID = 3 OR usertypeID = 4", (err, results) => {
+    if (err) {
+      console.error("Error querying MySQL database:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      console.warn("No data found in customer table");
+      res.status(404).send("No data found");
+      return;
+    }
+
+    res.json(results);
+  });
+};
+
 const getSalesRep = (req, res) => {
   DBconnect.query(
     "SELECT * FROM salesrep INNER JOIN user ON salesrep.userID = user.userID",
@@ -1005,4 +1023,5 @@ module.exports = {
   getTotalofMonth,
   getTotalCounts,
   paymentLog,
+  getRepandWare,
 };

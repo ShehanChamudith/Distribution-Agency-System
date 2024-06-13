@@ -19,7 +19,31 @@ const salesReport = (req, res) => {
     });
   };
 
+  // Assuming you're using Express.js for your backend
+
+// Route for inventory report
+const inventoryReport = (req, res) => {
+    const { startDate, endDate, productID, supplierID } = req.body;
+    console.log(req.body);
+    let query = 'SELECT * FROM inventory WHERE 1=1';
+  
+    if (startDate) query += ` AND purchase_date >= '${startDate}'`;
+    if (endDate) query += ` AND purchase_date <= '${endDate}'`;
+    if (productID) query += ` AND productID IN (SELECT productID FROM product WHERE productID = '${productID}')`;
+    if (supplierID) query += ` AND supplierID = ${supplierID}`;
+  
+    DBconnect.query(query, (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json(results);
+      }
+    });
+};
+
+  
 
   module.exports = {
     salesReport,
+    inventoryReport
   }

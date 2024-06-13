@@ -34,8 +34,12 @@ const { getBestArea } = require('../controllers/getController');
 const { getTotalofMonth } = require('../controllers/getController');
 const { getTotalCounts } = require('../controllers/getController');
 const { paymentLog } = require('../controllers/getController');
+const { getRepandWare } = require('../controllers/getController');
 
 
+
+
+router.get("/repandware", getRepandWare);
 router.get("/inventory", inventoryGet);
 router.get("/category", categoryGet);
 router.get('/editItemDataGet/:productId', getItem);
