@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { TextField, Button, MenuItem, Grid, Typography } from "@mui/material";
 import axios from "axios";
 import jsPDF from "jspdf";
+import { Chart, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from "react-chartjs-2";
-import { Chart } from 'chart.js';
+
+// Register Chart.js components
+Chart.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 const FilterSales = () => {
   const [reportType, setReportType] = useState("Sales Report");
@@ -15,6 +18,7 @@ const FilterSales = () => {
     userID: "",
   });
   const [salesData, setSalesData] = useState([]);
+  const chartRef = useRef(null);
 
   const handleReportTypeChange = (e) => {
     setReportType(e.target.value);
@@ -39,26 +43,38 @@ const FilterSales = () => {
   const generatePDF = () => {
     const doc = new jsPDF();
     doc.text('Sales Report', 10, 10);
-  
+
     const chartData = {
-      labels: salesData.map(sale => sale.date),
+      labels: salesData.map((sale) => sale.date),
       datasets: [
         {
           label: 'Sales Amount',
-          data: salesData.map(sale => sale.sale_amount),
-          backgroundColor: 'rgba(75, 192, 192, 0.6)'
-        }
-      ]
+          data: salesData.map((sale) => sale.sale_amount),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        },
+      ],
     };
-  
+
     const chartCanvas = document.createElement('canvas');
-    new Chart(chartCanvas.getContext('2d'), {
+    const ctx = chartCanvas.getContext('2d');
+
+    // Ensure previous chart is destroyed
+    if (window.chartInstance) {
+      window.chartInstance.destroy();
+    }
+
+    window.chartInstance = new Chart(ctx, {
       type: 'bar',
-      data: chartData
+      data: chartData,
     });
-  
-    doc.addImage(chartCanvas.toDataURL(), 'PNG', 10, 20, 180, 100);
-  
+
+    // Convert canvas to image
+    const imageUrl = chartCanvas.toDataURL();
+
+    // Add image to PDF
+    doc.addImage(imageUrl, 'PNG', 10, 20, 180, 100);
+
+    // Save PDF
     doc.save('sales_report.pdf');
   };
 
@@ -176,6 +192,7 @@ const FilterSales = () => {
 
       {salesData.length > 0 && reportType === "Sales Report" && (
         <Bar
+          ref={chartRef}
           data={{
             labels: salesData.map((sale) => sale.date),
             datasets: [
