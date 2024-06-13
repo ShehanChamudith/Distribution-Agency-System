@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 13, 2024 at 11:29 AM
+-- Generation Time: Jun 14, 2024 at 12:52 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,17 +30,19 @@ SET time_zone = "+00:00";
 CREATE TABLE `area` (
   `areaID` int(10) NOT NULL,
   `area` varchar(30) NOT NULL,
-  `availability` varchar(10) NOT NULL
+  `availability` varchar(10) NOT NULL,
+  `active` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `area`
 --
 
-INSERT INTO `area` (`areaID`, `area`, `availability`) VALUES
-(1, 'Kahawatta', 'yes'),
-(2, 'Balangoda', 'yes'),
-(3, 'Embilipitiya', 'yes');
+INSERT INTO `area` (`areaID`, `area`, `availability`, `active`) VALUES
+(1, 'Kahawatta', 'yes', 'yes'),
+(2, 'Balangoda', 'yes', 'yes'),
+(3, 'Embilipitiya', 'yes', 'yes'),
+(9, 'Pelmadulla', 'yes', 'yes');
 
 -- --------------------------------------------------------
 
@@ -68,7 +70,8 @@ INSERT INTO `cash_sale` (`cash_saleID`, `paymentID`, `cash_amount`, `balance`) V
 (18, 170, 9000, 600),
 (19, 171, 1100, 50),
 (20, 172, 1020, 0.8),
-(23, 175, 600, 0);
+(23, 175, 600, 0),
+(24, 176, 2000, 200);
 
 -- --------------------------------------------------------
 
@@ -192,7 +195,7 @@ CREATE TABLE `inventory` (
   `expire_date` date NOT NULL,
   `productID` int(10) NOT NULL,
   `wstaffID` int(10) NOT NULL,
-  `batch_no` int(10) NOT NULL
+  `batch_no` int(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -200,12 +203,12 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`inventoryID`, `stock_arrival`, `supplierID`, `purchase_date`, `expire_date`, `productID`, `wstaffID`, `batch_no`) VALUES
-(39, 1000, 1, '2024-06-12', '2024-06-29', 145, 2, 1),
-(40, 500, 1, '2024-06-12', '2024-06-29', 146, 2, 1),
-(41, 100, 1, '2024-06-12', '2024-06-12', 150, 2, 1),
-(42, 15, 1, '2024-06-13', '2024-12-10', 154, 2, 2),
-(43, 3, 1, '2024-06-14', '2024-06-29', 154, 2, 3),
-(44, 30, 1, '2024-06-14', '2024-06-29', 145, 2, 3);
+(39, 1000, 1, '2024-06-08', '2024-06-29', 145, 2, 1),
+(40, 500, 3, '2024-06-08', '2024-06-29', 146, 2, 1),
+(41, 100, 2, '2024-06-10', '2024-06-12', 150, 2, 1),
+(42, 15, 3, '2024-06-12', '2024-12-10', 154, 2, 2),
+(43, 3, 3, '2024-06-12', '2024-06-29', 154, 2, 3),
+(44, 30, 1, '2024-06-13', '2024-06-29', 145, 2, 3);
 
 -- --------------------------------------------------------
 
@@ -230,7 +233,7 @@ CREATE TABLE `loading` (
 
 INSERT INTO `loading` (`loadingID`, `repID`, `date`, `vehicleID`, `total_value`, `userID`, `loading_status`, `areaID`) VALUES
 (102, 1, '2024-06-11', 1, 18000, 15, 'completed', 1),
-(103, 1, '2024-06-11', 1, 30000, 15, 'pending', 1);
+(103, 1, '2024-06-11', 1, 30000, 15, 'completed', 1);
 
 -- --------------------------------------------------------
 
@@ -306,7 +309,8 @@ INSERT INTO `payment` (`paymentID`, `payment_type`, `customerID`, `saleID`, `dis
 (170, 'cash', 15, 195, 0, 'fully paid'),
 (171, 'cash', 17, 196, 0, 'fully paid'),
 (172, 'cash', 16, 197, 0, 'fully paid'),
-(175, 'cash', 15, 200, 0, 'fully paid');
+(175, 'cash', 15, 200, 0, 'fully paid'),
+(176, 'cash', 15, 201, 0, 'fully paid');
 
 -- --------------------------------------------------------
 
@@ -328,7 +332,8 @@ CREATE TABLE `payment_log` (
 
 INSERT INTO `payment_log` (`logID`, `payment_type`, `amount`, `customerID`, `date`) VALUES
 (4, 'cash', 1200, 15, '2024-06-12'),
-(5, 'cash', 5000, 17, '2024-06-12');
+(5, 'cash', 5000, 17, '2024-06-12'),
+(6, 'cash', 2000, 15, '2024-06-13');
 
 -- --------------------------------------------------------
 
@@ -389,26 +394,27 @@ CREATE TABLE `product` (
   `date_added` date NOT NULL,
   `image_path` varchar(100) NOT NULL,
   `supplierID` int(10) NOT NULL,
-  `active` varchar(10) NOT NULL
+  `active` varchar(10) NOT NULL,
+  `threshold` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`productID`, `product_name`, `stock_total`, `categoryID`, `wholesale_price`, `selling_price`, `date_added`, `image_path`, `supplierID`, `active`) VALUES
-(145, 'Full Chicken', 293, 1, 1000, 1200, '2024-06-11', 'uploads\\1718088532730-892716327.jpg', 1, 'yes'),
-(146, 'Half Chicken', 41.9, 1, 800, 1000, '2024-06-11', 'uploads\\1718088560826-808800141.jpg', 1, 'yes'),
-(147, 'Home Pack 400g', 92.544, 1, 500, 700, '2024-06-11', 'uploads\\1718088619294-278816751.jpg', 1, 'yes'),
-(149, 'Quarter Chicken', 180.89, 1, 400, 600, '2024-06-11', 'uploads\\1718088678959-467655845.jpg', 1, 'yes'),
-(150, 'Chicken Breast', 95, 5, 1000, 1300, '2024-06-11', 'uploads\\1718088735317-948981312.jpg', 1, 'yes'),
-(151, 'Chicken Skinless', 98, 1, 1300, 1600, '2024-06-10', 'uploads\\1718088774786-461985344.jpg', 1, 'yes'),
-(152, 'Chicken Gizzard', 5.7, 5, 500, 700, '2024-06-11', 'uploads\\1718088845795-821183960.jpg', 1, 'yes'),
-(153, 'Precut', 24, 5, 800, 1100, '2024-06-11', 'uploads\\1718088891289-340293998.jpg', 1, 'yes'),
-(154, 'Sasuage 500g', 53, 4, 800, 1000, '2024-06-11', 'uploads\\1718089036046-112750840.jpg', 3, 'yes'),
-(156, 'Pork', 0, 3, 900, 1300, '2024-06-11', 'uploads\\1718089733590-979783119.jpg', 3, 'yes'),
-(158, 'Chicken Thigs', 0, 5, 300, 500, '2024-06-11', 'uploads\\1718211816161-197890584.jpg', 2, 'yes'),
-(159, 'Chicken Breast', 0, 5, 800, 1200, '2024-06-13', 'uploads\\1718211893797-749596178.jpg', 2, 'yes');
+INSERT INTO `product` (`productID`, `product_name`, `stock_total`, `categoryID`, `wholesale_price`, `selling_price`, `date_added`, `image_path`, `supplierID`, `active`, `threshold`) VALUES
+(145, 'Full Chicken', 293, 1, 1000, 1200, '2024-06-11', 'uploads\\1718088532730-892716327.jpg', 1, 'yes', 10),
+(146, 'Half Chicken', 41.9, 1, 800, 1000, '2024-06-11', 'uploads\\1718088560826-808800141.jpg', 1, 'yes', 10),
+(147, 'Home Pack 400g', 92.544, 1, 500, 700, '2024-06-11', 'uploads\\1718088619294-278816751.jpg', 1, 'yes', 10),
+(149, 'Quarter Chicken', 177.89, 1, 400, 600, '2024-06-11', 'uploads\\1718088678959-467655845.jpg', 1, 'yes', 10),
+(150, 'Chicken Breast', 95, 5, 1000, 1300, '2024-06-11', 'uploads\\1718088735317-948981312.jpg', 1, 'yes', 10),
+(151, 'Chicken Skinless', 98, 1, 1300, 1600, '2024-06-10', 'uploads\\1718088774786-461985344.jpg', 1, 'yes', 10),
+(152, 'Chicken Gizzard', 5.7, 5, 500, 700, '2024-06-11', 'uploads\\1718088845795-821183960.jpg', 1, 'yes', 10),
+(153, 'Precut', 19, 5, 800, 1100, '2024-06-11', 'uploads\\1718088891289-340293998.jpg', 1, 'yes', 10),
+(154, 'Sasuage 500g', 53, 4, 800, 1000, '2024-06-11', 'uploads\\1718089036046-112750840.jpg', 3, 'yes', 10),
+(156, 'Pork', 12, 3, 900, 1300, '2024-06-11', 'uploads\\1718089733590-979783119.jpg', 3, 'yes', 10),
+(158, 'Chicken Thigs', 35, 5, 300, 500, '2024-06-11', 'uploads\\1718211816161-197890584.jpg', 2, 'yes', 10),
+(159, 'Chicken Breast', 100, 5, 800, 1200, '2024-06-13', 'uploads\\1718211893797-749596178.jpg', 2, 'yes', 10);
 
 -- --------------------------------------------------------
 
@@ -452,7 +458,8 @@ INSERT INTO `productsale` (`saleID`, `productID`, `quantity`) VALUES
 (195, 145, 7),
 (196, 147, 1.5),
 (197, 147, 1.456),
-(200, 149, 1);
+(200, 149, 1),
+(201, 149, 3);
 
 -- --------------------------------------------------------
 
@@ -504,7 +511,8 @@ INSERT INTO `request_products` (`requestID`, `productID`, `quantity`) VALUES
 (50, 150, 2),
 (50, 151, 3),
 (50, 152, 4),
-(50, 153, 2);
+(50, 153, 2),
+(54, 149, 4);
 
 -- --------------------------------------------------------
 
@@ -547,7 +555,8 @@ INSERT INTO `sale` (`saleID`, `sale_amount`, `payment_type`, `date`, `note`, `us
 (195, 8400, 'cash', '2024-06-12', 'Your note here', 12, 15),
 (196, 1050, 'cash', '2024-06-12', 'Your note here', 12, 17),
 (197, 1019.2, 'cash', '2024-06-12', 'Your note here', 12, 16),
-(200, 600, 'cash', '2024-06-12', 'Your note here', 12, 15);
+(200, 600, 'cash', '2024-06-12', 'Your note here', 12, 15),
+(201, 1800, 'cash', '2024-06-13', 'Your note here', 12, 15);
 
 -- --------------------------------------------------------
 
@@ -567,7 +576,7 @@ CREATE TABLE `salesrep` (
 --
 
 INSERT INTO `salesrep` (`repID`, `userID`, `hired_date`, `availability`) VALUES
-(1, 32, '2024-06-01', 'no'),
+(1, 32, '2024-06-01', 'yes'),
 (2, 14, '2024-06-01', 'yes');
 
 -- --------------------------------------------------------
@@ -607,7 +616,8 @@ INSERT INTO `stock_request` (`requestID`, `date`, `supplierID`, `notes`) VALUES
 (47, '2024-06-12', 1, 'Need some new variants of chicken parts also'),
 (48, '2024-06-12', 1, 'i need some chicken parts also'),
 (49, '2024-06-12', 1, 'i need some chicken parts also'),
-(50, '2024-06-12', 1, 'Need some new variants of chicken parts also');
+(50, '2024-06-12', 1, 'Need some new variants of chicken parts also'),
+(54, '2024-06-13', 1, 'i need some chicken parts also');
 
 -- --------------------------------------------------------
 
@@ -666,8 +676,8 @@ INSERT INTO `user` (`userID`, `usertypeID`, `username`, `password`, `firstname`,
 (29, 6, 'kmart', '1234', 'Kelani', 'Mart', 'kelanimart@gmail.com', '0775185791', 'Dalugama', 'yes'),
 (32, 3, 'aadil', '1234', 'Aadil', 'Nazli', 'aadil@gmail.com', '0774439693', 'Galle', 'yes'),
 (38, 4, 'upeak', '1234', 'Upeak', 'Amiru', 'upeak@gmail.com', '0775185792', 'Panadura', 'yes'),
-(50, 2, 'sudeera', '$2b$10$/wWCFMg3VIpIWOh2hRrN4Ocll5p.bxSpXXaYUJwL8nuCdmiIVwA1G', 'Sudheera', 'Gamalath', 'sgamalath06@gmail.com', '0774439560', 'Padukka', 'yes'),
-(51, 6, 'meat', '$2b$10$Magqo/CYnfaYq2ozTvy/DutG6XTgCj1qe.hEcaXCBnIpriJaseGyO', 'Meat', 'Super', 'meat@gmail.com', '0774439645', 'Pelmadulla', 'yes');
+(50, 2, 'sudeera', '1234', 'Sudheera', 'Gamalath', 'sgamalath06@gmail.com', '0774439560', 'Padukka', 'yes'),
+(51, 6, 'meat', '1234', 'Meat', 'Super', 'meat@gmail.com', '0774439645', 'Pelmadulla', 'yes');
 
 -- --------------------------------------------------------
 
@@ -709,8 +719,10 @@ CREATE TABLE `vehicle` (
 --
 
 INSERT INTO `vehicle` (`vehicleID`, `vehicle_number`, `availability`) VALUES
-(1, 'LA-9999', 'no'),
-(2, 'LD-8888', 'yes');
+(1, 'LA-9999', 'yes'),
+(2, 'LD-8888', 'yes'),
+(3, 'LA-7777', 'yes'),
+(4, 'LC-4556', 'yes');
 
 -- --------------------------------------------------------
 
@@ -929,13 +941,13 @@ ALTER TABLE `warehousestaff`
 -- AUTO_INCREMENT for table `area`
 --
 ALTER TABLE `area`
-  MODIFY `areaID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `areaID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `cash_sale`
 --
 ALTER TABLE `cash_sale`
-  MODIFY `cash_saleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `cash_saleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `category`
@@ -959,7 +971,7 @@ ALTER TABLE `credit_sale`
 -- AUTO_INCREMENT for table `customer`
 --
 ALTER TABLE `customer`
-  MODIFY `customerID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `customerID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `expenses`
@@ -971,7 +983,7 @@ ALTER TABLE `expenses`
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `inventoryID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `inventoryID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `loading`
@@ -989,13 +1001,13 @@ ALTER TABLE `officestaff`
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `paymentID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
+  MODIFY `paymentID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=177;
 
 --
 -- AUTO_INCREMENT for table `payment_log`
 --
 ALTER TABLE `payment_log`
-  MODIFY `logID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `logID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `pre_order`
@@ -1007,13 +1019,13 @@ ALTER TABLE `pre_order`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `productID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=160;
+  MODIFY `productID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
 
 --
 -- AUTO_INCREMENT for table `sale`
 --
 ALTER TABLE `sale`
-  MODIFY `saleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=201;
+  MODIFY `saleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=202;
 
 --
 -- AUTO_INCREMENT for table `salesrep`
@@ -1025,7 +1037,7 @@ ALTER TABLE `salesrep`
 -- AUTO_INCREMENT for table `stock_request`
 --
 ALTER TABLE `stock_request`
-  MODIFY `requestID` int(1) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `requestID` int(1) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `supplier`
@@ -1037,7 +1049,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `userID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `userID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `usertype`
@@ -1049,7 +1061,7 @@ ALTER TABLE `usertype`
 -- AUTO_INCREMENT for table `vehicle`
 --
 ALTER TABLE `vehicle`
-  MODIFY `vehicleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `vehicleID` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `warehousestaff`
