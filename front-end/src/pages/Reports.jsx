@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
-import { TextField, Button, MenuItem, Grid, Typography } from "@mui/material";
+import { TextField, Button, MenuItem, Grid, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import axios from "axios";
 import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 import { Chart, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from "react-chartjs-2";
 
@@ -43,10 +44,35 @@ const FilterSales = () => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    doc.text('Sales Report', 10, 10);
+
+    // Company details
+    doc.setFontSize(18);
+    doc.text('Maleesha Agency', 10, 20);
+    doc.setFontSize(12);
+    doc.text('Address: Kahawatta', 10, 30);
+    doc.text('Contact: 0774439693', 10, 40);
+
+    // Report title
+    doc.setFontSize(16);
+    doc.text('Sales Report', 10, 50);
+
+    // Add table
+    autoTable(doc, {
+      startY: 60,
+      head: [['Date', 'Customer ID', 'Sale Amount', 'Payment Type', 'User ID']],
+      body: salesData.map(sale => [
+        sale.date.substring(0, 10),
+        sale.customerID,
+        sale.sale_amount,
+        sale.payment_type,
+        sale.userID
+      ]),
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10; // The y position after the table
 
     const chartData = {
-        labels: salesData.map((sale) => sale.date.substring(0, 10)),
+      labels: salesData.map((sale) => sale.date.substring(0, 10)),
       datasets: [
         {
           label: 'Sales Amount',
@@ -68,14 +94,14 @@ const FilterSales = () => {
       type: 'bar',
       data: chartData,
       options: {
-        responsive: true, // Disable responsiveness to get a fixed size
+        responsive: true,
         animation: {
           onComplete: () => {
             // Convert canvas to image
             const imageUrl = chartCanvas.toDataURL();
             
             // Add image to PDF
-            doc.addImage(imageUrl, 'PNG', 10, 20, 190, 150);
+            doc.addImage(imageUrl, 'PNG', 10, finalY, 190, 90);
 
             // Save PDF
             doc.save('sales_report.pdf');
@@ -198,27 +224,55 @@ const FilterSales = () => {
       </div>
 
       {salesData.length > 0 && reportType === "Sales Report" && (
-        <>
-          <Bar
-            ref={chartRef}
-            data={{
-                labels: salesData.map((sale) => sale.date.substring(0, 10)), 
-              datasets: [
-                {
-                  label: "Sales Amount",
-                  data: salesData.map((sale) => sale.sale_amount),
-                  backgroundColor: "rgba(75, 192, 192, 0.6)",
-                },
-              ],
-            }}
-          />
-          <canvas
-            ref={canvasRef}
-            width={1000} // Increased width for better resolution
-            height={600} // Increased height for better resolution
-            style={{ display: 'none' }}
-          />
-        </>
+        <Grid container spacing={2} className="mt-6">
+          <Grid item xs={12} md={6}>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Customer ID</TableCell>
+                    <TableCell>Sale Amount</TableCell>
+                    <TableCell>Payment Type</TableCell>
+                    <TableCell>User ID</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {salesData.map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell>{sale.date.substring(0, 10)}</TableCell>
+                      <TableCell>{sale.customerID}</TableCell>
+                      <TableCell>{sale.sale_amount}</TableCell>
+                      <TableCell>{sale.payment_type}</TableCell>
+                      <TableCell>{sale.userID}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Bar
+              ref={chartRef}
+              data={{
+                labels: salesData.map((sale) => sale.date.substring(0, 10)),
+                datasets: [
+                  {
+                    label: "Sales Amount",
+                    data: salesData.map((sale) => sale.sale_amount),
+                    backgroundColor: "rgba(75, 192, 192, 0.6)",
+                  },
+                ],
+              }}
+            />
+            <canvas
+              ref={canvasRef}
+              width={1000} // Increased width for better resolution
+              height={600} // Increased height for better resolution
+              style={{ display: 'none' }}
+            />
+          </Grid>
+        </Grid>
       )}
     </div>
   );
