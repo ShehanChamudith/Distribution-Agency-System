@@ -269,14 +269,14 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
       return;
     }
 
-    if (enteredQuantity > stock) {
-      setAlert({
-        show: true,
-        severity: "error",
-        message: "Entered quantity exceeds available stock!",
-      });
-      return;
-    }
+    // if (enteredQuantity > stock) {
+    //   setAlert({
+    //     show: true,
+    //     severity: "error",
+    //     message: "Entered quantity exceeds available stock!",
+    //   });
+    //   return;
+    // }
 
     const newItem = { ...item, quantity: enteredQuantity };
 
@@ -365,9 +365,9 @@ function ItemCard({ item, setAddedItems, addedItems, restore, setRestore, restoc
           <Typography gutterBottom variant="h6" component="div">
             {item.product_name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          {/* <Typography variant="body2" color="text.secondary">
             Stock: {stock} kg
-          </Typography>
+          </Typography> */}
           <Button onClick={handleOpen} variant="contained" sx={{ mt: 2 }}>
             Add to Bill
           </Button>

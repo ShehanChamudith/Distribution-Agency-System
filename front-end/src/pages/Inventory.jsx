@@ -72,15 +72,13 @@ function Inventory({ userInfo }) {
   const [rows, setRows] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
 
-
   const getDataForRow = (rowId) => {
     return rows.find((row) => row.id === rowId);
   };
-  
 
   const handleEditClick = (rowId) => {
     const rowData = getDataForRow(rowId);
-  
+
     setFormData({
       id: rowData.id,
       productname: rowData.Product_Name,
@@ -89,13 +87,12 @@ function Inventory({ userInfo }) {
       purchase_date: rowData.Purchase_Date.toISOString().split("T")[0],
       expire_date: rowData.Expire_Date.toISOString().split("T")[0],
     });
-  
+
     setProductS(rowData.Product_Name);
     setsupplierS(rowData.Supplier);
     setIsEditMode(true);
     setOpenEdit(true);
   };
-  
 
   const userRole = userInfo;
 
@@ -191,10 +188,12 @@ function Inventory({ userInfo }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    const apiUrl = isEditMode ? `http://localhost:3001/updatestock/${formData.id}` : "http://localhost:3001/addstock";
+
+    const apiUrl = isEditMode
+      ? `http://localhost:3001/updatestock/${formData.id}`
+      : "http://localhost:3001/addstock";
     const method = isEditMode ? "put" : "post";
-  
+
     axios({
       method: method,
       url: apiUrl,
@@ -202,8 +201,13 @@ function Inventory({ userInfo }) {
     })
       .then((response) => {
         console.log("Form Data:", formData);
-        console.log(isEditMode ? "Stock updated successfully:" : "Stock added successfully:", response.data);
-  
+        console.log(
+          isEditMode
+            ? "Stock updated successfully:"
+            : "Stock added successfully:",
+          response.data
+        );
+
         setFormData({
           stock_arrival: "",
           supplierID: "",
@@ -216,7 +220,9 @@ function Inventory({ userInfo }) {
         setIsEditMode(false);
         Swal.fire({
           icon: "success",
-          title: isEditMode ? "Stock Updated Successfully!" : "Stock Added Successfully!",
+          title: isEditMode
+            ? "Stock Updated Successfully!"
+            : "Stock Added Successfully!",
           customClass: {
             popup: "z-50",
           },
@@ -229,10 +235,12 @@ function Inventory({ userInfo }) {
         });
       })
       .catch((error) => {
-        console.error(isEditMode ? "Error updating stock:" : "Error adding stock:", error);
+        console.error(
+          isEditMode ? "Error updating stock:" : "Error adding stock:",
+          error
+        );
       });
   };
-  
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -243,10 +251,9 @@ function Inventory({ userInfo }) {
   };
 
   const handleCloseEdit = () => {
-    setProductS('');
-    setsupplierS('');
+    setProductS("");
+    setsupplierS("");
     setOpenEdit(false);
-   
   };
 
   useEffect(() => {
@@ -323,13 +330,15 @@ function Inventory({ userInfo }) {
         <div className="flex w-1/2 pr-10 justify-end ">
           <div className="">
             <React.Fragment>
-              <Button
-                className=" h-12 gap-2"
-                variant="contained"
-                onClick={handleClickOpen}
-              >
-                Add Stock <AddCircleOutlineIcon />
-              </Button>
+              {(userInfo === 1 || userInfo === 4) && (
+                <Button
+                  className="h-12 gap-2"
+                  variant="contained"
+                  onClick={handleClickOpen}
+                >
+                  Add Stock <AddCircleOutlineIcon />
+                </Button>
+              )}
             </React.Fragment>
           </div>
         </div>
@@ -510,7 +519,9 @@ function Inventory({ userInfo }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained">Add Item</Button>
+          <Button type="submit" variant="contained">
+            Add Item
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -657,8 +668,10 @@ function Inventory({ userInfo }) {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEdit}>Cancel</Button>
-          <Button type="submit" variant="contained">Update Item</Button>
-        </DialogActions> 
+          <Button type="submit" variant="contained">
+            Update Item
+          </Button>
+        </DialogActions>
       </Dialog>
     </div>
   );

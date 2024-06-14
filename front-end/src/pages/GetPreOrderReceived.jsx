@@ -328,7 +328,7 @@ function GetPreOrderReceived() {
 
   return (
     <div className=" h-[85vh]">
-      <div className="w-screen px-20 py-5 h-[85vh] border border-red-400">
+      <div className="w-screen px-20 py-5 h-[85vh] ">
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Pre Orders" />
           {userInfo !== 3 && <Tab label="Totals of Pending Pre Orders" />}

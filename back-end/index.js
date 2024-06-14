@@ -59,18 +59,60 @@ const checkQuantities = () => {
   });
 };
 
+
+const checkExpiringProducts = () => {
+  const query = `
+    SELECT p.product_name, i.expire_date 
+    FROM product p
+    JOIN inventory i ON p.productID = i.productID
+    WHERE i.expire_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 10 DAY)
+  `;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) throw err;
+
+    results.forEach(product => {
+      // Send email notification
+      const mailOptions = {
+        from: 'schamudith66@gmail.com',
+        to: 'ukshehanchamudith@gmail.com',
+        subject: `Expiring Soon: ${product.product_name}`,
+        text: `The product ${product.product_name} is expiring soon. \n\nExpiration date: ${product.expire_date}`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email: ', error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+    });
+  });
+};
+
+
+
+
 // Schedule the checkQuantities function to run every hour
-// cron.schedule('0 * * * *', () => {
-//   console.log('Running scheduled task to check product quantities.');
-//   checkQuantities();
-// });
+cron.schedule('0 * * * *', () => {
+  console.log('Running scheduled task to check product quantities.');
+  checkQuantities();
+});
 
 // Schedule the checkQuantities function to run every minute
 // cron.schedule('* * * * *', () => {
 //   console.log('Running scheduled task to check product quantities.');
 //   checkQuantities();
+//   checkExpiringProducts();
 // });
 
+
+// cron.schedule('*/30 * * * * *', () => {
+//   console.log('Running scheduled task to check product quantities and expirations.');
+//   checkQuantities();
+//   checkExpiringProducts();
+// });
 
 
 
