@@ -22,6 +22,7 @@ const {getSales} = require('../controllers/getController');
 const {getCreditSales} = require('../controllers/getController');
 const { getPaymentStatus } = require('../controllers/getController');
 const { getArea } = require('../controllers/getController');
+const { getAreaActive } = require('../controllers/getController');
 const { getProductStocks } = require('../controllers/getController');
 const { getStockRequests } = require('../controllers/getController');
 const { getProductStocksLoading } = require('../controllers/getController');
@@ -35,6 +36,7 @@ const { getTotalofMonth } = require('../controllers/getController');
 const { getTotalCounts } = require('../controllers/getController');
 const { paymentLog } = require('../controllers/getController');
 const { getRepandWare } = require('../controllers/getController');
+const { getVehicleActive } = require('../controllers/getController');
 
 
 
@@ -62,6 +64,8 @@ router.get('/getsales', getSales);
 router.get('/getcreditsales', getCreditSales);
 router.get('/getpaymentstatus/:paymentID', getPaymentStatus);
 router.get('/getarea', getArea);
+router.get('/getareaactive', getAreaActive);
+router.get('/getvehicleactive', getVehicleActive);
 router.get('/getstockrequests', getStockRequests);
 router.get('/getuserdel/:deleteUserID', getUserbyIDdel);
 router.get('/getloadingstatus/:repID', getLoadingStatus);

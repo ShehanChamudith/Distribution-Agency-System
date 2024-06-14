@@ -192,7 +192,8 @@ function ProductCatalog({ userInfo }) {
     setAlignment(newAlignment);
   };
 
-  const handleSearchInputChange = (event) => {
+  const handleSearchInputChange = (event, value) => {
+    //setSearchQuery(value);
     setSearchQuery(event.target.value);
   };
 
@@ -352,13 +353,13 @@ export function topdiv(
 
       <div className="flex w-1/3 pr-10   justify-end gap-9  ">
         <div className="flex justify-end ">
-          <Stack spacing={2} sx={{ width: 300 }}>
+          {/* <Stack spacing={2} sx={{ width: 300 }}>
             <Autocomplete
               freeSolo
               id="free-solo-2-demo"
               options={data.map((item) => item.product_name)}
               onChange={(event, value) =>
-                handleSearchInputChange({ target: { value } })
+                handleSearchInputChange({ event, target: { value } })
               }
               renderInput={(params) => (
                 <TextField
@@ -372,7 +373,7 @@ export function topdiv(
                 />
               )}
             />
-          </Stack>
+          </Stack> */}
         </div>
 
         <div className="">

@@ -41,8 +41,6 @@ WHERE BINARY user.username = ? AND BINARY user.password = ? AND user.active = 'y
     }
   );
 };
-
-
 const verifyPassword = (req, res) => {
   const { password } = req.body;
   const query = "SELECT password FROM user WHERE usertypeID = 1 LIMIT 1";
@@ -77,7 +75,205 @@ const verifyPassword = (req, res) => {
   });
 };
 
+const addArea = (req, res) => {
+  const { area } = req.body;
+
+  // Check if the area name is provided
+  if (!area || area.trim() === '') {
+    return res.status(400).json({ message: 'Area Name cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM area WHERE area = ?';
+  DBconnect.query(checkQuery, [area.trim()], (err, existingAreas) => {
+    if (err) {
+      console.error('Error checking area in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingAreas.length > 0) {
+      // Area already exists, return a 409 status code
+      return res.status(409).json({ message: 'Area already exists' });
+    }
+
+    const insertQuery = 'INSERT INTO area (area, availability,active) VALUES (?, "yes","yes")';
+    DBconnect.query(insertQuery, [area.trim()], (err, result) => {
+      if (err) {
+        console.error('Error inserting area into the database:', err);
+        return res.status(500).send('Internal Server Error');
+      }
+
+      if (result.affectedRows === 1) {
+        return res.status(201).json({ message: 'Area added successfully' });
+      } else {
+        return res.status(500).json({ message: 'Failed to add area' });
+      }
+    });
+  });
+};
+
+const deactivateArea = (req, res) => {
+  const { areaID } = req.params;
+  
+
+  // Check if the areaID is provided
+  if (!areaID) {
+      return res.status(400).json({ message: 'Area ID is required' });
+  }
+
+  const updateQuery = 'UPDATE area SET active = "no" WHERE areaID = ?';
+  DBconnect.query(updateQuery, [areaID], (err, result) => {
+      if (err) {
+          console.error('Error updating area in the database:', err);
+          return res.status(500).send('Internal Server Error');
+      }
+
+      if (result.affectedRows === 1) {
+          return res.status(200).json({ message: 'Area deactivated successfully' });
+      } else {
+          return res.status(404).json({ message: 'Area not found' });
+      }
+  });
+};
+
+const editArea = (req, res) => {
+  const areaID = req.params.areaID;
+  const { area_name } = req.body;
+
+  // Check if the area name is provided
+  if (!area_name || area_name.trim() === '') {
+    return res.status(400).json({ message: 'Area Name cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM area WHERE area = ? AND areaID != ?';
+  DBconnect.query(checkQuery, [area_name.trim(), areaID], (err, existingAreas) => {
+    if (err) {
+      console.error('Error checking area in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingAreas.length > 0) {
+      // Area with the same name already exists, return a 409 status code
+      return res.status(409).json({ message: 'Area with the same name already exists' });
+    }
+
+    // SQL UPDATE query
+    const updateQuery = 'UPDATE area SET area = ? WHERE areaID = ?';
+
+    DBconnect.query(updateQuery, [area_name, areaID], (err, result) => {
+      if (err) {
+        console.error('Error updating area in the database:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      } 
+      res.json({ message: 'Area updated successfully' }); // Send response indicating successful update
+    });
+  });
+};
+
+const addVehicle = (req, res) => {
+  const { vehicle_number } = req.body;
+
+  // Check if the vehicle number is provided
+  if (!vehicle_number || vehicle_number.trim() === '') {
+    return res.status(400).json({ message: 'Vehicle Number cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM vehicle WHERE vehicle_number = ?';
+  DBconnect.query(checkQuery, [vehicle_number.trim()], (err, existingVehicles) => {
+    if (err) {
+      console.error('Error checking vehicle in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingVehicles.length > 0) {
+      // Vehicle already exists, return a 409 status code
+      return res.status(409).json({ message: 'Vehicle already exists' });
+    }
+
+    const insertQuery = 'INSERT INTO vehicle (vehicle_number, availability, active) VALUES (?, "yes", "yes")';
+    DBconnect.query(insertQuery, [vehicle_number.trim()], (err, result) => {
+      if (err) {
+        console.error('Error inserting vehicle into the database:', err);
+        return res.status(500).send('Internal Server Error');
+      }
+
+      if (result.affectedRows === 1) {
+        return res.status(201).json({ message: 'Vehicle added successfully' });
+      } else {
+        return res.status(500).json({ message: 'Failed to add vehicle' });
+      }
+    });
+  });
+};
+
+const deactivateVehicle = (req, res) => {
+  const { vehicleID } = req.params;
+
+  // Check if the vehicleID is provided
+  if (!vehicleID) {
+    return res.status(400).json({ message: 'Vehicle ID is required' });
+  }
+
+  const updateQuery = 'UPDATE vehicle SET active = "no" WHERE vehicleID = ?';
+  DBconnect.query(updateQuery, [vehicleID], (err, result) => {
+    if (err) {
+      console.error('Error updating vehicle in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (result.affectedRows === 1) {
+      return res.status(200).json({ message: 'Vehicle deactivated successfully' });
+    } else {
+      return res.status(404).json({ message: 'Vehicle not found' });
+    }
+  });
+};
+
+const editVehicle = (req, res) => {
+  const vehicleID = req.params.vehicleID;
+  const { vehicle_number } = req.body;
+
+  // Check if the vehicle number is provided
+  if (!vehicle_number || vehicle_number.trim() === '') {
+    return res.status(400).json({ message: 'Vehicle Number cannot be empty' });
+  }
+
+  const checkQuery = 'SELECT * FROM vehicle WHERE vehicle_number = ? AND vehicleID != ?';
+  DBconnect.query(checkQuery, [vehicle_number.trim(), vehicleID], (err, existingVehicles) => {
+    if (err) {
+      console.error('Error checking vehicle in the database:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+
+    if (existingVehicles.length > 0) {
+      // Vehicle with the same number already exists, return a 409 status code
+      return res.status(409).json({ message: 'Vehicle with the same number already exists' });
+    }
+
+    // SQL UPDATE query
+    const updateQuery = 'UPDATE vehicle SET vehicle_number = ? WHERE vehicleID = ?';
+
+    DBconnect.query(updateQuery, [vehicle_number, vehicleID], (err, result) => {
+      if (err) {
+        console.error('Error updating vehicle in the database:', err);
+        res.status(500).send('Internal Server Error');
+        return;
+      }
+      res.json({ message: 'Vehicle updated successfully' }); // Send response indicating successful update
+    });
+  });
+};
+
+
+
+
+
+
 module.exports = {
   login,
   verifyPassword,
+  addArea,
+  deactivateArea,
+  editArea,
+  addVehicle, deactivateVehicle, editVehicle
 };

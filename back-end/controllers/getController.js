@@ -691,6 +691,42 @@ const getArea = (req, res) => {
   });
 };
 
+const getAreaActive = (req, res) => {
+  const query = `SELECT * FROM area WHERE active = "yes" `;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in area table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
+const getVehicleActive = (req, res) => {
+  const query = `SELECT * FROM vehicle WHERE active = "yes" `;
+
+  DBconnect.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(200).send("No data in area table");
+    } else {
+      res.json(results);
+    }
+  });
+};
+
 const getProductStocks = (req, res) => {
   const { productIDs } = req.body;
 
@@ -1024,4 +1060,6 @@ module.exports = {
   getTotalCounts,
   paymentLog,
   getRepandWare,
+  getAreaActive,
+  getVehicleActive,
 };
