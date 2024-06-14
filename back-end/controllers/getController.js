@@ -710,7 +710,7 @@ const getAreaActive = (req, res) => {
 };
 
 const getVehicleActive = (req, res) => {
-  const query = `SELECT * FROM vehicle WHERE availability = "yes" `;
+  const query = `SELECT * FROM vehicle WHERE active = "yes" `;
 
   DBconnect.query(query, (err, results) => {
     if (err) {

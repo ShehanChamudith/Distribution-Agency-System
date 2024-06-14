@@ -740,7 +740,7 @@ export const Admin = () => {
 
   const handleEditVehicle = (vehicleID) => {
     // Find the area to edit
-    const vehicleToEdit = vehicle.find((a) => a.vehicleID === vehicleID);
+    const vehicleToEdit = vehicleActive.find((a) => a.vehicleID === vehicleID);
     if (vehicleToEdit) {
       // Set the areaName state variable to the existing area's name
       setVehicleName(vehicleToEdit.vehicle_number);
@@ -1939,7 +1939,7 @@ export const Admin = () => {
                 onClick={openEditVehicleDialog ? handleEditVehicleSubmit : handleAddVehicle}
                 color="primary"
               >
-                {openEditAreaDialog ? "Edit" : "Add"}
+                {openEditVehicleDialog ? "Edit" : "Add"}
               </Button>
             </DialogActions>
           </Dialog>
