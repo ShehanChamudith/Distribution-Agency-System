@@ -45,7 +45,7 @@ const checkQuantities = () => {
         from: 'schamudith66@gmail.com',
         to: 'ukshehanchamudith@gmail.com',
         subject: `Low Stock Alert: ${product.product_name}`,
-        text: `The quantity of ${product.product_name} is below the threshold. Current quantity: ${product.total_stock}`
+        text: `The quantity of ${product.product_name} is below the threshold`
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
