@@ -39,6 +39,7 @@ import Tab from "@mui/material/Tab";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
+// Generate PDF
 const generatePDF = (invoiceData, addedItems, shop_name, username, saleID) => {
   const doc = new jsPDF();
 
@@ -194,6 +195,7 @@ const generatePDF = (invoiceData, addedItems, shop_name, username, saleID) => {
   doc.save(`invoice_${new Date().toISOString()}.pdf`);
 };
 
+
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -227,6 +229,7 @@ function a11yProps(index) {
   };
 }
 
+// Item Card Component
 function ItemCard({
   item,
   setAddedItems,
@@ -277,6 +280,7 @@ function ItemCard({
     setOpen(false);
   };
 
+  // add to bill function
   const handleAddToBill = () => {
     const enteredQuantity = parseFloat(quantity); // Ensure quantity is treated as a number
 
@@ -336,6 +340,7 @@ function ItemCard({
     }
   };
 
+  //alert timeout
   useEffect(() => {
     if (alert.show) {
       const timer = setTimeout(() => {
@@ -348,6 +353,7 @@ function ItemCard({
 
   return (
     <div>
+    {/* alert */}
       {alert.show && (
         <Alert
           severity={alert.severity}
@@ -366,6 +372,7 @@ function ItemCard({
         </Alert>
       )}
 
+{/* item card */}
       <Card
         sx={{
           width: 200,
@@ -432,6 +439,7 @@ function ItemCard({
   );
 }
 
+// Bill Component
 const Bill = ({ userID, username }) => {
   const [alignment, setAlignment] = React.useState("All");
   const [category, setCategory] = useState("All");
@@ -484,6 +492,7 @@ const Bill = ({ userID, username }) => {
   const [area, setArea] = useState([]);
   const [areaID, setSelectedArea] = useState("");
 
+  // proceed to checkout
   const handleProceedToCheckout = () => {
     // Check if any quantity in addedItems is 0
     const hasZeroQuantity = addedItems.some((item) => item.quantity === 0);
@@ -547,6 +556,7 @@ const Bill = ({ userID, username }) => {
     setSelectedArea(event.target.value);
   };
 
+  // Fetch area data
   useEffect(() => {
     axios
       .get("http://localhost:3001/getarea")
@@ -589,6 +599,7 @@ const Bill = ({ userID, username }) => {
     setPaidAmount(newValue);
   };
 
+  
   const handleDiscountChange = (event) => {
     let newValue = event.target.value;
 
@@ -604,6 +615,7 @@ const Bill = ({ userID, username }) => {
     setDiscount(newValue);
   };
 
+  // Calculate the subtotal
   const calculateBalance = () => {
     let totalAfterDiscount = subtotal;
     if (paymentType === "cash") {
@@ -643,6 +655,7 @@ const Bill = ({ userID, username }) => {
     setPrintBill(event.target.checked);
   };
 
+  // create invoice
   const handleCreateInvoice = () => {
     let paidAmountFormatted = parseFloat(paidAmount).toFixed(2);
     let chequeValueFormatted = parseFloat(chequeValue).toFixed(2);
@@ -712,6 +725,7 @@ const Bill = ({ userID, username }) => {
     }
   };
 
+  // Create invoice
   const createInvoice = (saleAmount, paymentType, payment_status) => {
     const invoiceData = {
       sale_amount: saleAmount,
@@ -855,6 +869,7 @@ const Bill = ({ userID, username }) => {
     setOpenNewCustomerDialog(true);
   };
 
+  // Handle dialog close
   const handleNewCustomerDialogClose = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -921,6 +936,7 @@ const Bill = ({ userID, username }) => {
       return;
     }
 
+    // Check if the username or phone number already exists
     checkUserExistence()
       .then((response) => {
         if (response.data.exists) {
@@ -984,6 +1000,7 @@ const Bill = ({ userID, username }) => {
       });
   };
 
+  
   const handleExistingCustomerSubmit = () => {
     setOpenExistingCustomerDialog(false);
     const customer = existingCustomers.find(

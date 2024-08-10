@@ -53,6 +53,7 @@ const FilterSales = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [logData, setLogData] = useState([]);
 
+  // Fetch data from the db
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -94,6 +95,7 @@ const FilterSales = () => {
     });
   };
 
+  // report submit
   const handleSubmit = async () => {
     try {
       let url = "";
@@ -131,6 +133,7 @@ const FilterSales = () => {
     }
   };
 
+  // Generate PDF of report
   const generatePDF = () => {
     const doc = new jsPDF();
     const shopInfo = {

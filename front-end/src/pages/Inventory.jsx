@@ -312,19 +312,7 @@ function Inventory({ userInfo }) {
           >
             Stock Arrivals
           </Button>
-          {/* <div className="">
-            <Space direction="vertical" size={12}>
-              <RangePicker
-                className="h-12"
-                picker="date"
-                id={{
-                  start: "startInput",
-                  end: "endInput",
-                }}
-                // onChange={handleDateChange}
-              />
-            </Space>
-          </div> */}
+         
         </div>
 
         <div className="flex w-1/2 pr-10 justify-end ">

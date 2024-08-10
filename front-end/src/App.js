@@ -42,6 +42,7 @@ function App() {
     decodeTokenFromLocalStorage();
   }, [isAuthenticated]);
 
+  // Decode token from local storage
   const decodeTokenFromLocalStorage = () => {
     const token = sessionStorage.getItem('accessToken');
     if (token) {
@@ -62,6 +63,7 @@ function App() {
     setIsLoading(false);
   };
 
+  // Conditional Sidebar
   function ConditionalSideBar() {
     const location = useLocation();
     // Render Sidebar only if the current location is not the root path ("/")

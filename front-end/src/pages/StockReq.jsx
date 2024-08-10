@@ -570,7 +570,7 @@ const StockReq = ({ userID }) => {
     // Display SweetAlert confirmation dialog
     Swal.fire({
       icon: "warning",
-      title: "Please select a Sale Representative, a Vehicle and a Area!",
+      title: "Please select a Supplier",
       customClass: {
         popup: "z-50",
       },

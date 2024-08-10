@@ -11,7 +11,7 @@ function Login({ setIsAuthenticated,setUserInfo }) {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
-
+// login function
   const login = () => {
     const data = { username: username, password: password };
 
@@ -109,8 +109,4 @@ function Login({ setIsAuthenticated,setUserInfo }) {
 
 export default Login;
 
-// {
-//   headers: {
-//     accessToken: sessionStorage.getItem("accessToken"),
-//   }
-// }
+

@@ -36,6 +36,7 @@ import Swal from "sweetalert2";
 import WhatshotIcon from "@mui/icons-material/Whatshot";
 import CountUp from "react-countup";
 
+//admin interface tabs
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -79,6 +80,7 @@ function a11yProps(index) {
   };
 }
 
+//admin interface
 export const Admin = () => {
   const [value, setValue] = React.useState(0);
   const [users, setUsers] = useState([]);
@@ -122,6 +124,7 @@ export const Admin = () => {
   const [editArea, setEditArea] = useState(null);
   const [editVehicle, setEditVehicle] = useState(null);
 
+  //fetch top sales
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
@@ -176,6 +179,7 @@ export const Admin = () => {
     }
   };
 
+  //confirmations adding user
   const handleNewCustomerDialogClose = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -200,6 +204,7 @@ export const Admin = () => {
     });
   };
 
+  //confirmations editing user
   const handleSubmit = (event) => {
     event.preventDefault();
     if (customerData.password !== confirmPassword) {
@@ -282,6 +287,7 @@ export const Admin = () => {
       });
   };
 
+  
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -308,6 +314,7 @@ export const Admin = () => {
       });
   };
 
+  // fetch area data
   const fetchArea = () => {
     axios
       .get("http://localhost:3001/getarea")
@@ -319,6 +326,7 @@ export const Admin = () => {
       });
   };
 
+  // fetch active area data
   const fetchAreaActive = () => {
     axios
       .get("http://localhost:3001/getareaactive")
@@ -330,6 +338,7 @@ export const Admin = () => {
       });
   };
 
+  // fetch active vehicle data
   const fetchVehicleActive = () => {
     axios
       .get("http://localhost:3001/getvehicleactive")
@@ -354,6 +363,7 @@ export const Admin = () => {
     overflowY: "auto",
   });
 
+  
   const FilterBox = styled(Box)({
     display: "flex",
     gap: "10px",
@@ -366,6 +376,7 @@ export const Admin = () => {
     borderBottom: "1px solid #ddd",
   });
 
+  
   useEffect(() => {
     if (customerData.usertypeID) {
       switch (customerData.usertypeID) {
@@ -390,6 +401,7 @@ export const Admin = () => {
     }
   }, [customerData.usertypeID]);
 
+  // edit user
   const handleEditUser = (event) => {
     event.preventDefault();
 
@@ -402,13 +414,13 @@ export const Admin = () => {
           axios
             .get(`http://localhost:3001/getuser/${editUserID}`)
             .then((userDataResponse) => {
-              const userData = userDataResponse.data[0]; // Assuming response.data is an array
+              const userData = userDataResponse.data[0]; 
 
               // Map the fetched data to the state structure
               setcustomerData({
                 userID: userData.userID,
                 username: userData.username,
-                password: "", // Usually, you wouldn't prefill the password for security reasons
+                password: "", // Don't show the password
                 firstname: userData.firstname,
                 lastname: userData.lastname,
                 email: userData.email,
@@ -447,6 +459,7 @@ export const Admin = () => {
       });
   };
 
+  // delete user
   const handleDeleteUser = (event) => {
     event.preventDefault();
 
@@ -531,6 +544,7 @@ export const Admin = () => {
       });
   };
 
+  //fetch area data
   useEffect(() => {
     const fetchBestArea = async () => {
       try {
@@ -544,6 +558,7 @@ export const Admin = () => {
     fetchBestArea();
   }, []);
 
+  //fetch total sales of the month
   useEffect(() => {
     const fetchTotalMonth = async () => {
       try {
@@ -559,6 +574,7 @@ export const Admin = () => {
     fetchTotalMonth();
   }, []);
 
+  //fetch total employees
   useEffect(() => {
     fetch("http://localhost:3001/getemp")
       .then((response) => response.json())
@@ -751,6 +767,7 @@ export const Admin = () => {
     }
   };
 
+  //edit area
   const handleEditAreaSubmit = () => {
     const url = `http://localhost:3001/editarea/${editArea}`;
     axios.put(url, { area_name: areaName })
@@ -804,6 +821,7 @@ export const Admin = () => {
       });
   };
 
+  //edit vehicle
   const handleEditVehicleSubmit = () => {
     const url = `http://localhost:3001/editvehicle/${editVehicle}`;
     axios.put(url, { vehicle_number: vehicleName })
@@ -857,7 +875,7 @@ export const Admin = () => {
       });
   };
   
-
+//delete area
   const handleDeleteArea = (areaID) => {
     // Show a confirmation dialog before deleting the area
     Swal.fire({
@@ -948,6 +966,7 @@ export const Admin = () => {
               <Tab label="Vehicles of the Agency" {...a11yProps(3)} />
             </Tabs>
           </Box>
+{/* // Overview Tab */}
           <CustomTabPanel value={value} index={0}>
             <div className="flex w-full  ">
               <div className="flex flex-col w-full gap-4 ">
@@ -1074,7 +1093,7 @@ export const Admin = () => {
               </div>
             </div>
           </CustomTabPanel>
-
+{/* // Users Tab */}
           <CustomTabPanel value={value} index={1}>
             <Paper>
               <FilterBox className="w-full p-3 justify-end">
@@ -1515,7 +1534,7 @@ export const Admin = () => {
               </ScrollableTableContainer>
             </Paper>
           </CustomTabPanel>
-
+{/* // Selling Areas Tab */}
           <CustomTabPanel value={value} index={2}>
             <Paper>
               <FilterBox className="w-full p-3 justify-end">
@@ -1574,7 +1593,7 @@ export const Admin = () => {
               </ScrollableTableContainer>
             </Paper>
           </CustomTabPanel>
-
+{/* // Vehicles Tab */}
           <CustomTabPanel value={value} index={3}>
             <Paper>
               <FilterBox className="w-full p-3 justify-end">
@@ -1633,7 +1652,7 @@ export const Admin = () => {
               </ScrollableTableContainer>
             </Paper>
           </CustomTabPanel>
-
+{/* // Add New User Dialog */}
           <Dialog
             open={openNewCustomerDialog}
             onClose={handleNewCustomerDialogClose}
@@ -1822,7 +1841,7 @@ export const Admin = () => {
               </Button>
             </DialogActions>
           </Dialog>
-
+{/* // Edit User Dialog */}
           <Dialog
             open={openEditUserDialog}
             onClose={() => setOpenEditUserDialog(false)}
@@ -1851,7 +1870,7 @@ export const Admin = () => {
               </Button>
             </DialogActions>
           </Dialog>
-
+{/* // Delete User Dialog */}
           <Dialog
             open={openDeleteUserDialog}
             onClose={() => setOpenDeleteUserDialog(false)}
@@ -1880,7 +1899,7 @@ export const Admin = () => {
               </Button>
             </DialogActions>
           </Dialog>
-
+{/* // Add Area Dialog */}
           <Dialog
             open={openAddAreaDialog || openEditAreaDialog}
             onClose={handleCloseAddAreaDialog}
@@ -1911,8 +1930,7 @@ export const Admin = () => {
               </Button>
             </DialogActions>
           </Dialog>
-
-
+{/* // Add Vehicle Dialog */}
           <Dialog
             open={openAddVehicleDialog || openEditVehicleDialog}
             onClose={handleCloseAddVehicleDialog}

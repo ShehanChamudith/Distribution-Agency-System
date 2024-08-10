@@ -121,6 +121,7 @@ function ProductCatalog({ userInfo }) {
       return;
     }
 
+    // Check if the product already exists
     axios
       .post("http://localhost:3001/checkitem", {
         product_name: formData.product_name,
