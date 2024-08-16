@@ -123,7 +123,7 @@ export const Admin = () => {
   const [vehicleName, setVehicleName] = useState("");
   const [editArea, setEditArea] = useState(null);
   const [editVehicle, setEditVehicle] = useState(null);
-
+  const apiURL = "http://localhost:3001";
   //fetch top sales
   useEffect(() => {
     const fetchTopProducts = async () => {
